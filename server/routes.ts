@@ -7,7 +7,7 @@ import { z } from "zod";
 
 // Mock Telegram notification service
 class TelegramNotificationService {
-  async sendNotification(userId: string, title: string, message: string) {
+  async sendNotification(userId: string, title: string, message: string, type: string) {
     // In a real implementation, this would send to Telegram
     console.log(`[TELEGRAM] Sending to user ${userId}: ${title} - ${message}`);
     
@@ -16,7 +16,7 @@ class TelegramNotificationService {
       userId,
       title,
       message,
-      type: "trip_created", // Default type, could be more specific
+      type: type as any,
     });
   }
 
@@ -27,7 +27,8 @@ class TelegramNotificationService {
     await this.sendNotification(
       driverId,
       "Trip Created",
-      `Your trip from ${trip.fromLocation} to ${trip.toLocation} has been created successfully.`
+      `Your trip from ${trip.fromLocation} to ${trip.toLocation} has been created successfully.`,
+      "trip_created"
     );
   }
 
@@ -38,7 +39,8 @@ class TelegramNotificationService {
     await this.sendNotification(
       driverId,
       "New Ride Request",
-      `You have a new ride request from ${request.fromLocation} to ${request.toLocation}.`
+      `You have a new ride request from ${request.fromLocation} to ${request.toLocation}.`,
+      "request_received"
     );
   }
 
@@ -49,7 +51,8 @@ class TelegramNotificationService {
     await this.sendNotification(
       riderId,
       "Ride Request Accepted",
-      `Your ride request has been accepted for the trip from ${trip.fromLocation} to ${trip.toLocation}.`
+      `Your ride request has been accepted for the trip from ${trip.fromLocation} to ${trip.toLocation}.`,
+      "request_accepted"
     );
   }
 
@@ -57,7 +60,8 @@ class TelegramNotificationService {
     await this.sendNotification(
       riderId,
       "Ride Request Declined",
-      "Your ride request has been declined. Please try another trip."
+      "Your ride request has been declined. Please try another trip.",
+      "request_declined"
     );
   }
 
@@ -70,7 +74,8 @@ class TelegramNotificationService {
     await this.sendNotification(
       userId,
       "New Trip Available",
-      `A new trip matching your request is available from ${trip.fromLocation} to ${trip.toLocation} departing at ${new Date(trip.departureTime).toLocaleString()}. Click here to join: ${dashboardUrl}`
+      `A new trip matching your request is available from ${trip.fromLocation} to ${trip.toLocation} departing at ${new Date(trip.departureTime).toLocaleString()}. Click here to join: ${dashboardUrl}`,
+      "trip_match_found"
     );
   }
 }
