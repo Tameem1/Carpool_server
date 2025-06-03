@@ -82,9 +82,10 @@ const requireRole = (roles: string[]) => {
   };
 };
 
+import session from 'express-session';
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Simple auth setup
-  const session = require('express-session');
   
   app.use(session({
     secret: 'demo-secret-key',
@@ -512,7 +513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if trip has enough seats
-      if (trip.availableSeats < request.passengerCount) {
+      if (trip.availableSeats < (request.passengerCount || 1)) {
         return res.status(400).json({ message: "Not enough available seats" });
       }
 
@@ -598,13 +599,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const allTrips = await storage.getAllTrips();
       const allUsers = Array.from((storage as any).users.values());
-      const allRequests = Array.from((storage as any).rideRequests.values());
+      const allRequests = await storage.getPendingRideRequests();
 
       const stats = {
         activeTrips: allTrips.filter(t => t.status === 'active').length,
         totalUsers: allUsers.length,
         completedTrips: allTrips.filter(t => t.status === 'completed').length,
-        pendingRequests: allRequests.filter(r => r.status === 'pending').length,
+        pendingRequests: allRequests.length,
       };
 
       res.json(stats);
