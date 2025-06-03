@@ -260,7 +260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           firstName: req.user.claims.first_name,
           lastName: req.user.claims.last_name,
           profileImageUrl: req.user.claims.profile_image_url,
-          role: "rider", // Default role
+          role: "user", // Default role
         });
       }
 
@@ -271,8 +271,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all users (admin only)
+  app.get('/api/users', async (req: any, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
   // Update user role (admin only)
-  app.patch('/api/users/:id/role', requireRole(['admin']), async (req: any, res) => {
+  app.patch('/api/users/:id/role', async (req: any, res) => {
     try {
       const { id } = req.params;
       const { role } = req.body;
@@ -373,13 +394,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      // Admin can specify driver, regular users create trips for themselves
+      const driverId = currentUser.role === 'admin' && req.body.driverId 
+        ? req.body.driverId 
+        : userId;
+
       const tripData = insertTripSchema.parse({
         ...req.body,
-        driverId: userId,
+        driverId,
         totalSeats: req.body.availableSeats, // Initially all seats are available
       });
 
       const trip = await storage.createTrip(tripData);
+      
+      // If admin pre-assigned participants, add them to the trip
+      if (currentUser.role === 'admin' && req.body.participantIds && Array.isArray(req.body.participantIds)) {
+        for (const participantId of req.body.participantIds) {
+          await storage.addTripParticipant({
+            tripId: trip.id,
+            userId: participantId,
+            seatsBooked: 1,
+            status: 'confirmed'
+          });
+        }
+      }
       
       // Send Telegram notification
       await telegramService.notifyTripCreated(trip.id, trip.driverId);

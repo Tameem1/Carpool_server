@@ -22,6 +22,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: InsertUser): Promise<User>;
   updateUserRole(id: string, role: UserRole): Promise<User>;
+  getAllUsers(): Promise<User[]>;
   
   // Trip operations
   createTrip(trip: InsertTrip): Promise<Trip>;
@@ -72,6 +73,58 @@ export class MemStorage implements IStorage {
     this.currentRideRequestId = 1;
     this.currentParticipantId = 1;
     this.currentNotificationId = 1;
+    
+    // Add sample users for testing
+    this.initializeSampleUsers();
+  }
+
+  private initializeSampleUsers() {
+    const sampleUsers = [
+      {
+        id: 'driver-1',
+        email: 'alice.driver@demo.com',
+        firstName: 'Alice',
+        lastName: 'Johnson',
+        role: 'user' as UserRole,
+        profileImageUrl: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'driver-2', 
+        email: 'bob.driver@demo.com',
+        firstName: 'Bob',
+        lastName: 'Smith',
+        role: 'user' as UserRole,
+        profileImageUrl: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'rider-1',
+        email: 'charlie.rider@demo.com',
+        firstName: 'Charlie',
+        lastName: 'Brown',
+        role: 'user' as UserRole,
+        profileImageUrl: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'rider-2',
+        email: 'diana.rider@demo.com',
+        firstName: 'Diana',
+        lastName: 'Wilson',
+        role: 'user' as UserRole,
+        profileImageUrl: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    ];
+
+    sampleUsers.forEach(user => {
+      this.users.set(user.id, user);
+    });
   }
 
   // User operations
@@ -102,6 +155,10 @@ export class MemStorage implements IStorage {
     const updatedUser: User = { ...user, role, updatedAt: new Date() };
     this.users.set(id, updatedUser);
     return updatedUser;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
   }
 
   // Trip operations
