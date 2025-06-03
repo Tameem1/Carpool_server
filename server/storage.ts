@@ -16,6 +16,8 @@ import {
   type InsertNotification,
   type UserRole,
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -52,169 +54,170 @@ export interface IStorage {
   markNotificationAsRead(id: number): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private trips: Map<number, Trip>;
-  private rideRequests: Map<number, RideRequest>;
-  private tripParticipants: Map<number, TripParticipant>;
-  private notifications: Map<number, Notification>;
-  private currentTripId: number;
-  private currentRideRequestId: number;
-  private currentParticipantId: number;
-  private currentNotificationId: number;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.users = new Map();
-    this.trips = new Map();
-    this.rideRequests = new Map();
-    this.tripParticipants = new Map();
-    this.notifications = new Map();
-    this.currentTripId = 1;
-    this.currentRideRequestId = 1;
-    this.currentParticipantId = 1;
-    this.currentNotificationId = 1;
-    
-    // Add sample users for testing
+    // Initialize sample users for testing (one-time setup)
     this.initializeSampleUsers();
   }
 
-  private initializeSampleUsers() {
-    const sampleUsers = [
-      {
-        id: 'driver-1',
-        email: 'alice.driver@demo.com',
-        firstName: 'Alice',
-        lastName: 'Johnson',
-        role: 'user' as UserRole,
-        profileImageUrl: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: 'driver-2', 
-        email: 'bob.driver@demo.com',
-        firstName: 'Bob',
-        lastName: 'Smith',
-        role: 'user' as UserRole,
-        profileImageUrl: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: 'rider-1',
-        email: 'charlie.rider@demo.com',
-        firstName: 'Charlie',
-        lastName: 'Brown',
-        role: 'user' as UserRole,
-        profileImageUrl: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: 'rider-2',
-        email: 'diana.rider@demo.com',
-        firstName: 'Diana',
-        lastName: 'Wilson',
-        role: 'user' as UserRole,
-        profileImageUrl: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    ];
+  private async initializeSampleUsers() {
+    try {
+      // Check if users already exist to avoid duplicates
+      const existingUsers = await db.select().from(users).limit(1);
+      if (existingUsers.length > 0) return;
 
-    sampleUsers.forEach(user => {
-      this.users.set(user.id, user);
-    });
+      const sampleUsers = [
+        {
+          id: 'admin-1',
+          email: 'admin@demo.com',
+          firstName: 'Admin',
+          lastName: 'User',
+          role: 'admin' as UserRole,
+          profileImageUrl: null,
+        },
+        {
+          id: 'driver-1',
+          email: 'alice.driver@demo.com',
+          firstName: 'Alice',
+          lastName: 'Johnson',
+          role: 'user' as UserRole,
+          profileImageUrl: null,
+        },
+        {
+          id: 'driver-2', 
+          email: 'bob.driver@demo.com',
+          firstName: 'Bob',
+          lastName: 'Smith',
+          role: 'user' as UserRole,
+          profileImageUrl: null,
+        },
+        {
+          id: 'rider-1',
+          email: 'charlie.rider@demo.com',
+          firstName: 'Charlie',
+          lastName: 'Brown',
+          role: 'user' as UserRole,
+          profileImageUrl: null,
+        },
+        {
+          id: 'rider-2',
+          email: 'diana.rider@demo.com',
+          firstName: 'Diana',
+          lastName: 'Wilson',
+          role: 'user' as UserRole,
+          profileImageUrl: null,
+        }
+      ];
+
+      await db.insert(users).values(sampleUsers);
+    } catch (error) {
+      console.log('Sample users may already exist or database not ready:', error);
+    }
   }
 
   // User operations
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async upsertUser(userData: InsertUser): Promise<User> {
-    const existing = this.users.get(userData.id!);
-    const user: User = {
-      id: userData.id!,
-      email: userData.email || null,
-      firstName: userData.firstName || null,
-      lastName: userData.lastName || null,
-      profileImageUrl: userData.profileImageUrl || null,
-      role: userData.role || "user",
-      createdAt: existing?.createdAt || new Date(),
-      updatedAt: new Date(),
-    };
-    this.users.set(user.id, user);
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: userData.id!,
+        email: userData.email || null,
+        firstName: userData.firstName || null,
+        lastName: userData.lastName || null,
+        profileImageUrl: userData.profileImageUrl || null,
+        role: userData.role || "user",
+      })
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          email: userData.email || null,
+          firstName: userData.firstName || null,
+          lastName: userData.lastName || null,
+          profileImageUrl: userData.profileImageUrl || null,
+          role: userData.role || "user",
+          updatedAt: new Date(),
+        }
+      })
+      .returning();
     return user;
   }
 
   async updateUserRole(id: string, role: UserRole): Promise<User> {
-    const user = this.users.get(id);
+    const [user] = await db
+      .update(users)
+      .set({ role, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
     if (!user) throw new Error("User not found");
-    
-    const updatedUser: User = { ...user, role, updatedAt: new Date() };
-    this.users.set(id, updatedUser);
-    return updatedUser;
+    return user;
   }
 
   async getAllUsers(): Promise<User[]> {
-    return Array.from(this.users.values());
+    return await db.select().from(users);
   }
 
   // Trip operations
   async createTrip(tripData: InsertTrip): Promise<Trip> {
-    const id = this.currentTripId++;
-    const trip: Trip = {
-      id,
-      driverId: tripData.driverId || '',
-      fromLocation: tripData.fromLocation,
-      toLocation: tripData.toLocation,
-      departureTime: tripData.departureTime,
-      availableSeats: tripData.availableSeats,
-      totalSeats: tripData.totalSeats ?? tripData.availableSeats,
-
-      isRecurring: tripData.isRecurring || null,
-      recurringDays: tripData.recurringDays || null,
-      notes: tripData.notes || null,
-      status: tripData.status || "active",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.trips.set(id, trip);
+    const [trip] = await db
+      .insert(trips)
+      .values({
+        driverId: tripData.driverId || '',
+        fromLocation: tripData.fromLocation,
+        toLocation: tripData.toLocation,
+        departureTime: tripData.departureTime,
+        availableSeats: tripData.availableSeats,
+        totalSeats: tripData.totalSeats ?? tripData.availableSeats,
+        isRecurring: tripData.isRecurring || false,
+        recurringDays: tripData.recurringDays || null,
+        notes: tripData.notes || null,
+        status: tripData.status || "active",
+      })
+      .returning();
     return trip;
   }
 
   async getTrip(id: number): Promise<Trip | undefined> {
-    return this.trips.get(id);
+    const [trip] = await db.select().from(trips).where(eq(trips.id, id));
+    return trip || undefined;
   }
 
   async getUserTrips(userId: string): Promise<Trip[]> {
-    return Array.from(this.trips.values()).filter(trip => trip.driverId === userId);
+    return await db.select().from(trips).where(eq(trips.driverId, userId));
   }
 
   async getAllTrips(): Promise<Trip[]> {
-    return Array.from(this.trips.values());
+    return await db.select().from(trips);
   }
 
   async updateTrip(id: number, updates: Partial<InsertTrip>): Promise<Trip> {
-    const trip = this.trips.get(id);
+    const [trip] = await db
+      .update(trips)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(trips.id, id))
+      .returning();
     if (!trip) throw new Error("Trip not found");
-    
-    const updatedTrip: Trip = { ...trip, ...updates, updatedAt: new Date() };
-    this.trips.set(id, updatedTrip);
-    return updatedTrip;
+    return trip;
   }
 
   async deleteTrip(id: number): Promise<void> {
-    this.trips.delete(id);
-    // Also remove participants
-    Array.from(this.tripParticipants.values())
-      .filter(p => p.tripId === id)
-      .forEach(p => this.tripParticipants.delete(p.id));
+    // First remove participants
+    await db.delete(tripParticipants).where(eq(tripParticipants.tripId, id));
+    // Then remove the trip
+    await db.delete(trips).where(eq(trips.id, id));
   }
 
   async searchTrips(fromLocation?: string, toLocation?: string, date?: Date): Promise<Trip[]> {
-    return Array.from(this.trips.values()).filter(trip => {
+    let query = db.select().from(trips).where(eq(trips.status, "active"));
+    
+    // Note: This is a simplified search. For production, you'd want to use proper text search capabilities
+    const allTrips = await query;
+    
+    return allTrips.filter(trip => {
       if (fromLocation && !trip.fromLocation.toLowerCase().includes(fromLocation.toLowerCase())) {
         return false;
       }
@@ -228,115 +231,110 @@ export class MemStorage implements IStorage {
           return false;
         }
       }
-      return trip.status === "active" && trip.availableSeats > 0;
+      return trip.availableSeats > 0;
     });
   }
 
   // Ride request operations
   async createRideRequest(requestData: InsertRideRequest): Promise<RideRequest> {
-    const id = this.currentRideRequestId++;
-    const request: RideRequest = {
-      id,
-      riderId: requestData.riderId,
-      fromLocation: requestData.fromLocation,
-      toLocation: requestData.toLocation,
-      preferredTime: requestData.preferredTime,
-      passengerCount: requestData.passengerCount || 1,
-      notes: requestData.notes || null,
-      status: requestData.status || "pending",
-      tripId: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.rideRequests.set(id, request);
+    const [request] = await db
+      .insert(rideRequests)
+      .values({
+        riderId: requestData.riderId,
+        fromLocation: requestData.fromLocation,
+        toLocation: requestData.toLocation,
+        preferredTime: requestData.preferredTime,
+        passengerCount: requestData.passengerCount || 1,
+        notes: requestData.notes || null,
+        status: requestData.status || "pending",
+        tripId: null,
+      })
+      .returning();
     return request;
   }
 
   async getRideRequest(id: number): Promise<RideRequest | undefined> {
-    return this.rideRequests.get(id);
+    const [request] = await db.select().from(rideRequests).where(eq(rideRequests.id, id));
+    return request || undefined;
   }
 
   async getUserRideRequests(userId: string): Promise<RideRequest[]> {
-    return Array.from(this.rideRequests.values()).filter(request => request.riderId === userId);
+    return await db.select().from(rideRequests).where(eq(rideRequests.riderId, userId));
   }
 
   async getPendingRideRequests(): Promise<RideRequest[]> {
-    return Array.from(this.rideRequests.values()).filter(request => request.status === "pending");
+    return await db.select().from(rideRequests).where(eq(rideRequests.status, "pending"));
   }
 
   async updateRideRequestStatus(id: number, status: RideRequest["status"], tripId?: number): Promise<RideRequest> {
-    const request = this.rideRequests.get(id);
+    const [request] = await db
+      .update(rideRequests)
+      .set({ 
+        status, 
+        tripId: tripId || undefined,
+        updatedAt: new Date() 
+      })
+      .where(eq(rideRequests.id, id))
+      .returning();
     if (!request) throw new Error("Ride request not found");
-    
-    const updatedRequest: RideRequest = { 
-      ...request, 
-      status, 
-      tripId: tripId || request.tripId,
-      updatedAt: new Date() 
-    };
-    this.rideRequests.set(id, updatedRequest);
-    return updatedRequest;
+    return request;
   }
 
   async deleteRideRequest(id: number): Promise<void> {
-    this.rideRequests.delete(id);
+    await db.delete(rideRequests).where(eq(rideRequests.id, id));
   }
 
   // Trip participant operations
   async addTripParticipant(participantData: InsertTripParticipant): Promise<TripParticipant> {
-    const id = this.currentParticipantId++;
-    const participant: TripParticipant = {
-      id,
-      tripId: participantData.tripId,
-      userId: participantData.userId,
-      seatsBooked: participantData.seatsBooked || 1,
-      status: participantData.status || "pending",
-      joinedAt: new Date(),
-    };
-    this.tripParticipants.set(id, participant);
+    const [participant] = await db
+      .insert(tripParticipants)
+      .values({
+        tripId: participantData.tripId,
+        userId: participantData.userId,
+        seatsBooked: participantData.seatsBooked || 1,
+        status: participantData.status || "pending",
+      })
+      .returning();
     return participant;
   }
 
   async getTripParticipants(tripId: number): Promise<TripParticipant[]> {
-    return Array.from(this.tripParticipants.values()).filter(p => p.tripId === tripId);
+    return await db.select().from(tripParticipants).where(eq(tripParticipants.tripId, tripId));
   }
 
   async removeTripParticipant(tripId: number, userId: string): Promise<void> {
-    const participant = Array.from(this.tripParticipants.values())
-      .find(p => p.tripId === tripId && p.userId === userId);
-    if (participant) {
-      this.tripParticipants.delete(participant.id);
-    }
+    await db.delete(tripParticipants)
+      .where(and(eq(tripParticipants.tripId, tripId), eq(tripParticipants.userId, userId)));
   }
 
   // Notification operations
   async createNotification(notificationData: InsertNotification): Promise<Notification> {
-    const id = this.currentNotificationId++;
-    const notification: Notification = {
-      id,
-      userId: notificationData.userId,
-      title: notificationData.title,
-      message: notificationData.message,
-      type: notificationData.type,
-      isRead: notificationData.isRead || false,
-      createdAt: new Date(),
-    };
-    this.notifications.set(id, notification);
+    const [notification] = await db
+      .insert(notifications)
+      .values({
+        userId: notificationData.userId,
+        title: notificationData.title,
+        message: notificationData.message,
+        type: notificationData.type,
+        isRead: notificationData.isRead || false,
+      })
+      .returning();
     return notification;
   }
 
   async getUserNotifications(userId: string): Promise<Notification[]> {
-    return Array.from(this.notifications.values())
-      .filter(notification => notification.userId === userId)
-      .sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime());
+    return await db.select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(notifications.createdAt);
   }
 
   async markNotificationAsRead(id: number): Promise<void> {
-    const notification = this.notifications.get(id);
-    if (notification) {
-      this.notifications.set(id, { ...notification, isRead: true });
-    }
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, id));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp, varchar } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -65,6 +66,52 @@ export const notifications = pgTable("notifications", {
   isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  trips: many(trips),
+  rideRequests: many(rideRequests),
+  tripParticipants: many(tripParticipants),
+  notifications: many(notifications),
+}));
+
+export const tripsRelations = relations(trips, ({ one, many }) => ({
+  driver: one(users, {
+    fields: [trips.driverId],
+    references: [users.id],
+  }),
+  participants: many(tripParticipants),
+  rideRequests: many(rideRequests),
+}));
+
+export const rideRequestsRelations = relations(rideRequests, ({ one }) => ({
+  rider: one(users, {
+    fields: [rideRequests.riderId],
+    references: [users.id],
+  }),
+  trip: one(trips, {
+    fields: [rideRequests.tripId],
+    references: [trips.id],
+  }),
+}));
+
+export const tripParticipantsRelations = relations(tripParticipants, ({ one }) => ({
+  trip: one(trips, {
+    fields: [tripParticipants.tripId],
+    references: [trips.id],
+  }),
+  user: one(users, {
+    fields: [tripParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+}));
 
 // Insert schemas
 export const insertTripSchema = createInsertSchema(trips).omit({
