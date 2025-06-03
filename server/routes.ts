@@ -107,51 +107,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Demo Login</title>
+          <title>Login - RideShare Pro</title>
           <style>
-            body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 20px; }
-            .user-card { border: 1px solid #ccc; padding: 20px; margin: 10px 0; border-radius: 8px; cursor: pointer; }
-            .user-card:hover { background-color: #f5f5f5; }
-            h1 { color: #00D4AA; }
+            body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; background: #f8fafc; }
+            .login-form { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            h1 { color: #00D4AA; text-align: center; margin-bottom: 30px; }
+            .form-group { margin-bottom: 20px; }
+            label { display: block; margin-bottom: 5px; font-weight: 500; color: #374151; }
+            input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 16px; }
+            input:focus { outline: none; border-color: #00D4AA; box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1); }
+            .btn { width: 100%; padding: 12px; background: #00D4AA; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
+            .btn:hover { background: #00b896; }
+            .demo-accounts { margin-top: 20px; padding: 15px; background: #f3f4f6; border-radius: 6px; }
+            .demo-accounts h3 { margin: 0 0 10px 0; font-size: 14px; color: #6b7280; }
+            .demo-account { font-size: 12px; color: #6b7280; margin: 2px 0; }
+            .error { color: #ef4444; font-size: 14px; margin-top: 10px; }
           </style>
         </head>
         <body>
-          <h1>RideShare Pro - Demo Login</h1>
-          <p>Choose a demo user to login as:</p>
-          ${demoUsers.map(user => `
-            <div class="user-card" onclick="loginAs('${user.id}')">
-              <strong>${user.firstName} ${user.lastName}</strong><br>
-              <em>${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</em><br>
-              ${user.email}
+          <div class="login-form">
+            <h1>RideShare Pro</h1>
+            <form id="loginForm">
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+              </div>
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+              </div>
+              <button type="submit" class="btn">Login</button>
+              <div id="error" class="error" style="display: none;"></div>
+            </form>
+            
+            <div class="demo-accounts">
+              <h3>Demo Accounts:</h3>
+              <div class="demo-account">Admin: admin@demo.com / admin123</div>
+              <div class="demo-account">User: john@demo.com / user123</div>
+              <div class="demo-account">User: jane@demo.com / user123</div>
             </div>
-          `).join('')}
+          </div>
+          
           <script>
-            function loginAs(userId) {
-              fetch('/api/demo-login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId })
-              }).then(() => {
-                window.location.href = '/';
-              });
-            }
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+              e.preventDefault();
+              const email = document.getElementById('email').value;
+              const password = document.getElementById('password').value;
+              const errorDiv = document.getElementById('error');
+              
+              try {
+                const response = await fetch('/api/auth/login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email, password })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                  window.location.href = '/';
+                } else {
+                  errorDiv.textContent = result.message || 'Login failed';
+                  errorDiv.style.display = 'block';
+                }
+              } catch (error) {
+                errorDiv.textContent = 'Network error. Please try again.';
+                errorDiv.style.display = 'block';
+              }
+            });
           </script>
         </body>
       </html>
     `);
   });
 
-  app.post("/api/demo-login", async (req, res) => {
-    const { userId } = req.body;
-    const user = demoUsers.find(u => u.id === userId);
+  // Real authentication endpoint
+  app.post("/api/auth/login", async (req, res) => {
+    const { email, password } = req.body;
     
-    if (!user) {
-      return res.status(400).json({ message: "Invalid user" });
+    // Demo credentials
+    const credentials = {
+      "admin@demo.com": { password: "admin123", user: demoUsers[0] },
+      "john@demo.com": { password: "user123", user: demoUsers[1] },
+      "jane@demo.com": { password: "user123", user: demoUsers[2] },
+    };
+    
+    const credential = credentials[email as keyof typeof credentials];
+    
+    if (!credential || credential.password !== password) {
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    await storage.upsertUser(user);
-    (req as any).session.userId = userId;
-    res.json({ success: true });
+    // Store user and create session
+    await storage.upsertUser(credential.user);
+    (req as any).session.userId = credential.user.id;
+    res.json({ success: true, user: credential.user });
   });
 
   app.get("/api/logout", (req, res) => {

@@ -13,7 +13,7 @@ interface TripCardProps {
     departureTime: string;
     availableSeats: number;
     totalSeats: number;
-    pricePerSeat: number;
+
     driver?: {
       id: string;
       firstName: string;
