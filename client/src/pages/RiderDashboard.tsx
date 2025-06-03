@@ -263,6 +263,7 @@ export default function RiderDashboard() {
                     trip={trip}
                     onRequestSeat={handleRequestSeat}
                     userRole="rider"
+                    currentUserId={user?.id}
                   />
                 ))}
               </div>

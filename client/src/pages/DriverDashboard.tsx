@@ -219,6 +219,7 @@ export default function DriverDashboard() {
                     trip={trip}
                     showActions={false}
                     userRole="driver"
+                    currentUserId={user?.id}
                   />
                 ))}
               </div>
