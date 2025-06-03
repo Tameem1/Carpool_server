@@ -115,7 +115,7 @@ export class MemStorage implements IStorage {
       departureTime: tripData.departureTime,
       availableSeats: tripData.availableSeats,
       totalSeats: tripData.totalSeats,
-      pricePerSeat: tripData.pricePerSeat,
+
       isRecurring: tripData.isRecurring || null,
       recurringDays: tripData.recurringDays || null,
       notes: tripData.notes || null,

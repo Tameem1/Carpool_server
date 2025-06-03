@@ -97,8 +97,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Demo users
   const demoUsers = [
     { id: "admin-1", email: "admin@demo.com", firstName: "Admin", lastName: "User", role: "admin" as const, profileImageUrl: null },
-    { id: "driver-1", email: "driver@demo.com", firstName: "John", lastName: "Driver", role: "driver" as const, profileImageUrl: null },
-    { id: "rider-1", email: "rider@demo.com", firstName: "Jane", lastName: "Rider", role: "rider" as const, profileImageUrl: null },
+    { id: "user-1", email: "john@demo.com", firstName: "John", lastName: "Smith", role: "user" as const, profileImageUrl: null },
+    { id: "user-2", email: "jane@demo.com", firstName: "Jane", lastName: "Doe", role: "user" as const, profileImageUrl: null },
   ];
 
   // Login routes

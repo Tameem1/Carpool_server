@@ -3,7 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // User roles enum
-export const userRoles = ["admin", "driver", "rider"] as const;
+export const userRoles = ["admin", "user"] as const;
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
@@ -11,7 +11,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role", { enum: userRoles }).notNull().default("rider"),
+  role: varchar("role", { enum: userRoles }).notNull().default("user"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -24,7 +24,7 @@ export const trips = pgTable("trips", {
   departureTime: timestamp("departure_time").notNull(),
   availableSeats: integer("available_seats").notNull(),
   totalSeats: integer("total_seats").notNull(),
-  pricePerSeat: integer("price_per_seat").notNull(), // in cents
+
   isRecurring: boolean("is_recurring").default(false),
   recurringDays: text("recurring_days"), // JSON array of days
   notes: text("notes"),
