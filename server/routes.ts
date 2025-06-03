@@ -434,6 +434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(trip);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Validation errors:", JSON.stringify(error.errors, null, 2));
         return res.status(400).json({ message: "Invalid input", errors: error.errors });
       }
       console.error("Error creating trip:", error);
