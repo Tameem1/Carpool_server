@@ -32,7 +32,7 @@ interface TripCardProps {
 
 export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = true, userRole }: TripCardProps) {
   const departureDate = new Date(trip.departureTime);
-  const price = trip.pricePerSeat / 100; // Convert cents to dollars
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -60,10 +60,9 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
               {format(departureDate, "MMMM d, yyyy 'at' h:mm a")}
             </p>
           </div>
-          <div className="text-right">
-            <div className="text-lg font-bold text-primary">${price}</div>
-            <div className="text-sm text-gray-600">per person</div>
-          </div>
+          <Badge className={getStatusColor(trip.status)}>
+            {trip.status}
+          </Badge>
         </div>
 
         {trip.driver && (

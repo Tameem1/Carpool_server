@@ -18,7 +18,6 @@ const tripFormSchema = z.object({
   toLocation: z.string().min(1, "Destination is required"),
   departureTime: z.string().min(1, "Date and time are required"),
   availableSeats: z.number().min(1, "At least 1 seat required").max(8, "Maximum 8 seats"),
-  pricePerSeat: z.number().min(1, "Price must be at least $0.01"),
   isRecurring: z.boolean().default(false),
   recurringDays: z.array(z.string()).optional(),
   notes: z.string().optional(),

@@ -6,9 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigation } from "@/components/Navigation";
 import Landing from "@/pages/Landing";
-import AdminDashboard from "@/pages/AdminDashboard";
-import DriverDashboard from "@/pages/DriverDashboard";
-import RiderDashboard from "@/pages/RiderDashboard";
+import Dashboard from "@/pages/Dashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -32,9 +30,7 @@ function Router() {
             {() => (
               <div className="min-h-screen bg-background">
                 <Navigation />
-                {user?.role === 'admin' && <AdminDashboard />}
-                {user?.role === 'driver' && <DriverDashboard />}
-                {user?.role === 'rider' && <RiderDashboard />}
+                {user?.role === 'admin' ? <AdminDashboard /> : <DriverDashboard />}
               </div>
             )}
           </Route>
