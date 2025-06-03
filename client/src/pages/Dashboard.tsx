@@ -4,17 +4,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TripCard } from "@/components/TripCard";
 import { TripForm } from "@/components/TripForm";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, Calendar, Users, MapPin, Settings } from "lucide-react";
+import { Plus, Calendar, Users, MapPin, Settings, Filter } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [showTripForm, setShowTripForm] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("active");
 
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
-    queryKey: ["/api/trips"],
+    queryKey: ["/api/trips", { status: statusFilter }],
+    queryFn: () => fetch(`/api/trips?status=${statusFilter}`).then(res => res.json()),
   });
 
   const { data: myTrips = [], isLoading: myTripsLoading } = useQuery({
@@ -101,7 +104,22 @@ export default function Dashboard() {
         <TabsContent value="all-trips" className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Available Trips</h2>
-            <Badge variant="secondary">{trips.length} trips available</Badge>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-gray-500" />
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Badge variant="secondary">{trips.length} trips</Badge>
+            </div>
           </div>
           
           {trips.length === 0 ? (

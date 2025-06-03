@@ -322,7 +322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Trip routes
   app.get('/api/trips', async (req: any, res) => {
     try {
-      const { from, to, date } = req.query;
+      const { from, to, date, status } = req.query;
       const searchDate = date ? new Date(date) : undefined;
       
       // Get current user to check if admin
@@ -334,14 +334,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isAdmin = user?.role === 'admin';
       }
       
-      // Admin sees all trips, others see only available trips
+      // Get trips based on status filter
       let trips;
-      if (isAdmin && !from && !to && !date) {
-        // Admin without filters sees ALL trips
+      if (status === 'all') {
         trips = await storage.getAllTrips();
+      } else if (status === 'inactive') {
+        const allTrips = await storage.getAllTrips();
+        trips = allTrips.filter(trip => trip.status !== 'active');
       } else {
-        // Use search with filters (still filters out full trips for non-admins)
-        trips = await storage.searchTrips(from, to, searchDate);
+        // Default to active trips only
+        const allTrips = await storage.getAllTrips();
+        trips = allTrips.filter(trip => trip.status === 'active');
+      }
+      
+      // Apply additional filters if provided
+      if (from || to || date) {
+        trips = trips.filter(trip => {
+          if (from && !trip.fromLocation.toLowerCase().includes(from.toLowerCase())) {
+            return false;
+          }
+          if (to && !trip.toLocation.toLowerCase().includes(to.toLowerCase())) {
+            return false;
+          }
+          if (date) {
+            const tripDate = new Date(trip.departureTime);
+            const searchDate = new Date(date);
+            if (tripDate.toDateString() !== searchDate.toDateString()) {
+              return false;
+            }
+          }
+          return true;
+        });
+      }
+      
+      // For non-admin users, filter out full trips unless they specifically want to see all
+      if (!isAdmin && status !== 'all') {
+        trips = trips.filter(trip => trip.availableSeats > 0);
       }
       
       // Enrich with driver info and sync available seats with riders
