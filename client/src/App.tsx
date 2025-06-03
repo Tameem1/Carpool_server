@@ -30,7 +30,7 @@ function Router() {
             {() => (
               <div className="min-h-screen bg-background">
                 <Navigation />
-                {user?.role === 'admin' ? <AdminDashboard /> : <DriverDashboard />}
+                <Dashboard />
               </div>
             )}
           </Route>
