@@ -49,17 +49,6 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Debug logging
-  console.log('TripCard Debug:', {
-    currentUserId,
-    tripDriverId: trip.driver?.id,
-    tripRiders: trip.riders,
-    availableSeats: trip.availableSeats,
-    tripStatus: trip.status,
-    showActions,
-    userRole
-  });
-
   // Fetch all users for the dropdown (admin only)
   const { data: users } = useQuery({
     queryKey: ['/api/users'],
