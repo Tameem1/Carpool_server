@@ -1,0 +1,183 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+
+const rideRequestFormSchema = z.object({
+  fromLocation: z.string().min(1, "Pickup location is required"),
+  toLocation: z.string().min(1, "Destination is required"),
+  preferredTime: z.string().min(1, "Preferred time is required"),
+  passengerCount: z.number().min(1, "At least 1 passenger required").max(4, "Maximum 4 passengers"),
+  notes: z.string().optional(),
+});
+
+type RideRequestFormData = z.infer<typeof rideRequestFormSchema>;
+
+interface RideRequestFormProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const form = useForm<RideRequestFormData>({
+    resolver: zodResolver(rideRequestFormSchema),
+    defaultValues: {
+      fromLocation: "",
+      toLocation: "",
+      preferredTime: "",
+      passengerCount: 1,
+      notes: "",
+    },
+  });
+
+  const createRequestMutation = useMutation({
+    mutationFn: async (data: RideRequestFormData) => {
+      const payload = {
+        ...data,
+        preferredTime: new Date(data.preferredTime).toISOString(),
+      };
+      return await apiRequest("POST", "/api/ride-requests", payload);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Ride Request Submitted",
+        description: "Your ride request has been submitted. Drivers will be notified!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/ride-requests/my"] });
+      onClose();
+      form.reset();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit ride request",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: RideRequestFormData) => {
+    createRequestMutation.mutate(data);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Request a Ride</DialogTitle>
+        </DialogHeader>
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="fromLocation"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>From</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Pickup location" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="toLocation"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>To</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Destination" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="preferredTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preferred Date & Time</FormLabel>
+                  <FormControl>
+                    <Input type="datetime-local" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="passengerCount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Number of Passengers</FormLabel>
+                  <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select passenger count" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {[1, 2, 3, 4].map((num) => (
+                        <SelectItem key={num} value={num.toString()}>
+                          {num} passenger{num > 1 ? 's' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Additional Requirements</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Any special requirements or notes..." 
+                      rows={3} 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end space-x-3 pt-4 border-t">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createRequestMutation.isPending}>
+                {createRequestMutation.isPending ? "Submitting..." : "Request Ride"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
