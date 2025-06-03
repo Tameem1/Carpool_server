@@ -55,6 +55,8 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
         description: "Your ride request has been submitted. Drivers will be notified!",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/ride-requests/my"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ride-requests/all"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ride-requests"] });
       onClose();
       form.reset();
     },

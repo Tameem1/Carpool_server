@@ -1,14 +1,17 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, Users, MessageSquare } from "lucide-react";
+import { MapPin, Clock, Users, MessageSquare, Plus } from "lucide-react";
 import { format } from "date-fns";
+import { RideRequestForm } from "@/components/RideRequestForm";
 
 export default function Requests() {
   const { user } = useAuth();
+  const [showRequestForm, setShowRequestForm] = useState(false);
 
   const { data: allRequests = [], isLoading } = useQuery({
     queryKey: ["/api/ride-requests/all"],
@@ -37,8 +40,19 @@ export default function Requests() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">All Ride Requests</h2>
-        <p className="text-gray-600">Browse all pending ride requests from users</p>
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">All Ride Requests</h2>
+            <p className="text-gray-600">Browse all pending ride requests from users</p>
+          </div>
+          <Button 
+            onClick={() => setShowRequestForm(true)} 
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Request Ride
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -141,6 +155,11 @@ export default function Requests() {
           )}
         </CardContent>
       </Card>
+
+      <RideRequestForm 
+        open={showRequestForm} 
+        onClose={() => setShowRequestForm(false)}
+      />
     </div>
   );
 }
