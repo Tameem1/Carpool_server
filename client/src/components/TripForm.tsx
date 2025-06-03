@@ -56,7 +56,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
   const isAdmin = user?.role === 'admin';
 
   // Fetch users for admin
-  const { data: users = [] } = useQuery({
+  const { data: users = [] } = useQuery<any[]>({
     queryKey: ['/api/users'],
     enabled: isAdmin,
   });
@@ -85,14 +85,22 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       };
       
       if (trip?.id) {
-        return await apiRequest(`/api/trips/${trip.id}`, {
+        return await fetch(`/api/trips/${trip.id}`, {
           method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
+        }).then(res => {
+          if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+          return res.json();
         });
       } else {
-        return await apiRequest("/api/trips", {
+        return await fetch("/api/trips", {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
+        }).then(res => {
+          if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+          return res.json();
         });
       }
     },
