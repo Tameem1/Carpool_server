@@ -88,9 +88,14 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
   // Remove rider mutation
   const removeRiderMutation = useMutation({
     mutationFn: async (userId: string) => {
-      return apiRequest(`/api/trips/${trip.id}/riders/${userId}`, {
+      const response = await fetch(`/api/trips/${trip.id}/riders/${userId}`, {
         method: 'DELETE'
       });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to remove rider');
+      }
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
@@ -111,9 +116,14 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
   // Delete trip mutation
   const deleteTripMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/trips/${trip.id}`, {
+      const response = await fetch(`/api/trips/${trip.id}`, {
         method: 'DELETE'
       });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete trip');
+      }
+      return response.ok;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
@@ -232,9 +242,9 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
                   <SelectValue placeholder="Select a user" />
                 </SelectTrigger>
                 <SelectContent>
-                  {users
+                  {(users as any[])
                     ?.filter((user: any) => 
-                      user.id !== trip.driverId && 
+                      user.id !== trip.driver?.id && 
                       !trip.riders?.includes(user.id)
                     )
                     .map((user: any) => (
@@ -247,7 +257,7 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
               <Button
                 size="sm"
                 onClick={() => selectedUserId && addRiderMutation.mutate(selectedUserId)}
-                disabled={!selectedUserId || addRiderMutation.isPending || trip.riders?.length >= trip.totalSeats}
+                disabled={!selectedUserId || addRiderMutation.isPending || (trip.riders?.length || 0) >= trip.totalSeats}
               >
                 <UserPlus className="h-4 w-4 mr-1" />
                 Add
@@ -290,6 +300,17 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
                   onClick={() => onCancel(trip.id)}
                 >
                   Cancel
+                </Button>
+              )}
+              {userRole === 'admin' && (
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => deleteTripMutation.mutate()}
+                  disabled={deleteTripMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete
                 </Button>
               )}
             </div>
