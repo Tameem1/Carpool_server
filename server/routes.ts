@@ -404,11 +404,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? req.body.driverId 
         : userId;
 
+      console.log('Trip creation payload:', req.body);
+      
       const tripData = insertTripSchema.parse({
         ...req.body,
         driverId,
         totalSeats: req.body.availableSeats, // Initially all seats are available
       });
+      
+      console.log('Parsed trip data:', tripData);
 
       const trip = await storage.createTrip(tripData);
       

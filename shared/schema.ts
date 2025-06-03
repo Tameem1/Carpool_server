@@ -75,6 +75,7 @@ export const insertTripSchema = createInsertSchema(trips).omit({
   departureTime: z.string().transform((str) => new Date(str)),
   driverId: z.string().optional(), // Allow admin to specify driver
   participantIds: z.array(z.string()).optional(), // Admin can pre-assign participants
+  totalSeats: z.number().optional(), // Make optional since it's derived from availableSeats
 });
 
 export const insertRideRequestSchema = createInsertSchema(rideRequests).omit({
