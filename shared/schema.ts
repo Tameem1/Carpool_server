@@ -133,6 +133,8 @@ export const insertRideRequestSchema = createInsertSchema(rideRequests).omit({
   createdAt: true,
   updatedAt: true,
   tripId: true,
+}).extend({
+  preferredTime: z.string().transform((str) => new Date(str)),
 });
 
 export const insertTripParticipantSchema = createInsertSchema(tripParticipants).omit({
