@@ -166,7 +166,7 @@ export class MemStorage implements IStorage {
     const id = this.currentTripId++;
     const trip: Trip = {
       id,
-      driverId: tripData.driverId,
+      driverId: tripData.driverId || '',
       fromLocation: tripData.fromLocation,
       toLocation: tripData.toLocation,
       departureTime: tripData.departureTime,

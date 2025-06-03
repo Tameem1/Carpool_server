@@ -9,9 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 const tripFormSchema = z.object({
   fromLocation: z.string().min(1, "Pickup location is required"),
@@ -21,6 +24,8 @@ const tripFormSchema = z.object({
   isRecurring: z.boolean().default(false),
   recurringDays: z.array(z.string()).optional(),
   notes: z.string().optional(),
+  driverId: z.string().optional(),
+  participantIds: z.array(z.string()).optional(),
 });
 
 type TripFormData = z.infer<typeof tripFormSchema>;
@@ -28,7 +33,7 @@ type TripFormData = z.infer<typeof tripFormSchema>;
 interface TripFormProps {
   open: boolean;
   onClose: () => void;
-  trip?: any; // For editing existing trips
+  trip?: any;
 }
 
 const daysOfWeek = [
@@ -44,7 +49,17 @@ const daysOfWeek = [
 export function TripForm({ open, onClose, trip }: TripFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+
+  const isAdmin = user?.role === 'admin';
+
+  // Fetch users for admin
+  const { data: users = [] } = useQuery({
+    queryKey: ['/api/users'],
+    enabled: isAdmin,
+  });
 
   const form = useForm<TripFormData>({
     resolver: zodResolver(tripFormSchema),
@@ -53,69 +68,88 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       toLocation: trip?.toLocation || "",
       departureTime: trip?.departureTime ? new Date(trip.departureTime).toISOString().slice(0, 16) : "",
       availableSeats: trip?.availableSeats || 1,
-      pricePerSeat: trip?.pricePerSeat ? trip.pricePerSeat / 100 : 10,
       isRecurring: trip?.isRecurring || false,
+      recurringDays: trip?.recurringDays || [],
       notes: trip?.notes || "",
+      driverId: trip?.driverId || "",
+      participantIds: [],
     },
   });
 
-  const createTripMutation = useMutation({
+  const mutation = useMutation({
     mutationFn: async (data: TripFormData) => {
       const payload = {
         ...data,
+        participantIds: selectedParticipants,
         departureTime: new Date(data.departureTime).toISOString(),
-        pricePerSeat: Math.round(data.pricePerSeat * 100), // Convert to cents
-        recurringDays: data.isRecurring ? JSON.stringify(selectedDays) : null,
       };
-
-      if (trip) {
-        return await apiRequest("PATCH", `/api/trips/${trip.id}`, payload);
+      
+      if (trip?.id) {
+        return await apiRequest(`/api/trips/${trip.id}`, {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        });
       } else {
-        return await apiRequest("POST", "/api/trips", payload);
+        return await apiRequest("/api/trips", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
       }
     },
     onSuccess: () => {
-      toast({
-        title: trip ? "Trip Updated" : "Trip Created",
-        description: trip ? "Your trip has been updated successfully." : "Your trip has been created successfully. Notifications sent!",
-      });
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/trips/my"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/my-trips"] });
+      toast({
+        title: "Success",
+        description: trip?.id ? "Trip updated successfully!" : "Trip created successfully!",
+      });
       onClose();
-      form.reset();
-      setSelectedDays([]);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to save trip",
+        description: error.message || "Something went wrong",
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: TripFormData) => {
-    createTripMutation.mutate(data);
+    mutation.mutate(data);
   };
 
-  const handleDayToggle = (dayId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedDays([...selectedDays, dayId]);
-    } else {
-      setSelectedDays(selectedDays.filter(d => d !== dayId));
+  const handleDayToggle = (dayId: string) => {
+    const newDays = selectedDays.includes(dayId)
+      ? selectedDays.filter(d => d !== dayId)
+      : [...selectedDays, dayId];
+    setSelectedDays(newDays);
+    form.setValue('recurringDays', newDays);
+  };
+
+  const handleParticipantAdd = (userId: string) => {
+    if (!selectedParticipants.includes(userId)) {
+      setSelectedParticipants([...selectedParticipants, userId]);
     }
+  };
+
+  const handleParticipantRemove = (userId: string) => {
+    setSelectedParticipants(selectedParticipants.filter(id => id !== userId));
+  };
+
+  const getSelectedUser = (userId: string) => {
+    return users.find((u: any) => u.id === userId);
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{trip ? "Edit Trip" : "Create New Trip"}</DialogTitle>
+          <DialogTitle>{trip?.id ? "Edit Trip" : "Create New Trip"}</DialogTitle>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="fromLocation"
@@ -129,7 +163,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="toLocation"
@@ -145,60 +179,34 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="departureTime"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Departure Date & Time</FormLabel>
-                  <FormControl>
-                    <Input type="datetime-local" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="departureTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Departure Date & Time</FormLabel>
+                    <FormControl>
+                      <Input type="datetime-local" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="availableSeats"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Available Seats</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select seats" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-                          <SelectItem key={num} value={num.toString()}>
-                            {num} seat{num > 1 ? 's' : ''}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="pricePerSeat"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price per seat ($)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
-                        min="0.01"
-                        placeholder="10.00" 
-                        {...field} 
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      <Input
+                        type="number"
+                        min="1"
+                        max="8"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -207,41 +215,105 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               />
             </div>
 
+            {isAdmin && (
+              <FormField
+                control={form.control}
+                name="driverId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Select Driver</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose a driver" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {users.map((user: any) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.firstName} {user.lastName} ({user.email})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {isAdmin && (
+              <div>
+                <FormLabel>Assign Participants</FormLabel>
+                <div className="mt-2">
+                  <Select onValueChange={handleParticipantAdd}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Add participant" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {users
+                        .filter((user: any) => !selectedParticipants.includes(user.id))
+                        .map((user: any) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.firstName} {user.lastName} ({user.email})
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {selectedParticipants.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {selectedParticipants.map((userId) => {
+                        const user = getSelectedUser(userId);
+                        return (
+                          <Badge key={userId} variant="secondary" className="flex items-center gap-1">
+                            {user?.firstName} {user?.lastName}
+                            <X
+                              className="h-3 w-3 cursor-pointer"
+                              onClick={() => handleParticipantRemove(userId)}
+                            />
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <FormField
               control={form.control}
               name="isRecurring"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
-                    <Checkbox 
-                      checked={field.value} 
-                      onCheckedChange={field.onChange} 
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Recurring Schedule
-                    </FormLabel>
-                    <p className="text-sm text-muted-foreground">
-                      Create this trip on multiple days of the week
-                    </p>
+                    <FormLabel>Recurring Trip</FormLabel>
                   </div>
                 </FormItem>
               )}
             />
 
-            {form.watch("isRecurring") && (
+            {form.watch('isRecurring') && (
               <div>
                 <FormLabel>Select Days</FormLabel>
-                <div className="flex flex-wrap gap-2 mt-2">
+                <div className="grid grid-cols-3 gap-2 mt-2">
                   {daysOfWeek.map((day) => (
-                    <label key={day.id} className="flex items-center space-x-2">
+                    <div key={day.id} className="flex items-center space-x-2">
                       <Checkbox
+                        id={day.id}
                         checked={selectedDays.includes(day.id)}
-                        onCheckedChange={(checked) => handleDayToggle(day.id, checked as boolean)}
+                        onCheckedChange={() => handleDayToggle(day.id)}
                       />
-                      <span className="text-sm">{day.label}</span>
-                    </label>
+                      <label htmlFor={day.id} className="text-sm font-medium">
+                        {day.label}
+                      </label>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -252,25 +324,21 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Additional Notes</FormLabel>
+                  <FormLabel>Notes (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Any additional information about the trip..." 
-                      rows={3} 
-                      {...field} 
-                    />
+                    <Textarea placeholder="Additional information..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="flex justify-end space-x-3 pt-4 border-t">
+            <div className="flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createTripMutation.isPending}>
-                {createTripMutation.isPending ? "Saving..." : (trip ? "Update Trip" : "Create Trip")}
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? "Saving..." : trip?.id ? "Update Trip" : "Create Trip"}
               </Button>
             </div>
           </form>
