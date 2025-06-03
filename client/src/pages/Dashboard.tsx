@@ -177,6 +177,7 @@ export default function Dashboard() {
                   key={trip.id}
                   trip={trip}
                   userRole={user?.role}
+                  currentUserId={user?.id}
                   showActions={true}
                 />
               ))}

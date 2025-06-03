@@ -585,6 +585,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Join trip (any authenticated user)
+  app.post('/api/trips/:id/join', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const tripId = parseInt(id);
+      const userId = req.session?.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const trip = await storage.getTrip(tripId);
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+
+      // Check if user is the driver
+      if (trip.driverId === userId) {
+        return res.status(400).json({ message: "Driver cannot join their own trip" });
+      }
+
+      const currentRiders = trip.riders || [];
+      if (currentRiders.includes(userId)) {
+        return res.status(400).json({ message: "You are already a rider on this trip" });
+      }
+
+      if (currentRiders.length >= trip.totalSeats) {
+        return res.status(400).json({ message: "Trip is full" });
+      }
+
+      const updatedRiders = [...currentRiders, userId];
+      const updatedTrip = await storage.updateTrip(tripId, { 
+        riders: updatedRiders,
+        availableSeats: trip.totalSeats - updatedRiders.length
+      });
+      
+      // Send notification to driver
+      await telegramService.sendNotification(
+        trip.driverId,
+        "New Rider Joined",
+        `A new rider has joined your trip from ${trip.fromLocation} to ${trip.toLocation}.`
+      );
+      
+      res.json(updatedTrip);
+    } catch (error) {
+      console.error("Error joining trip:", error);
+      res.status(500).json({ message: "Failed to join trip" });
+    }
+  });
+
   // Add rider to trip (admin only)
   app.post('/api/trips/:id/riders', requireRole(['admin']), async (req: any, res) => {
     try {

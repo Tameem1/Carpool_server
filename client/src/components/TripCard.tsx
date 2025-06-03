@@ -40,9 +40,10 @@ interface TripCardProps {
   onCancel?: (tripId: number) => void;
   showActions?: boolean;
   userRole?: string;
+  currentUserId?: string;
 }
 
-export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = true, userRole }: TripCardProps) {
+export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = true, userRole, currentUserId }: TripCardProps) {
   const departureDate = new Date(trip.departureTime);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const { toast } = useToast();
@@ -108,6 +109,36 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
       toast({
         title: "Error",
         description: error.message || "Failed to remove rider from trip",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Join trip mutation
+  const joinTripMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/trips/${trip.id}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to join trip');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/trips/my'] });
+      toast({
+        title: "Success",
+        description: "Successfully joined the trip!"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to join trip",
         variant: "destructive"
       });
     }
@@ -278,7 +309,25 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
 
           {showActions && (
             <div className="flex space-x-2">
-              {userRole === 'rider' && onRequestSeat && trip.availableSeats > 0 && (
+              {/* Join Trip button - for users who are not the driver and not already riders */}
+              {currentUserId && 
+               currentUserId !== trip.driver?.id && 
+               !trip.riders?.includes(currentUserId) && 
+               trip.availableSeats > 0 && 
+               trip.status === 'active' && (
+                <Button 
+                  onClick={() => joinTripMutation.mutate()}
+                  disabled={joinTripMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {joinTripMutation.isPending ? "Joining..." : "Join Trip"}
+                </Button>
+              )}
+              
+              {/* Request Seat button - alternative to join trip */}
+              {userRole === 'rider' && onRequestSeat && trip.availableSeats > 0 && 
+               currentUserId !== trip.driver?.id && 
+               !trip.riders?.includes(currentUserId) && (
                 <Button 
                   onClick={() => onRequestSeat(trip.id)}
                   className="bg-primary hover:bg-primary/90"
@@ -286,6 +335,18 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
                   Request Seat
                 </Button>
               )}
+              
+              {/* Already joined indicator */}
+              {currentUserId && trip.riders?.includes(currentUserId) && (
+                <Button 
+                  disabled
+                  variant="outline"
+                  className="border-green-500 text-green-600"
+                >
+                  Already Joined
+                </Button>
+              )}
+              
               {(userRole === 'driver' || userRole === 'admin') && onEdit && (
                 <Button 
                   variant="outline" 
