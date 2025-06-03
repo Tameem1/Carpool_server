@@ -763,16 +763,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/ride-requests', async (req: any, res) => {
+  app.post('/api/ride-requests', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
-      if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+      const userId = req.currentUser.id;
+      
+      // For admins, allow specifying a different rider
+      const riderId = req.currentUser.role === 'admin' && req.body.riderId 
+        ? req.body.riderId 
+        : userId;
 
       const requestData = insertRideRequestSchema.parse({
         ...req.body,
-        riderId: userId,
+        riderId: riderId,
       });
 
       const request = await storage.createRideRequest(requestData);

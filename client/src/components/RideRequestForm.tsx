@@ -7,9 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const rideRequestFormSchema = z.object({
   fromLocation: z.string().min(1, "Pickup location is required"),
@@ -17,6 +18,7 @@ const rideRequestFormSchema = z.object({
   preferredTime: z.string().min(1, "Preferred time is required"),
   passengerCount: z.number().min(1, "At least 1 passenger required").max(4, "Maximum 4 passengers"),
   notes: z.string().optional(),
+  riderId: z.string().optional(), // For admin to select rider
 });
 
 type RideRequestFormData = z.infer<typeof rideRequestFormSchema>;
@@ -29,6 +31,13 @@ interface RideRequestFormProps {
 export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  // Fetch users list for admin
+  const { data: users = [] } = useQuery({
+    queryKey: ["/api/users"],
+    enabled: !!user && user.role === 'admin',
+  });
 
   const form = useForm<RideRequestFormData>({
     resolver: zodResolver(rideRequestFormSchema),
@@ -38,6 +47,7 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
       preferredTime: "",
       passengerCount: 1,
       notes: "",
+      riderId: "",
     },
   });
 
@@ -125,6 +135,34 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
                 </FormItem>
               )}
             />
+
+            {user?.role === 'admin' && (
+              <FormField
+                control={form.control}
+                name="riderId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Request for User</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a user (leave empty for yourself)" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">Myself (Admin)</SelectItem>
+                        {users.map((user: any) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.firstName} {user.lastName} ({user.email})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
