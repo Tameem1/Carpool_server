@@ -367,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const trips = await storage.getUserTrips(userId);
       
-      // Enrich with participant info
+      // Enrich with participant info and sync available seats with riders
       const enrichedTrips = await Promise.all(
         trips.map(async (trip) => {
           const participants = await storage.getTripParticipants(trip.id);
@@ -386,8 +386,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             })
           );
           
+          // Calculate available seats based on riders array
+          const currentRiders = trip.riders || [];
+          const availableSeats = trip.totalSeats - currentRiders.length;
+          
+          // Sync available seats if they don't match
+          if (trip.availableSeats !== availableSeats) {
+            await storage.updateTrip(trip.id, { availableSeats });
+          }
+          
           return {
             ...trip,
+            availableSeats,
             participants: participantUsers,
             participantCount: participants.reduce((sum, p) => sum + p.seatsBooked, 0),
           };
