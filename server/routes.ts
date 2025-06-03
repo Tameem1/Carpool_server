@@ -206,7 +206,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/logout", (req, res) => {
     (req as any).session.destroy((err: any) => {
-      res.redirect("/");
+      if (err) {
+        console.error("Session destruction error:", err);
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.clearCookie('connect.sid');
+      res.redirect("/api/login");
     });
   });
 

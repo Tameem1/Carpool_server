@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Bell, Car } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function Navigation() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   
   const { data: notifications = [] } = useQuery({
     queryKey: ["/api/notifications"],
@@ -14,6 +15,26 @@ export function Navigation() {
   });
 
   const unreadCount = notifications.filter((n: any) => !n.isRead).length;
+
+  const handleLogout = async () => {
+    try {
+      // Clear all React Query cache
+      queryClient.clear();
+      
+      // Call logout endpoint
+      await fetch("/api/logout", {
+        method: "GET",
+        credentials: "include"
+      });
+      
+      // Force redirect to login page
+      window.location.href = "/api/login";
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Force redirect even if there's an error
+      window.location.href = "/api/login";
+    }
+  };
 
   return (
     <nav className="bg-white shadow-sm border-b">
@@ -52,7 +73,7 @@ export function Navigation() {
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => window.location.href = "/api/logout"}
+                onClick={handleLogout}
               >
                 Logout
               </Button>
