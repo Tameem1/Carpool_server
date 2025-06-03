@@ -56,6 +56,8 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
       const payload = {
         ...data,
         preferredTime: new Date(data.preferredTime).toISOString(),
+        // Don't send riderId if it's "self" or empty, let server use current user
+        riderId: data.riderId === "self" || !data.riderId ? undefined : data.riderId,
       };
       return await apiRequest("POST", "/api/ride-requests", payload);
     },
@@ -150,7 +152,7 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Myself (Admin)</SelectItem>
+                        <SelectItem value="self">Myself (Admin)</SelectItem>
                         {users.map((user: any) => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.firstName} {user.lastName} ({user.email})
