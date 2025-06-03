@@ -2,8 +2,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, Users, Star, Car } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MapPin, Clock, Users, Star, Car, UserPlus, UserMinus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface TripCardProps {
   trip: {
@@ -14,6 +19,12 @@ interface TripCardProps {
     availableSeats: number;
     totalSeats: number;
     riders?: string[];
+    riderDetails?: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      profileImageUrl?: string;
+    }[];
 
     driver?: {
       id: string;
@@ -33,7 +44,92 @@ interface TripCardProps {
 
 export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = true, userRole }: TripCardProps) {
   const departureDate = new Date(trip.departureTime);
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
+  // Fetch all users for the dropdown (admin only)
+  const { data: users } = useQuery({
+    queryKey: ['/api/users'],
+    enabled: userRole === 'admin'
+  });
+
+  // Add rider mutation
+  const addRiderMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await fetch(`/api/trips/${trip.id}/riders`, {
+        method: 'POST',
+        body: JSON.stringify({ userId }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to add rider');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
+      toast({
+        title: "Success",
+        description: "Rider added to trip successfully"
+      });
+      setSelectedUserId("");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add rider to trip",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Remove rider mutation
+  const removeRiderMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      return apiRequest(`/api/trips/${trip.id}/riders/${userId}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
+      toast({
+        title: "Success",
+        description: "Rider removed from trip successfully"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove rider from trip",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete trip mutation
+  const deleteTripMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest(`/api/trips/${trip.id}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
+      toast({
+        title: "Success",
+        description: "Trip deleted successfully"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete trip",
+        variant: "destructive"
+      });
+    }
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -101,15 +197,61 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
           </div>
         </div>
 
-        {trip.riders && trip.riders.length > 0 && (
+        {trip.riderDetails && trip.riderDetails.length > 0 && (
           <div className="mb-4">
             <p className="text-sm text-gray-600 mb-2">Current Riders:</p>
             <div className="flex flex-wrap gap-2">
-              {trip.riders.map((riderId, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {riderId}
-                </Badge>
+              {trip.riderDetails.map((rider) => (
+                <div key={rider.id} className="flex items-center gap-1">
+                  <Badge variant="secondary" className="text-xs">
+                    {rider.firstName} {rider.lastName}
+                  </Badge>
+                  {userRole === 'admin' && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-4 w-4 p-0 hover:bg-red-100"
+                      onClick={() => removeRiderMutation.mutate(rider.id)}
+                      disabled={removeRiderMutation.isPending}
+                    >
+                      <UserMinus className="h-3 w-3 text-red-500" />
+                    </Button>
+                  )}
+                </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {userRole === 'admin' && users && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-600 mb-2">Add Rider:</p>
+            <div className="flex items-center gap-2">
+              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Select a user" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users
+                    ?.filter((user: any) => 
+                      user.id !== trip.driverId && 
+                      !trip.riders?.includes(user.id)
+                    )
+                    .map((user: any) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.firstName} {user.lastName} ({user.role})
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                onClick={() => selectedUserId && addRiderMutation.mutate(selectedUserId)}
+                disabled={!selectedUserId || addRiderMutation.isPending || trip.riders?.length >= trip.totalSeats}
+              >
+                <UserPlus className="h-4 w-4 mr-1" />
+                Add
+              </Button>
             </div>
           </div>
         )}

@@ -332,6 +332,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const currentRiders = trip.riders || [];
           const availableSeats = trip.totalSeats - currentRiders.length;
           
+          // Get rider details
+          const riderDetails = await Promise.all(
+            currentRiders.map(async (riderId) => {
+              const rider = await storage.getUser(riderId);
+              return rider ? {
+                id: rider.id,
+                firstName: rider.firstName,
+                lastName: rider.lastName,
+                profileImageUrl: rider.profileImageUrl,
+              } : null;
+            })
+          );
+          
           // Sync available seats if they don't match
           if (trip.availableSeats !== availableSeats) {
             await storage.updateTrip(trip.id, { availableSeats });
@@ -340,6 +353,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return {
             ...trip,
             availableSeats,
+            riders: currentRiders,
+            riderDetails: riderDetails.filter(Boolean),
             driver: driver ? {
               id: driver.id,
               firstName: driver.firstName,
@@ -390,6 +405,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const currentRiders = trip.riders || [];
           const availableSeats = trip.totalSeats - currentRiders.length;
           
+          // Get rider details
+          const riderDetails = await Promise.all(
+            currentRiders.map(async (riderId) => {
+              const rider = await storage.getUser(riderId);
+              return rider ? {
+                id: rider.id,
+                firstName: rider.firstName,
+                lastName: rider.lastName,
+                profileImageUrl: rider.profileImageUrl,
+              } : null;
+            })
+          );
+          
           // Sync available seats if they don't match
           if (trip.availableSeats !== availableSeats) {
             await storage.updateTrip(trip.id, { availableSeats });
@@ -398,6 +426,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return {
             ...trip,
             availableSeats,
+            riders: currentRiders,
+            riderDetails: riderDetails.filter(Boolean),
             participants: participantUsers,
             participantCount: participants.reduce((sum, p) => sum + p.seatsBooked, 0),
           };
@@ -502,6 +532,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error updating trip:", error);
       res.status(500).json({ message: "Failed to update trip" });
+    }
+  });
+
+  // Add rider to trip (admin only)
+  app.post('/api/trips/:id/riders', requireRole(['admin']), async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { userId } = req.body;
+      const tripId = parseInt(id);
+      
+      const trip = await storage.getTrip(tripId);
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+
+      const currentRiders = trip.riders || [];
+      if (currentRiders.includes(userId)) {
+        return res.status(400).json({ message: "User is already a rider on this trip" });
+      }
+
+      if (currentRiders.length >= trip.totalSeats) {
+        return res.status(400).json({ message: "Trip is full" });
+      }
+
+      const updatedRiders = [...currentRiders, userId];
+      const updatedTrip = await storage.updateTrip(tripId, { 
+        riders: updatedRiders,
+        availableSeats: trip.totalSeats - updatedRiders.length
+      });
+      
+      res.json(updatedTrip);
+    } catch (error) {
+      console.error("Error adding rider to trip:", error);
+      res.status(500).json({ message: "Failed to add rider to trip" });
+    }
+  });
+
+  // Remove rider from trip (admin only)
+  app.delete('/api/trips/:id/riders/:userId', requireRole(['admin']), async (req: any, res) => {
+    try {
+      const { id, userId } = req.params;
+      const tripId = parseInt(id);
+      
+      const trip = await storage.getTrip(tripId);
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+
+      const currentRiders = trip.riders || [];
+      if (!currentRiders.includes(userId)) {
+        return res.status(400).json({ message: "User is not a rider on this trip" });
+      }
+
+      const updatedRiders = currentRiders.filter(riderId => riderId !== userId);
+      const updatedTrip = await storage.updateTrip(tripId, { 
+        riders: updatedRiders,
+        availableSeats: trip.totalSeats - updatedRiders.length
+      });
+      
+      res.json(updatedTrip);
+    } catch (error) {
+      console.error("Error removing rider from trip:", error);
+      res.status(500).json({ message: "Failed to remove rider from trip" });
     }
   });
 
