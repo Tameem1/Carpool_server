@@ -1,7 +1,6 @@
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import { storage } from "./storage";
-import MemoryStore from "memorystore";
 
 // Demo users for development
 const demoUsers = [
@@ -11,11 +10,9 @@ const demoUsers = [
 ];
 
 export async function setupAuth(app: Express) {
-  // Session middleware first
-  const memoryStore = MemoryStore(session);
+  // Session middleware first - using default memory store for demo
   app.use(session({
     secret: 'demo-secret-key',
-    store: new memoryStore({ checkPeriod: 86400000 }),
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 86400000 }

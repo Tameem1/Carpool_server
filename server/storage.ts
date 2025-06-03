@@ -179,8 +179,15 @@ export class MemStorage implements IStorage {
   async createRideRequest(requestData: InsertRideRequest): Promise<RideRequest> {
     const id = this.currentRideRequestId++;
     const request: RideRequest = {
-      ...requestData,
       id,
+      riderId: requestData.riderId,
+      fromLocation: requestData.fromLocation,
+      toLocation: requestData.toLocation,
+      preferredTime: requestData.preferredTime,
+      passengerCount: requestData.passengerCount || 1,
+      notes: requestData.notes || null,
+      status: requestData.status || "pending",
+      tripId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -222,8 +229,11 @@ export class MemStorage implements IStorage {
   async addTripParticipant(participantData: InsertTripParticipant): Promise<TripParticipant> {
     const id = this.currentParticipantId++;
     const participant: TripParticipant = {
-      ...participantData,
       id,
+      tripId: participantData.tripId,
+      userId: participantData.userId,
+      seatsBooked: participantData.seatsBooked || 1,
+      status: participantData.status || "pending",
       joinedAt: new Date(),
     };
     this.tripParticipants.set(id, participant);
@@ -246,8 +256,12 @@ export class MemStorage implements IStorage {
   async createNotification(notificationData: InsertNotification): Promise<Notification> {
     const id = this.currentNotificationId++;
     const notification: Notification = {
-      ...notificationData,
       id,
+      userId: notificationData.userId,
+      title: notificationData.title,
+      message: notificationData.message,
+      type: notificationData.type,
+      isRead: notificationData.isRead || false,
       createdAt: new Date(),
     };
     this.notifications.set(id, notification);

@@ -7,7 +7,7 @@ export function useAuth() {
   });
 
   return {
-    user,
+    user: user as any,
     isLoading,
     isAuthenticated: !!user,
   };
