@@ -20,6 +20,7 @@ export const users = pgTable("users", {
 export const trips = pgTable("trips", {
   id: serial("id").primaryKey(),
   driverId: varchar("driver_id").notNull(),
+  riders: text("riders").array(), // Array of rider user IDs
   fromLocation: text("from_location").notNull(),
   toLocation: text("to_location").notNull(),
   departureTime: timestamp("departure_time").notNull(),
@@ -121,6 +122,7 @@ export const insertTripSchema = createInsertSchema(trips).omit({
 }).extend({
   departureTime: z.string().transform((str) => new Date(str)),
   driverId: z.string().optional(), // Allow admin to specify driver
+  riders: z.array(z.string()).optional(), // Array of rider user IDs
   participantIds: z.array(z.string()).optional(), // Admin can pre-assign participants
   totalSeats: z.number().optional(), // Make optional since it's derived from availableSeats
   recurringDays: z.array(z.string()).optional().transform((arr) => arr ? JSON.stringify(arr) : null), // Convert array to JSON string

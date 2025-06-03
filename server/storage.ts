@@ -167,6 +167,7 @@ export class DatabaseStorage implements IStorage {
       .insert(trips)
       .values({
         driverId: tripData.driverId || '',
+        riders: tripData.riders || [],
         fromLocation: tripData.fromLocation,
         toLocation: tripData.toLocation,
         departureTime: tripData.departureTime,
