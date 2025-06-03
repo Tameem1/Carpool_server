@@ -71,6 +71,8 @@ export const insertTripSchema = createInsertSchema(trips).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  departureTime: z.string().transform((str) => new Date(str)),
 });
 
 export const insertRideRequestSchema = createInsertSchema(rideRequests).omit({
