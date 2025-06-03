@@ -60,9 +60,59 @@ class TelegramNotificationService {
       "Your ride request has been declined. Please try another trip."
     );
   }
+
+  async notifyTripMatchesRequest(userId: string, tripId: number) {
+    const trip = await storage.getTrip(tripId);
+    if (!trip) return;
+
+    const dashboardUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:3000'}/dashboard`;
+
+    await this.sendNotification(
+      userId,
+      "New Trip Available",
+      `A new trip matching your request is available from ${trip.fromLocation} to ${trip.toLocation} departing at ${new Date(trip.departureTime).toLocaleString()}. Click here to join: ${dashboardUrl}`
+    );
+  }
 }
 
 const telegramService = new TelegramNotificationService();
+
+// Function to notify users with matching ride requests when a new trip is created
+async function notifyMatchingRideRequesters(trip: any) {
+  try {
+    // Get all pending ride requests
+    const pendingRequests = await storage.getPendingRideRequests();
+    
+    // Find requests that match the new trip
+    const matchingRequests = pendingRequests.filter(request => {
+      // Check location match (case-insensitive partial match)
+      const fromMatch = trip.fromLocation.toLowerCase().includes(request.fromLocation.toLowerCase()) ||
+                        request.fromLocation.toLowerCase().includes(trip.fromLocation.toLowerCase());
+      const toMatch = trip.toLocation.toLowerCase().includes(request.toLocation.toLowerCase()) ||
+                      request.toLocation.toLowerCase().includes(trip.toLocation.toLowerCase());
+      
+      // Check time match (within 2 hours)
+      const tripTime = new Date(trip.departureTime).getTime();
+      const requestTime = new Date(request.preferredTime).getTime();
+      const timeDiff = Math.abs(tripTime - requestTime);
+      const twoHours = 2 * 60 * 60 * 1000;
+      
+      // Check if trip has enough seats
+      const hasSeats = trip.availableSeats >= (request.passengerCount || 1);
+      
+      return fromMatch && toMatch && timeDiff <= twoHours && hasSeats;
+    });
+    
+    // Notify each matching user
+    for (const request of matchingRequests) {
+      await telegramService.notifyTripMatchesRequest(request.riderId, trip.id);
+    }
+    
+    console.log(`Notified ${matchingRequests.length} users about the new trip matching their requests`);
+  } catch (error) {
+    console.error("Error notifying matching ride requesters:", error);
+  }
+}
 
 // Middleware for role-based access
 const requireRole = (roles: string[]) => {
@@ -540,11 +590,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         await telegramService.notifyTripCreated(trip.id, trip.driverId);
+        
+        // Find and notify users with matching ride requests
+        await notifyMatchingRideRequesters(updatedTrip);
+        
         return res.status(201).json(updatedTrip);
       }
       
-      // Send Telegram notification
+      // Send Telegram notification to driver
       await telegramService.notifyTripCreated(trip.id, trip.driverId);
+      
+      // Find and notify users with matching ride requests
+      await notifyMatchingRideRequesters(trip);
       
       res.status(201).json(trip);
     } catch (error) {

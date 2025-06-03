@@ -63,7 +63,7 @@ export const notifications = pgTable("notifications", {
   userId: varchar("user_id").notNull(),
   title: text("title").notNull(),
   message: text("message").notNull(),
-  type: varchar("type", { enum: ["trip_created", "request_received", "request_accepted", "request_declined", "trip_updated"] }).notNull(),
+  type: varchar("type", { enum: ["trip_created", "request_received", "request_accepted", "request_declined", "trip_updated", "trip_match_found"] }).notNull(),
   isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
