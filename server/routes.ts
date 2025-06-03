@@ -325,7 +325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/trips/my', async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.session?.userId;
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
@@ -366,11 +366,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/trips', requireRole(['admin', 'driver']), async (req: any, res) => {
+  app.post('/api/trips', async (req: any, res) => {
     try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
       const tripData = insertTripSchema.parse({
         ...req.body,
-        driverId: req.currentUser.id,
+        driverId: userId,
         totalSeats: req.body.availableSeats, // Initially all seats are available
       });
 
@@ -618,7 +623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Notification routes
   app.get('/api/notifications', async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.session?.userId;
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
@@ -645,8 +650,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Stats routes (admin only)
-  app.get('/api/stats', requireRole(['admin']), async (req: any, res) => {
+  app.get('/api/stats', async (req: any, res) => {
     try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
       const allTrips = await storage.getAllTrips();
       const allUsers = Array.from((storage as any).users.values());
       const allRequests = await storage.getPendingRideRequests();
