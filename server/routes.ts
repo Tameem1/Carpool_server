@@ -672,6 +672,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Ride request routes
+  // Get all ride requests (accessible to all authenticated users)
+  app.get('/api/ride-requests/all', isAuthenticated, async (req: any, res) => {
+    try {
+      const requests = await storage.getPendingRideRequests();
+      
+      // Enrich with rider info
+      const enrichedRequests = await Promise.all(
+        requests.map(async (request) => {
+          const rider = await storage.getUser(request.riderId);
+          return {
+            ...request,
+            rider: rider ? {
+              id: rider.id,
+              firstName: rider.firstName,
+              lastName: rider.lastName,
+              profileImageUrl: rider.profileImageUrl,
+            } : null,
+          };
+        })
+      );
+      
+      res.json(enrichedRequests);
+    } catch (error: any) {
+      console.error("Error fetching all ride requests:", error);
+      res.status(500).json({ message: "Failed to fetch ride requests" });
+    }
+  });
+
   app.get('/api/ride-requests', requireRole(['admin', 'driver']), async (req: any, res) => {
     try {
       const requests = await storage.getPendingRideRequests();

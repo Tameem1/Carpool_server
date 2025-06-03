@@ -7,6 +7,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Navigation } from "@/components/Navigation";
 import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
+import Requests from "@/pages/Requests";
+import AdminDashboard from "@/pages/AdminDashboard";
+import DriverDashboard from "@/pages/DriverDashboard";
+import RiderDashboard from "@/pages/RiderDashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -31,6 +35,14 @@ function Router() {
               <div className="min-h-screen bg-background">
                 <Navigation />
                 <Dashboard />
+              </div>
+            )}
+          </Route>
+          <Route path="/requests">
+            {() => (
+              <div className="min-h-screen bg-background">
+                <Navigation />
+                <Requests />
               </div>
             )}
           </Route>
