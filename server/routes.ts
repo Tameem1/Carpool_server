@@ -233,7 +233,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const userId = (req as any).session?.userId;
     
     if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
+      // Auto-login with admin user for demo purposes
+      const adminUser = demoUsers[0];
+      await storage.upsertUser(adminUser);
+      (req as any).session.userId = adminUser.id;
+      return res.json(adminUser);
     }
 
     const user = await storage.getUser(userId);
