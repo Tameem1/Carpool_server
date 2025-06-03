@@ -13,6 +13,7 @@ interface TripCardProps {
     departureTime: string;
     availableSeats: number;
     totalSeats: number;
+    riders?: string[];
 
     driver?: {
       id: string;
@@ -77,14 +78,7 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
               <p className="font-semibold text-gray-900">
                 {trip.driver.firstName} {trip.driver.lastName}
               </p>
-              <div className="flex items-center">
-                <div className="flex text-warning">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-3 w-3 fill-current" />
-                  ))}
-                </div>
-                <span className="text-sm text-gray-600 ml-2">4.9 (23 rides)</span>
-              </div>
+              <p className="text-sm text-gray-600">Driver</p>
             </div>
           </div>
         )}
@@ -99,21 +93,34 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
             <p className="font-medium truncate">{trip.toLocation}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Available Seats</p>
-            <p className={`font-medium ${trip.availableSeats > 0 ? 'text-success' : 'text-warning'}`}>
-              {trip.availableSeats > 0 ? `${trip.availableSeats} seats left` : 'Full'}
+            <p className="text-sm text-gray-600">Riders</p>
+            <p className="font-medium flex items-center">
+              <Users className="h-4 w-4 mr-1" />
+              {trip.riders?.length || 0} / {trip.totalSeats}
             </p>
           </div>
         </div>
 
+        {trip.riders && trip.riders.length > 0 && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-600 mb-2">Current Riders:</p>
+            <div className="flex flex-wrap gap-2">
+              {trip.riders.map((riderId, index) => (
+                <Badge key={index} variant="secondary" className="text-xs">
+                  {riderId}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-4">
-            <Badge className={getStatusColor(trip.status)}>
-              {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
-            </Badge>
             <div className="flex items-center text-sm text-gray-600">
-              <Car className="h-4 w-4 mr-2" />
-              <span>Honda Civic • AC • WiFi</span>
+              <Users className="h-4 w-4 mr-2" />
+              <span>
+                {trip.totalSeats - (trip.riders?.length || 0)} seats available
+              </span>
             </div>
           </div>
 

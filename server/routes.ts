@@ -322,14 +322,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const trips = await storage.searchTrips(from, to, searchDate);
       
-      // Enrich with driver info and participant count
+      // Enrich with driver info and sync available seats with riders
       const enrichedTrips = await Promise.all(
         trips.map(async (trip) => {
           const driver = await storage.getUser(trip.driverId);
           const participants = await storage.getTripParticipants(trip.id);
           
+          // Calculate available seats based on riders array
+          const currentRiders = trip.riders || [];
+          const availableSeats = trip.totalSeats - currentRiders.length;
+          
+          // Sync available seats if they don't match
+          if (trip.availableSeats !== availableSeats) {
+            await storage.updateTrip(trip.id, { availableSeats });
+          }
+          
           return {
             ...trip,
+            availableSeats,
             driver: driver ? {
               id: driver.id,
               firstName: driver.firstName,
@@ -420,8 +430,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const trip = await storage.createTrip(tripData);
       
-      // If admin pre-assigned participants, add them to the trip
+      // If admin pre-assigned participants, add them to the trip and update riders array
       if (currentUser.role === 'admin' && req.body.participantIds && Array.isArray(req.body.participantIds)) {
+        const riders = [];
         for (const participantId of req.body.participantIds) {
           await storage.addTripParticipant({
             tripId: trip.id,
@@ -429,7 +440,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             seatsBooked: 1,
             status: 'confirmed'
           });
+          riders.push(participantId);
         }
+        
+        // Update trip with riders and sync available seats
+        const updatedTrip = await storage.updateTrip(trip.id, {
+          riders,
+          availableSeats: trip.totalSeats - riders.length
+        });
+        
+        await telegramService.notifyTripCreated(trip.id, trip.driverId);
+        return res.status(201).json(updatedTrip);
       }
       
       // Send Telegram notification
@@ -715,7 +736,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const allTrips = await storage.getAllTrips();
-      const allUsers = Array.from((storage as any).users.values());
+      const allUsers = await storage.getAllUsers();
       const allRequests = await storage.getPendingRideRequests();
 
       const stats = {
