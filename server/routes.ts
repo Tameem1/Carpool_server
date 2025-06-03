@@ -325,7 +325,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { from, to, date } = req.query;
       const searchDate = date ? new Date(date) : undefined;
       
-      const trips = await storage.searchTrips(from, to, searchDate);
+      // Get current user to check if admin
+      const userId = req.session?.userId;
+      let isAdmin = false;
+      
+      if (userId) {
+        const user = await storage.getUser(userId);
+        isAdmin = user?.role === 'admin';
+      }
+      
+      // Admin sees all trips, others see only available trips
+      let trips;
+      if (isAdmin && !from && !to && !date) {
+        // Admin without filters sees ALL trips
+        trips = await storage.getAllTrips();
+      } else {
+        // Use search with filters (still filters out full trips for non-admins)
+        trips = await storage.searchTrips(from, to, searchDate);
+      }
       
       // Enrich with driver info and sync available seats with riders
       const enrichedTrips = await Promise.all(
