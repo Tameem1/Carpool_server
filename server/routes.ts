@@ -67,7 +67,7 @@ const telegramService = new TelegramNotificationService();
 // Middleware for role-based access
 const requireRole = (roles: string[]) => {
   return async (req: any, res: any, next: any) => {
-    const userId = req.user?.claims?.sub;
+    const userId = req.session?.userId;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
