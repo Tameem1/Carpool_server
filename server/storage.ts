@@ -82,8 +82,12 @@ export class MemStorage implements IStorage {
   async upsertUser(userData: InsertUser): Promise<User> {
     const existing = this.users.get(userData.id!);
     const user: User = {
-      ...userData,
       id: userData.id!,
+      email: userData.email || null,
+      firstName: userData.firstName || null,
+      lastName: userData.lastName || null,
+      profileImageUrl: userData.profileImageUrl || null,
+      role: userData.role || "rider",
       createdAt: existing?.createdAt || new Date(),
       updatedAt: new Date(),
     };
@@ -104,8 +108,18 @@ export class MemStorage implements IStorage {
   async createTrip(tripData: InsertTrip): Promise<Trip> {
     const id = this.currentTripId++;
     const trip: Trip = {
-      ...tripData,
       id,
+      driverId: tripData.driverId,
+      fromLocation: tripData.fromLocation,
+      toLocation: tripData.toLocation,
+      departureTime: tripData.departureTime,
+      availableSeats: tripData.availableSeats,
+      totalSeats: tripData.totalSeats,
+      pricePerSeat: tripData.pricePerSeat,
+      isRecurring: tripData.isRecurring || null,
+      recurringDays: tripData.recurringDays || null,
+      notes: tripData.notes || null,
+      status: tripData.status || "active",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
