@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TripForm } from "@/components/TripForm";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, UserPlus, MapPin, Clock } from "lucide-react";
 import { format } from "date-fns";
 
 export default function AdminDashboard() {
@@ -38,6 +39,12 @@ export default function AdminDashboard() {
 
   const { data: allTrips = [] } = useQuery({
     queryKey: ["/api/trips"],
+    enabled: !!user && user.role === 'admin',
+    retry: false,
+  });
+
+  const { data: allRequests = [] } = useQuery({
+    queryKey: ["/api/ride-requests/all"],
     enabled: !!user && user.role === 'admin',
     retry: false,
   });
@@ -73,6 +80,38 @@ export default function AdminDashboard() {
     },
   });
 
+  const assignRideMutation = useMutation({
+    mutationFn: async ({ requestId, tripId }: { requestId: number; tripId: number }) => {
+      await apiRequest("PATCH", `/api/ride-requests/${requestId}/assign-to-trip`, { tripId });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Ride Assigned",
+        description: "The ride request has been successfully assigned to the trip.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ride-requests/all"] });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: error.message || "Failed to assign ride",
+        variant: "destructive",
+      });
+    },
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -100,6 +139,38 @@ export default function AdminDashboard() {
   const handleCloseTripForm = () => {
     setShowTripForm(false);
     setEditingTrip(null);
+  };
+
+  const handleAssignRide = (requestId: number, tripId: number) => {
+    assignRideMutation.mutate({ requestId, tripId });
+  };
+
+  const getCompatibleTrips = (request: any) => {
+    if (!Array.isArray(allTrips)) return [];
+    
+    return allTrips.filter((trip: any) => {
+      // Check if trip has available seats
+      if (trip.availableSeats < 1) return false;
+      
+      // Check if trip is active
+      if (trip.status !== 'active') return false;
+      
+      // Check location compatibility (basic string matching)
+      const fromMatch = trip.fromLocation.toLowerCase().includes(request.fromLocation.toLowerCase()) ||
+                       request.fromLocation.toLowerCase().includes(trip.fromLocation.toLowerCase());
+      const toMatch = trip.toLocation.toLowerCase().includes(request.toLocation.toLowerCase()) ||
+                     request.toLocation.toLowerCase().includes(trip.toLocation.toLowerCase());
+      
+      if (!fromMatch && !toMatch) return false;
+      
+      // Check time compatibility (within 2 hours)
+      const tripTime = new Date(trip.departureTime).getTime();
+      const requestTime = new Date(request.preferredTime).getTime();
+      const timeDiff = Math.abs(tripTime - requestTime);
+      const twoHours = 2 * 60 * 60 * 1000;
+      
+      return timeDiff <= twoHours;
+    });
   };
 
   if (isLoading) {
@@ -132,7 +203,103 @@ export default function AdminDashboard() {
           </Button>
         </div>
 
+        {/* Ride Assignment Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Ride Request Assignment</CardTitle>
+            <p className="text-sm text-gray-600">Assign pending ride requests to available trips</p>
+          </CardHeader>
+          <CardContent>
+            {!Array.isArray(allRequests) || allRequests.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No pending ride requests to assign.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {allRequests.filter((request: any) => request.status === 'pending').map((request: any) => {
+                  const compatibleTrips = getCompatibleTrips(request);
+                  return (
+                    <div key={request.id} className="border rounded-lg p-4 bg-gray-50">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={request.rider?.profileImageUrl || ""} />
+                            <AvatarFallback>
+                              {request.rider?.firstName?.[0]}{request.rider?.lastName?.[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">
+                              {request.rider?.firstName} {request.rider?.lastName}
+                            </h4>
+                            <div className="flex items-center space-x-4 text-sm text-gray-600">
+                              <div className="flex items-center">
+                                <MapPin className="h-4 w-4 mr-1" />
+                                {request.fromLocation} → {request.toLocation}
+                              </div>
+                              <div className="flex items-center">
+                                <Clock className="h-4 w-4 mr-1" />
+                                {format(new Date(request.preferredTime), "MMM d, h:mm a")}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {request.passengerCount} passenger{request.passengerCount !== 1 ? 's' : ''}
+                        </Badge>
+                      </div>
+                      
+                      {request.notes && (
+                        <div className="mb-4 p-3 bg-white rounded-md border">
+                          <p className="text-sm font-medium text-gray-700 mb-1">Notes:</p>
+                          <p className="text-sm text-gray-600">{request.notes}</p>
+                        </div>
+                      )}
 
+                      <div className="flex items-center space-x-3">
+                        <span className="text-sm font-medium text-gray-700">Assign to trip:</span>
+                        {compatibleTrips.length === 0 ? (
+                          <span className="text-sm text-gray-500">No compatible trips available</span>
+                        ) : (
+                          <>
+                            <Select onValueChange={(tripId) => handleAssignRide(request.id, parseInt(tripId))}>
+                              <SelectTrigger className="w-80">
+                                <SelectValue placeholder="Select a compatible trip" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {compatibleTrips.map((trip: any) => (
+                                  <SelectItem key={trip.id} value={trip.id.toString()}>
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">
+                                        {trip.fromLocation} → {trip.toLocation}
+                                      </span>
+                                      <span className="text-xs text-gray-500">
+                                        {format(new Date(trip.departureTime), "MMM d, h:mm a")} • 
+                                        {trip.availableSeats} seat{trip.availableSeats !== 1 ? 's' : ''} available
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={assignRideMutation.isPending}
+                            >
+                              <UserPlus className="h-4 w-4 mr-1" />
+                              {assignRideMutation.isPending ? "Assigning..." : "Assign"}
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Trip Management Table */}
         <Card>
