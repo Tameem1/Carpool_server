@@ -58,6 +58,34 @@ export class DatabaseStorage implements IStorage {
   constructor() {
     // Initialize sample users for testing (one-time setup)
     this.initializeSampleUsers();
+    // Run periodic cleanup every 30 minutes to update expired trips
+    setInterval(() => this.updateExpiredTrips(), 30 * 60 * 1000);
+  }
+
+  // Check if a trip should be marked as completed (2 hours after departure time)
+  private shouldTripBeCompleted(trip: Trip): boolean {
+    const now = new Date();
+    const departureTime = new Date(trip.departureTime);
+    const twoHoursAfterDeparture = new Date(departureTime.getTime() + 2 * 60 * 60 * 1000);
+    return now > twoHoursAfterDeparture && trip.status === "active";
+  }
+
+  // Update expired trips to completed status
+  private async updateExpiredTrips(): Promise<void> {
+    try {
+      const allTrips = await this.getAllTrips();
+      const expiredTrips = allTrips.filter(trip => this.shouldTripBeCompleted(trip));
+      
+      for (const trip of expiredTrips) {
+        await this.updateTrip(trip.id, { status: "completed" });
+      }
+      
+      if (expiredTrips.length > 0) {
+        console.log(`Updated ${expiredTrips.length} expired trips to completed status`);
+      }
+    } catch (error) {
+      console.error("Error updating expired trips:", error);
+    }
   }
 
   private async initializeSampleUsers() {
@@ -192,6 +220,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllTrips(): Promise<Trip[]> {
+    // First update any expired trips
+    await this.updateExpiredTrips();
     return await db.select().from(trips);
   }
 
@@ -213,12 +243,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchTrips(fromLocation?: string, toLocation?: string, date?: Date): Promise<Trip[]> {
+    // First update any expired trips
+    await this.updateExpiredTrips();
+    
     let query = db.select().from(trips).where(eq(trips.status, "active"));
     
     // Note: This is a simplified search. For production, you'd want to use proper text search capabilities
     const allTrips = await query;
     
     return allTrips.filter(trip => {
+      // Check if trip is still within the 2-hour active window
+      if (this.shouldTripBeCompleted(trip)) {
+        return false;
+      }
+      
       if (fromLocation && !trip.fromLocation.toLowerCase().includes(fromLocation.toLowerCase())) {
         return false;
       }

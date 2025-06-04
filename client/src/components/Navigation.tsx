@@ -16,7 +16,7 @@ export function Navigation() {
     enabled: !!user,
   });
 
-  const unreadCount = notifications.filter((n: any) => !n.isRead).length;
+  const unreadCount = Array.isArray(notifications) ? notifications.filter((n: any) => !n.isRead).length : 0;
 
   const handleLogout = async () => {
     try {

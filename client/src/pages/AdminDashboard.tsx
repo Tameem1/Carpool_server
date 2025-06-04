@@ -152,7 +152,7 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {allTrips.length === 0 ? (
+                  {!Array.isArray(allTrips) || allTrips.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="text-center py-8 text-gray-500">
                         No trips found. Create your first trip to get started.
