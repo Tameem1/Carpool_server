@@ -74,12 +74,12 @@ export default function Dashboard() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.firstName}!
+            مرحباً بعودتك، {user?.firstName}!
           </h1>
           <p className="text-gray-600 mt-2">
             {user?.role === "admin"
-              ? "Manage the carpool platform"
-              : "Find rides or offer your car"}
+              ? "إدارة منصة مشاركة الرحلات"
+              : "ابحث عن رحلات أو اعرض سيارتك"}
           </p>
         </div>
         <Button
@@ -87,7 +87,7 @@ export default function Dashboard() {
           className="bg-primary hover:bg-primary/90"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Create Trip
+          إنشاء رحلة
         </Button>
       </div>
 
@@ -96,7 +96,7 @@ export default function Dashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Pending Requests
+                الطلبات المعلقة
               </CardTitle>
               <Settings className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -109,13 +109,13 @@ export default function Dashboard() {
 
       <Tabs defaultValue="all-trips" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="all-trips">All Trips</TabsTrigger>
-          <TabsTrigger value="my-trips">My Trips</TabsTrigger>
+          <TabsTrigger value="all-trips">جميع الرحلات</TabsTrigger>
+          <TabsTrigger value="my-trips">رحلاتي</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all-trips" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Available Trips</h2>
+            <h2 className="text-xl font-semibold">الرحلات المتاحة</h2>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-gray-500" />
@@ -124,9 +124,9 @@ export default function Dashboard() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="active">نشطة</SelectItem>
+                    <SelectItem value="inactive">غير نشطة</SelectItem>
+                    <SelectItem value="all">الكل</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -145,7 +145,7 @@ export default function Dashboard() {
                   </SelectContent>
                 </Select>
               </div>
-              <Badge variant="secondary">{sortedTrips.length} trips</Badge>
+              <Badge variant="secondary">{sortedTrips.length} رحلة</Badge>
             </div>
           </div>
 
@@ -154,14 +154,14 @@ export default function Dashboard() {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Calendar className="h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No trips available
+                  لا توجد رحلات متاحة
                 </h3>
                 <p className="text-gray-600 text-center mb-4">
-                  Be the first to create a trip and help others get around!
+                  كن أول من ينشئ رحلة وساعد الآخرين في التنقل!
                 </p>
                 <Button onClick={() => setShowTripForm(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create First Trip
+                  إنشاء أول رحلة
                 </Button>
               </CardContent>
             </Card>
@@ -182,7 +182,7 @@ export default function Dashboard() {
 
         <TabsContent value="my-trips" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">My Trips</h2>
+            <h2 className="text-xl font-semibold">رحلاتي</h2>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="h-4 w-4 text-gray-500" />
