@@ -100,9 +100,9 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
                 name="fromLocation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>From</FormLabel>
+                    <FormLabel>من</FormLabel>
                     <FormControl>
-                      <Input placeholder="Pickup location" {...field} />
+                      <Input placeholder="موقع الانطلاق" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -114,9 +114,9 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
                 name="toLocation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>To</FormLabel>
+                    <FormLabel>إلى</FormLabel>
                     <FormControl>
-                      <Input placeholder="Destination" {...field} />
+                      <Input placeholder="الوجهة" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -129,7 +129,7 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
               name="preferredTime"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Preferred Date & Time</FormLabel>
+                  <FormLabel>التاريخ والوقت المفضل</FormLabel>
                   <FormControl>
                     <Input type="datetime-local" {...field} />
                   </FormControl>
@@ -144,15 +144,15 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
                 name="riderId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Request for User</FormLabel>
+                    <FormLabel>طلب للمستخدم</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a user (leave empty for yourself)" />
+                          <SelectValue placeholder="اختر مستخدماً (اتركه فارغاً لنفسك)" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="self">Myself (Admin)</SelectItem>
+                        <SelectItem value="self">نفسي (المدير)</SelectItem>
                         {users.map((user: any) => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.firstName} {user.lastName} ({user.email})
@@ -171,17 +171,17 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
               name="passengerCount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Number of Passengers</FormLabel>
+                  <FormLabel>عدد الركاب</FormLabel>
                   <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select passenger count" />
+                        <SelectValue placeholder="اختر عدد الركاب" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {[1, 2, 3, 4].map((num) => (
                         <SelectItem key={num} value={num.toString()}>
-                          {num} passenger{num > 1 ? 's' : ''}
+                          {num} {num > 1 ? 'ركاب' : 'راكب'}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -196,10 +196,10 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Additional Requirements</FormLabel>
+                  <FormLabel>متطلبات إضافية</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Any special requirements or notes..." 
+                      placeholder="أي متطلبات خاصة أو ملاحظات..." 
                       rows={3} 
                       {...field} 
                     />
