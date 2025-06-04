@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Bell, Car, MessageSquare, Home, Users, Settings } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
+import { RealTimeStatus } from "@/components/RealTimeStatus";
 
 export function Navigation() {
   const { user } = useAuth();
@@ -100,6 +101,9 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* Real-time Status */}
+            <RealTimeStatus />
+            
             {/* Notification Badge */}
             <div className="relative">
               <Bell className="h-5 w-5 text-gray-600 cursor-pointer hover:text-primary transition-colors" />

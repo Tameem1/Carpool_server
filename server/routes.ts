@@ -444,6 +444,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const user = await storage.updateUserRole(id, role);
+      
+      // Broadcast user update to all connected clients
+      broadcastToAll({
+        type: 'user_updated',
+        data: user
+      });
+      
       res.json(user);
     } catch (error) {
       console.error("Error updating user role:", error);
@@ -1144,6 +1151,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send notification
       await telegramService.notifyRequestAccepted(request.riderId, tripId);
+      
+      // Broadcast ride request update to all connected clients
+      broadcastToAll({
+        type: 'ride_request_updated',
+        data: { id: requestId, status: 'accepted', tripId }
+      });
       
       res.json({ message: "Ride request assigned successfully" });
     } catch (error) {

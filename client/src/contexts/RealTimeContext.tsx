@@ -35,7 +35,10 @@ export function RealTimeProvider({ children }: RealTimeProviderProps) {
     setConnectionStatus('connecting');
     
     try {
-      const wsUrl = `ws://${window.location.hostname}:5001`;
+      // Use secure WebSocket in production, regular WebSocket in development
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.hostname}:5001`;
+      console.log('Connecting to WebSocket:', wsUrl);
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
