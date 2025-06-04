@@ -786,6 +786,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "request_accepted"
       );
       
+      // Broadcast trip update to all connected clients
+      broadcastToAll({
+        type: 'trip_updated',
+        data: updatedTrip
+      });
+      
       res.json(updatedTrip);
     } catch (error) {
       console.error("Error joining trip:", error);
@@ -1002,6 +1008,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const trip of matchingTrips) {
         await telegramService.notifyRideRequestReceived(trip.driverId, request.id);
       }
+      
+      // Broadcast ride request creation to all connected clients
+      broadcastToAll({
+        type: 'ride_request_created',
+        data: request
+      });
       
       res.status(201).json(request);
     } catch (error) {
