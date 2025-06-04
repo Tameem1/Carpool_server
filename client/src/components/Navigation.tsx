@@ -10,25 +10,27 @@ export function Navigation() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [location] = useLocation();
-  
+
   const { data: notifications = [] } = useQuery({
     queryKey: ["/api/notifications"],
     enabled: !!user,
   });
 
-  const unreadCount = Array.isArray(notifications) ? notifications.filter((n: any) => !n.isRead).length : 0;
+  const unreadCount = Array.isArray(notifications)
+    ? notifications.filter((n: any) => !n.isRead).length
+    : 0;
 
   const handleLogout = async () => {
     try {
       // Clear all React Query cache
       queryClient.clear();
-      
+
       // Call logout endpoint
       await fetch("/api/logout", {
         method: "GET",
-        credentials: "include"
+        credentials: "include",
       });
-      
+
       // Force redirect to login page
       window.location.href = "/api/login";
     } catch (error) {
@@ -39,27 +41,27 @@ export function Navigation() {
   };
 
   const navItems = [
-    { 
-      href: "/", 
-      label: "لوحة التحكم", 
+    {
+      href: "/",
+      label: "لوحة التحكم",
       icon: Home,
-      active: location === "/" 
+      active: location === "/",
     },
-    { 
-      href: "/requests", 
-      label: "الطلبات", 
+    {
+      href: "/requests",
+      label: "الطلبات",
       icon: MessageSquare,
-      active: location === "/requests" 
-    }
+      active: location === "/requests",
+    },
   ];
 
   // Add role-specific nav items
-  if (user?.role === 'admin') {
-    navItems.push({ 
-      href: "/admin", 
-      label: "الإدارة", 
+  if (user?.role === "admin") {
+    navItems.push({
+      href: "/admin",
+      label: "الإدارة",
       icon: Settings,
-      active: location === "/admin" 
+      active: location === "/admin",
     });
   }
 
@@ -70,9 +72,9 @@ export function Navigation() {
           <div className="flex items-center space-x-8">
             <div className="flex-shrink-0 flex items-center">
               <Car className="h-8 w-8 text-primary mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">رايد شير برو</h1>
+              <h1 className="text-xl font-bold text-gray-900">وصلني عالنادي</h1>
             </div>
-            
+
             {/* Navigation Links */}
             <div className="hidden md:flex space-x-1">
               {navItems.map((item) => {
@@ -83,8 +85,8 @@ export function Navigation() {
                       variant={item.active ? "default" : "ghost"}
                       size="sm"
                       className={`flex items-center space-x-2 ${
-                        item.active 
-                          ? "bg-primary text-primary-foreground" 
+                        item.active
+                          ? "bg-primary text-primary-foreground"
                           : "text-gray-600 hover:text-primary"
                       }`}
                     >
@@ -96,14 +98,14 @@ export function Navigation() {
               })}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             {/* Notification Badge */}
             <div className="relative">
               <Bell className="h-5 w-5 text-gray-600 cursor-pointer hover:text-primary transition-colors" />
               {unreadCount > 0 && (
-                <Badge 
-                  variant="destructive" 
+                <Badge
+                  variant="destructive"
                   className="absolute -top-2 -right-2 h-5 w-5 text-xs flex items-center justify-center p-0 bg-warning hover:bg-warning"
                 >
                   {unreadCount}
@@ -115,23 +117,20 @@ export function Navigation() {
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user?.profileImageUrl || ""} alt="Profile" />
                 <AvatarFallback>
-                  {user?.firstName?.[0]}{user?.lastName?.[0]}
+                  {user?.firstName?.[0]}
+                  {user?.lastName?.[0]}
                 </AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium">
                 {user?.firstName} {user?.lastName}
               </span>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={handleLogout}
-              >
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
                 تسجيل الخروج
               </Button>
             </div>
           </div>
         </div>
-        
+
         {/* Mobile Navigation */}
         <div className="md:hidden pb-3">
           <div className="flex space-x-1">

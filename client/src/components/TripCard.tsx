@@ -2,8 +2,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Clock, Users, Star, Car, UserPlus, UserMinus, Trash2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  MapPin,
+  Clock,
+  Users,
+  Star,
+  Car,
+  UserPlus,
+  UserMinus,
+  Trash2,
+} from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -43,7 +58,15 @@ interface TripCardProps {
   currentUserId?: string;
 }
 
-export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = true, userRole, currentUserId }: TripCardProps) {
+export function TripCard({
+  trip,
+  onRequestSeat,
+  onEdit,
+  onCancel,
+  showActions = true,
+  userRole,
+  currentUserId,
+}: TripCardProps) {
   const departureDate = new Date(trip.departureTime);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const { toast } = useToast();
@@ -51,29 +74,29 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
 
   // Fetch all users for the dropdown (admin only)
   const { data: users } = useQuery({
-    queryKey: ['/api/users'],
-    enabled: userRole === 'admin'
+    queryKey: ["/api/users"],
+    enabled: userRole === "admin",
   });
 
   // Add rider mutation
   const addRiderMutation = useMutation({
     mutationFn: async (userId: string) => {
       const response = await fetch(`/api/trips/${trip.id}/riders`, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify({ userId }),
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to add rider');
+        throw new Error(error.message || "Failed to add rider");
       }
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
       toast({
         title: "Success",
-        description: "Rider added to trip successfully"
+        description: "Rider added to trip successfully",
       });
       setSelectedUserId("");
     },
@@ -81,95 +104,95 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
       toast({
         title: "Error",
         description: error.message || "Failed to add rider to trip",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Remove rider mutation
   const removeRiderMutation = useMutation({
     mutationFn: async (userId: string) => {
       const response = await fetch(`/api/trips/${trip.id}/riders/${userId}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to remove rider');
+        throw new Error(error.message || "Failed to remove rider");
       }
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
       toast({
         title: "Success",
-        description: "Rider removed from trip successfully"
+        description: "Rider removed from trip successfully",
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "Failed to remove rider from trip",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Join trip mutation
   const joinTripMutation = useMutation({
     mutationFn: async () => {
       const response = await fetch(`/api/trips/${trip.id}/join`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to join trip');
+        throw new Error(error.message || "Failed to join trip");
       }
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/trips/my'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/trips/my"] });
       toast({
         title: "Success",
-        description: "Successfully joined the trip!"
+        description: "Successfully joined the trip!",
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "Failed to join trip",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Delete trip mutation
   const deleteTripMutation = useMutation({
     mutationFn: async () => {
       const response = await fetch(`/api/trips/${trip.id}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to delete trip');
+        throw new Error(error.message || "Failed to delete trip");
       }
       return response.ok;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
       toast({
         title: "Success",
-        description: "Trip deleted successfully"
+        description: "Trip deleted successfully",
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "Failed to delete trip",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   const getStatusColor = (status: string) => {
@@ -198,17 +221,19 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
               {format(departureDate, "MMMM d, yyyy 'at' h:mm a")}
             </p>
           </div>
-          <Badge className={getStatusColor(trip.status)}>
-            {trip.status}
-          </Badge>
+          <Badge className={getStatusColor(trip.status)}>{trip.status}</Badge>
         </div>
 
         {trip.driver && (
           <div className="flex items-center mb-4">
             <Avatar className="h-10 w-10 mr-3">
-              <AvatarImage src={trip.driver.profileImageUrl || ""} alt="Driver" />
+              <AvatarImage
+                src={trip.driver.profileImageUrl || ""}
+                alt="Driver"
+              />
               <AvatarFallback>
-                {trip.driver.firstName[0]}{trip.driver.lastName[0]}
+                {trip.driver.firstName[0]}
+                {trip.driver.lastName[0]}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -222,15 +247,15 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
-            <p className="text-sm text-gray-600">Pickup</p>
+            <p className="text-sm text-gray-600">الانطلاق</p>
             <p className="font-medium truncate">{trip.fromLocation}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Destination</p>
+            <p className="text-sm text-gray-600">الوصول</p>
             <p className="font-medium truncate">{trip.toLocation}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Riders</p>
+            <p className="text-sm text-gray-600">الركاب</p>
             <p className="font-medium flex items-center">
               <Users className="h-4 w-4 mr-1" />
               {trip.riders?.length || 0} / {trip.totalSeats}
@@ -240,14 +265,14 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
 
         {trip.riderDetails && trip.riderDetails.length > 0 && (
           <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-2">Current Riders:</p>
+            <p className="text-sm text-gray-600 mb-2">الركاب الحاليين</p>
             <div className="flex flex-wrap gap-2">
               {trip.riderDetails.map((rider) => (
                 <div key={rider.id} className="flex items-center gap-1">
                   <Badge variant="secondary" className="text-xs">
                     {rider.firstName} {rider.lastName}
                   </Badge>
-                  {userRole === 'admin' && (
+                  {userRole === "admin" && (
                     <Button
                       size="sm"
                       variant="ghost"
@@ -264,9 +289,9 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
           </div>
         )}
 
-        {userRole === 'admin' && users && (
+        {userRole === "admin" && users && (
           <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-2">Add Rider:</p>
+            <p className="text-sm text-gray-600 mb-2">أضف راكب</p>
             <div className="flex items-center gap-2">
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                 <SelectTrigger className="w-48">
@@ -274,9 +299,10 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
                 </SelectTrigger>
                 <SelectContent>
                   {(users as any[])
-                    ?.filter((user: any) => 
-                      user.id !== trip.driver?.id && 
-                      !trip.riders?.includes(user.id)
+                    ?.filter(
+                      (user: any) =>
+                        user.id !== trip.driver?.id &&
+                        !trip.riders?.includes(user.id),
                     )
                     .map((user: any) => (
                       <SelectItem key={user.id} value={user.id}>
@@ -287,8 +313,14 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
               </Select>
               <Button
                 size="sm"
-                onClick={() => selectedUserId && addRiderMutation.mutate(selectedUserId)}
-                disabled={!selectedUserId || addRiderMutation.isPending || (trip.riders?.length || 0) >= trip.totalSeats}
+                onClick={() =>
+                  selectedUserId && addRiderMutation.mutate(selectedUserId)
+                }
+                disabled={
+                  !selectedUserId ||
+                  addRiderMutation.isPending ||
+                  (trip.riders?.length || 0) >= trip.totalSeats
+                }
               >
                 <UserPlus className="h-4 w-4 mr-1" />
                 Add
@@ -310,35 +342,37 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
           {showActions && (
             <div className="flex space-x-2">
               {/* Join Trip button - for users who are not the driver and not already riders */}
-              {currentUserId && 
-               currentUserId !== trip.driver?.id && 
-               !trip.riders?.includes(currentUserId) && 
-               trip.availableSeats > 0 && 
-               trip.status === 'active' && (
-                <Button 
-                  onClick={() => joinTripMutation.mutate()}
-                  disabled={joinTripMutation.isPending}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  {joinTripMutation.isPending ? "Joining..." : "Join Trip"}
-                </Button>
-              )}
-              
+              {currentUserId &&
+                currentUserId !== trip.driver?.id &&
+                !trip.riders?.includes(currentUserId) &&
+                trip.availableSeats > 0 &&
+                trip.status === "active" && (
+                  <Button
+                    onClick={() => joinTripMutation.mutate()}
+                    disabled={joinTripMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    {joinTripMutation.isPending ? "Joining..." : "Join Trip"}
+                  </Button>
+                )}
+
               {/* Request Seat button - alternative to join trip */}
-              {userRole === 'rider' && onRequestSeat && trip.availableSeats > 0 && 
-               currentUserId !== trip.driver?.id && 
-               !trip.riders?.includes(currentUserId) && (
-                <Button 
-                  onClick={() => onRequestSeat(trip.id)}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  Request Seat
-                </Button>
-              )}
-              
+              {userRole === "rider" &&
+                onRequestSeat &&
+                trip.availableSeats > 0 &&
+                currentUserId !== trip.driver?.id &&
+                !trip.riders?.includes(currentUserId) && (
+                  <Button
+                    onClick={() => onRequestSeat(trip.id)}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    Request Seat
+                  </Button>
+                )}
+
               {/* Already joined indicator */}
               {currentUserId && trip.riders?.includes(currentUserId) && (
-                <Button 
+                <Button
                   disabled
                   variant="outline"
                   className="border-green-500 text-green-600"
@@ -346,26 +380,20 @@ export function TripCard({ trip, onRequestSeat, onEdit, onCancel, showActions = 
                   Already Joined
                 </Button>
               )}
-              
-              {(userRole === 'driver' || userRole === 'admin') && onEdit && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => onEdit(trip.id)}
-                >
+
+              {(userRole === "driver" || userRole === "admin") && onEdit && (
+                <Button variant="outline" onClick={() => onEdit(trip.id)}>
                   Edit
                 </Button>
               )}
-              {(userRole === 'driver' || userRole === 'admin') && onCancel && (
-                <Button 
-                  variant="destructive" 
-                  onClick={() => onCancel(trip.id)}
-                >
+              {(userRole === "driver" || userRole === "admin") && onCancel && (
+                <Button variant="destructive" onClick={() => onCancel(trip.id)}>
                   Cancel
                 </Button>
               )}
-              {userRole === 'admin' && (
-                <Button 
-                  variant="destructive" 
+              {userRole === "admin" && (
+                <Button
+                  variant="destructive"
                   size="sm"
                   onClick={() => deleteTripMutation.mutate()}
                   disabled={deleteTripMutation.isPending}
