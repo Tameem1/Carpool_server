@@ -67,7 +67,14 @@ export class DatabaseStorage implements IStorage {
     const now = new Date();
     const departureTime = new Date(trip.departureTime);
     const twoHoursAfterDeparture = new Date(departureTime.getTime() + 2 * 60 * 60 * 1000);
-    return now > twoHoursAfterDeparture && trip.status === "active";
+    
+    // Only mark as completed if:
+    // 1. Trip status is currently active
+    // 2. Current time is more than 2 hours after departure time
+    // 3. Departure time is in the past (not a future trip)
+    return trip.status === "active" && 
+           now > twoHoursAfterDeparture && 
+           now > departureTime;
   }
 
   // Update expired trips to completed status

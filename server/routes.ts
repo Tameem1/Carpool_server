@@ -87,7 +87,14 @@ function shouldTripBeCompleted(trip: any): boolean {
   const now = new Date();
   const departureTime = new Date(trip.departureTime);
   const twoHoursAfterDeparture = new Date(departureTime.getTime() + 2 * 60 * 60 * 1000);
-  return now > twoHoursAfterDeparture && trip.status === "active";
+  
+  // Only mark as completed if:
+  // 1. Trip status is currently active
+  // 2. Current time is more than 2 hours after departure time
+  // 3. Departure time is in the past (not a future trip)
+  return trip.status === "active" && 
+         now > twoHoursAfterDeparture && 
+         now > departureTime;
 }
 
 // Function to update expired trips to completed status
@@ -426,13 +433,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const allTrips = await storage.getAllTrips();
         trips = allTrips.filter(trip => trip.status !== 'active');
       } else {
-        // Default to active trips only - filter out trips that should be completed
+        // Default to active trips only
         const allTrips = await storage.getAllTrips();
-        trips = allTrips.filter(trip => {
-          if (trip.status !== 'active') return false;
-          // Don't show trips that are past their 2-hour active window
-          return !shouldTripBeCompleted(trip);
-        });
+        trips = allTrips.filter(trip => trip.status === 'active');
       }
       
       // Apply additional filters if provided
