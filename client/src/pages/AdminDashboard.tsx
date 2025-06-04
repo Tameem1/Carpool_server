@@ -9,7 +9,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { Route, Users, CheckCircle, Clock, Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
 export default function AdminDashboard() {
@@ -34,11 +34,7 @@ export default function AdminDashboard() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: stats } = useQuery({
-    queryKey: ["/api/stats"],
-    enabled: !!user && user.role === 'admin',
-    retry: false,
-  });
+
 
   const { data: allTrips = [] } = useQuery({
     queryKey: ["/api/trips"],
@@ -56,7 +52,6 @@ export default function AdminDashboard() {
         description: "The trip has been deleted successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -137,64 +132,7 @@ export default function AdminDashboard() {
           </Button>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <Route className="h-6 w-6 text-primary" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Active Trips</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.activeTrips || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-3 rounded-lg bg-secondary/10">
-                  <Users className="h-6 w-6 text-secondary" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Users</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.totalUsers || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-3 rounded-lg bg-success/10">
-                  <CheckCircle className="h-6 w-6 text-success" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Completed</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.completedTrips || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-3 rounded-lg bg-warning/10">
-                  <Clock className="h-6 w-6 text-warning" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Pending</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.pendingRequests || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Trip Management Table */}
         <Card>
