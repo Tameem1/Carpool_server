@@ -19,7 +19,7 @@ export default function Requests() {
   });
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return <div className="flex items-center justify-center min-h-screen">جاري التحميل...</div>;
   }
 
   if (!user) {
@@ -28,8 +28,8 @@ export default function Requests() {
         <Card className="w-full max-w-md mx-4">
           <CardContent className="pt-6">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-              <p className="text-gray-600">You need to be logged in to view ride requests.</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">تم رفض الوصول</h1>
+              <p className="text-gray-600">تحتاج إلى تسجيل الدخول لعرض طلبات الرحلات.</p>
             </div>
           </CardContent>
         </Card>
@@ -42,32 +42,32 @@ export default function Requests() {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">All Ride Requests</h2>
-            <p className="text-gray-600">Browse all pending ride requests from users</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">جميع طلبات الرحلات</h2>
+            <p className="text-gray-600">تصفح جميع طلبات الرحلات المعلقة من المستخدمين</p>
           </div>
           <Button 
             onClick={() => setShowRequestForm(true)} 
             className="bg-primary hover:bg-primary/90"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Request Ride
+            طلب رحلة
           </Button>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Pending Ride Requests</CardTitle>
+          <CardTitle>طلبات الرحلات المعلقة</CardTitle>
           <p className="text-sm text-gray-600">
-            {allRequests.length} request{allRequests.length !== 1 ? 's' : ''} waiting for rides
+            {allRequests.length} {allRequests.length !== 1 ? 'طلبات' : 'طلب'} في انتظار الرحلات
           </p>
         </CardHeader>
         <CardContent>
           {allRequests.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium mb-2">No Ride Requests</h3>
-              <p>There are currently no pending ride requests.</p>
+              <h3 className="text-lg font-medium mb-2">لا توجد طلبات رحلات</h3>
+              <p>لا توجد حالياً طلبات رحلات معلقة.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -95,7 +95,7 @@ export default function Requests() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-500">
-                        Requested {format(new Date(request.createdAt), "MMM d, yyyy")}
+                        تم الطلب في {format(new Date(request.createdAt), "MMM d, yyyy")}
                       </p>
                       <p className="text-sm text-gray-500">
                         at {format(new Date(request.createdAt), "h:mm a")}
