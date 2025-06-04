@@ -1022,6 +1022,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch('/api/ride-requests/:id/assign-to-trip', requireRole(['admin']), async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { tripId } = req.body;
+      const requestId = parseInt(id);
+
+      if (!tripId) {
+        return res.status(400).json({ message: "Trip ID is required" });
+      }
+
+      const request = await storage.getRideRequest(requestId);
+      if (!request) {
+        return res.status(404).json({ message: "Ride request not found" });
+      }
+
+      const trip = await storage.getTrip(tripId);
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+
+      // Check if trip has enough available seats
+      if (trip.availableSeats < request.passengerCount) {
+        return res.status(400).json({ message: "Not enough available seats in the trip" });
+      }
+
+      // Check if trip is active
+      if (trip.status !== 'active') {
+        return res.status(400).json({ message: "Trip is not active" });
+      }
+
+      // Accept the request and assign to trip
+      await storage.updateRideRequestStatus(requestId, "accepted", tripId);
+      
+      // Add rider as participant
+      await storage.addTripParticipant({
+        tripId,
+        userId: request.riderId,
+        seatsBooked: request.passengerCount,
+        status: "confirmed",
+      });
+
+      // Update trip available seats
+      await storage.updateTrip(tripId, {
+        availableSeats: trip.availableSeats - request.passengerCount,
+      });
+
+      // Send notification
+      await telegramService.notifyRequestAccepted(request.riderId, tripId);
+      
+      res.json({ message: "Ride request assigned successfully" });
+    } catch (error) {
+      console.error("Error assigning ride request:", error);
+      res.status(500).json({ message: "Failed to assign ride request" });
+    }
+  });
+
   // Notification routes
   app.get('/api/notifications', async (req: any, res) => {
     try {
