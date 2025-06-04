@@ -191,15 +191,15 @@ export default function Dashboard() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="departure_time">Earliest First</SelectItem>
-                    <SelectItem value="departure_time_desc">Latest First</SelectItem>
-                    <SelectItem value="available_seats">Most Seats</SelectItem>
-                    <SelectItem value="from_location">From A-Z</SelectItem>
-                    <SelectItem value="to_location">To A-Z</SelectItem>
+                    <SelectItem value="departure_time">الأبكر أولاً</SelectItem>
+                    <SelectItem value="departure_time_desc">الأحدث أولاً</SelectItem>
+                    <SelectItem value="available_seats">أكثر المقاعد</SelectItem>
+                    <SelectItem value="from_location">من أ-ي</SelectItem>
+                    <SelectItem value="to_location">إلى أ-ي</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <Badge variant="secondary">{Array.isArray(myTrips) ? myTrips.length : 0} trips</Badge>
+              <Badge variant="secondary">{Array.isArray(myTrips) ? myTrips.length : 0} رحلة</Badge>
             </div>
           </div>
 
@@ -208,14 +208,14 @@ export default function Dashboard() {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <MapPin className="h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No trips yet
+                  لا توجد رحلات بعد
                 </h3>
                 <p className="text-gray-600 text-center mb-4">
-                  Start by creating your first trip to share rides with others.
+                  ابدأ بإنشاء رحلتك الأولى لمشاركة الرحلات مع الآخرين.
                 </p>
                 <Button onClick={() => setShowTripForm(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Trip
+                  إنشاء رحلة
                 </Button>
               </CardContent>
             </Card>

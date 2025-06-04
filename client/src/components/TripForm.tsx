@@ -17,10 +17,10 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 
 const tripFormSchema = z.object({
-  fromLocation: z.string().min(1, "Pickup location is required"),
-  toLocation: z.string().min(1, "Destination is required"),
-  departureTime: z.string().min(1, "Date and time are required"),
-  availableSeats: z.number().min(1, "At least 1 seat required").max(8, "Maximum 8 seats"),
+  fromLocation: z.string().min(1, "موقع الانطلاق مطلوب"),
+  toLocation: z.string().min(1, "الوجهة مطلوبة"),
+  departureTime: z.string().min(1, "التاريخ والوقت مطلوبان"),
+  availableSeats: z.number().min(1, "مقعد واحد على الأقل مطلوب").max(8, "8 مقاعد كحد أقصى"),
   isRecurring: z.boolean().default(false),
   recurringDays: z.array(z.string()).optional(),
   notes: z.string().optional(),
@@ -37,13 +37,13 @@ interface TripFormProps {
 }
 
 const daysOfWeek = [
-  { id: "monday", label: "Monday" },
-  { id: "tuesday", label: "Tuesday" },
-  { id: "wednesday", label: "Wednesday" },
-  { id: "thursday", label: "Thursday" },
-  { id: "friday", label: "Friday" },
-  { id: "saturday", label: "Saturday" },
-  { id: "sunday", label: "Sunday" },
+  { id: "monday", label: "الاثنين" },
+  { id: "tuesday", label: "الثلاثاء" },
+  { id: "wednesday", label: "الأربعاء" },
+  { id: "thursday", label: "الخميس" },
+  { id: "friday", label: "الجمعة" },
+  { id: "saturday", label: "السبت" },
+  { id: "sunday", label: "الأحد" },
 ];
 
 export function TripForm({ open, onClose, trip }: TripFormProps) {
@@ -108,15 +108,15 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
       queryClient.invalidateQueries({ queryKey: ["/api/my-trips"] });
       toast({
-        title: "Success",
-        description: trip?.id ? "Trip updated successfully!" : "Trip created successfully!",
+        title: "نجحت العملية",
+        description: trip?.id ? "تم تحديث الرحلة بنجاح!" : "تم إنشاء الرحلة بنجاح!",
       });
       onClose();
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Something went wrong",
+        title: "خطأ",
+        description: error.message || "حدث خطأ ما",
         variant: "destructive",
       });
     },
@@ -152,7 +152,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{trip?.id ? "Edit Trip" : "Create New Trip"}</DialogTitle>
+          <DialogTitle>{trip?.id ? "تحرير الرحلة" : "إنشاء رحلة جديدة"}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -163,9 +163,9 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                 name="fromLocation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>From</FormLabel>
+                    <FormLabel>من</FormLabel>
                     <FormControl>
-                      <Input placeholder="Pickup location" {...field} />
+                      <Input placeholder="موقع الانطلاق" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -177,9 +177,9 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                 name="toLocation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>To</FormLabel>
+                    <FormLabel>إلى</FormLabel>
                     <FormControl>
-                      <Input placeholder="Destination" {...field} />
+                      <Input placeholder="الوجهة" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -193,7 +193,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                 name="departureTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Departure Date & Time</FormLabel>
+                    <FormLabel>تاريخ ووقت الانطلاق</FormLabel>
                     <FormControl>
                       <Input type="datetime-local" {...field} />
                     </FormControl>
