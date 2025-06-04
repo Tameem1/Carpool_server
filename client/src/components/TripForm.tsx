@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,13 +14,16 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { X, UserMinus, UserPlus } from "lucide-react";
 
 const tripFormSchema = z.object({
   fromLocation: z.string().min(1, "موقع الانطلاق مطلوب"),
   toLocation: z.string().min(1, "الوجهة مطلوبة"),
   departureTime: z.string().min(1, "التاريخ والوقت مطلوبان"),
   availableSeats: z.number().min(1, "مقعد واحد على الأقل مطلوب").max(8, "8 مقاعد كحد أقصى"),
+  totalSeats: z.number().min(1, "مقعد واحد على الأقل مطلوب").max(8, "8 مقاعد كحد أقصى"),
   isRecurring: z.boolean().default(false),
   recurringDays: z.array(z.string()).optional(),
   notes: z.string().optional(),
@@ -52,6 +55,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
   const { user } = useAuth();
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+  const [currentRiders, setCurrentRiders] = useState<string[]>([]);
 
   const isAdmin = user?.role === 'admin';
 
@@ -61,6 +65,19 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
     enabled: isAdmin,
   });
 
+  // Initialize form data when trip changes
+  useEffect(() => {
+    if (trip) {
+      setSelectedDays(trip.recurringDays || []);
+      setCurrentRiders(trip.riders || []);
+      setSelectedParticipants([]);
+    } else {
+      setSelectedDays([]);
+      setCurrentRiders([]);
+      setSelectedParticipants([]);
+    }
+  }, [trip]);
+
   const form = useForm<TripFormData>({
     resolver: zodResolver(tripFormSchema),
     defaultValues: {
@@ -68,11 +85,83 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       toLocation: trip?.toLocation || "",
       departureTime: trip?.departureTime ? new Date(trip.departureTime).toISOString().slice(0, 16) : "",
       availableSeats: trip?.availableSeats || 1,
+      totalSeats: trip?.totalSeats || trip?.availableSeats || 1,
       isRecurring: trip?.isRecurring || false,
       recurringDays: trip?.recurringDays || [],
       notes: trip?.notes || "",
       driverId: trip?.driverId || "",
       participantIds: [],
+    },
+  });
+
+  // Reset form when trip changes
+  useEffect(() => {
+    if (trip) {
+      form.reset({
+        fromLocation: trip.fromLocation || "",
+        toLocation: trip.toLocation || "",
+        departureTime: trip.departureTime ? new Date(trip.departureTime).toISOString().slice(0, 16) : "",
+        availableSeats: trip.availableSeats || 1,
+        totalSeats: trip.totalSeats || trip.availableSeats || 1,
+        isRecurring: trip.isRecurring || false,
+        recurringDays: trip.recurringDays || [],
+        notes: trip.notes || "",
+        driverId: trip.driverId || "",
+        participantIds: [],
+      });
+    } else {
+      form.reset({
+        fromLocation: "",
+        toLocation: "",
+        departureTime: "",
+        availableSeats: 1,
+        totalSeats: 1,
+        isRecurring: false,
+        recurringDays: [],
+        notes: "",
+        driverId: "",
+        participantIds: [],
+      });
+    }
+  }, [trip, form]);
+
+  const addRiderMutation = useMutation({
+    mutationFn: async ({ tripId, userId }: { tripId: number; userId: string }) => {
+      return await apiRequest("POST", `/api/trips/${tripId}/riders`, { userId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
+      toast({
+        title: "تمت الإضافة",
+        description: "تم إضافة الراكب بنجاح",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل في إضافة الراكب",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const removeRiderMutation = useMutation({
+    mutationFn: async ({ tripId, userId }: { tripId: number; userId: string }) => {
+      return await apiRequest("DELETE", `/api/trips/${tripId}/riders/${userId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
+      toast({
+        title: "تمت الإزالة",
+        description: "تم إزالة الراكب بنجاح",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل في إزالة الراكب",
+        variant: "destructive",
+      });
     },
   });
 
@@ -82,26 +171,13 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
         ...data,
         participantIds: selectedParticipants,
         departureTime: new Date(data.departureTime).toISOString(),
+        riders: trip?.id ? undefined : selectedParticipants, // Only set riders for new trips
       };
       
       if (trip?.id) {
-        return await fetch(`/api/trips/${trip.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }).then(res => {
-          if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
-          return res.json();
-        });
+        return await apiRequest("PATCH", `/api/trips/${trip.id}`, payload);
       } else {
-        return await fetch("/api/trips", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }).then(res => {
-          if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
-          return res.json();
-        });
+        return await apiRequest("POST", "/api/trips", payload);
       }
     },
     onSuccess: () => {
@@ -144,8 +220,31 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
     setSelectedParticipants(selectedParticipants.filter(id => id !== userId));
   };
 
+  const handleRiderAdd = async (userId: string) => {
+    if (trip?.id) {
+      await addRiderMutation.mutateAsync({ tripId: trip.id, userId });
+      setCurrentRiders([...currentRiders, userId]);
+    }
+  };
+
+  const handleRiderRemove = async (userId: string) => {
+    if (trip?.id) {
+      await removeRiderMutation.mutateAsync({ tripId: trip.id, userId });
+      setCurrentRiders(currentRiders.filter(id => id !== userId));
+    }
+  };
+
   const getSelectedUser = (userId: string) => {
     return users.find((u: any) => u.id === userId);
+  };
+
+  const getCurrentRiders = () => {
+    return currentRiders.map(riderId => users.find((u: any) => u.id === riderId)).filter(Boolean);
+  };
+
+  const getAvailableUsers = () => {
+    const excludedIds = [...currentRiders, ...(trip?.driverId ? [trip.driverId] : [])];
+    return users.filter((user: any) => !excludedIds.includes(user.id));
   };
 
   return (
@@ -187,15 +286,35 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               />
             </div>
 
+            <FormField
+              control={form.control}
+              name="departureTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>تاريخ ووقت الانطلاق</FormLabel>
+                  <FormControl>
+                    <Input type="datetime-local" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="departureTime"
+                name="totalSeats"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>تاريخ ووقت الانطلاق</FormLabel>
+                    <FormLabel>إجمالي المقاعد</FormLabel>
                     <FormControl>
-                      <Input type="datetime-local" {...field} />
+                      <Input
+                        type="number"
+                        min="1"
+                        max="8"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -211,7 +330,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                     <FormControl>
                       <Input
                         type="number"
-                        min="1"
+                        min="0"
                         max="8"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value))}
