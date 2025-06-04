@@ -13,10 +13,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 
 const rideRequestFormSchema = z.object({
-  fromLocation: z.string().min(1, "Pickup location is required"),
-  toLocation: z.string().min(1, "Destination is required"),
-  preferredTime: z.string().min(1, "Preferred time is required"),
-  passengerCount: z.number().min(1, "At least 1 passenger required").max(4, "Maximum 4 passengers"),
+  fromLocation: z.string().min(1, "موقع الانطلاق مطلوب"),
+  toLocation: z.string().min(1, "الوجهة مطلوبة"),
+  preferredTime: z.string().min(1, "الوقت المفضل مطلوب"),
+  passengerCount: z.number().min(1, "راكب واحد على الأقل مطلوب").max(4, "4 ركاب كحد أقصى"),
   notes: z.string().optional(),
   riderId: z.string().optional(), // For admin to select rider
 });
@@ -63,8 +63,8 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
     },
     onSuccess: () => {
       toast({
-        title: "Ride Request Submitted",
-        description: "Your ride request has been submitted. Drivers will be notified!",
+        title: "تم تقديم طلب الرحلة",
+        description: "تم تقديم طلب الرحلة. سيتم إخطار السائقين!",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/ride-requests/my"] });
       queryClient.invalidateQueries({ queryKey: ["/api/ride-requests/all"] });
@@ -74,8 +74,8 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to submit ride request",
+        title: "خطأ",
+        description: error.message || "فشل في تقديم طلب الرحلة",
         variant: "destructive",
       });
     },
@@ -89,7 +89,7 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Request a Ride</DialogTitle>
+          <DialogTitle>طلب رحلة</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>

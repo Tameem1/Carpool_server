@@ -207,7 +207,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                 name="availableSeats"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Available Seats</FormLabel>
+                    <FormLabel>المقاعد المتاحة</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -229,11 +229,11 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                 name="driverId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Select Driver</FormLabel>
+                    <FormLabel>اختر السائق</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Choose a driver" />
+                          <SelectValue placeholder="اختر سائقاً" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -252,11 +252,11 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
 
             {isAdmin && (
               <div>
-                <FormLabel>Assign Participants</FormLabel>
+                <FormLabel>تعيين المشاركين</FormLabel>
                 <div className="mt-2">
                   <Select onValueChange={handleParticipantAdd}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Add participant" />
+                      <SelectValue placeholder="إضافة مشارك" />
                     </SelectTrigger>
                     <SelectContent>
                       {users
@@ -301,7 +301,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Recurring Trip</FormLabel>
+                    <FormLabel>رحلة متكررة</FormLabel>
                   </div>
                 </FormItem>
               )}
@@ -309,7 +309,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
 
             {form.watch('isRecurring') && (
               <div>
-                <FormLabel>Select Days</FormLabel>
+                <FormLabel>اختر الأيام</FormLabel>
                 <div className="grid grid-cols-3 gap-2 mt-2">
                   {daysOfWeek.map((day) => (
                     <div key={day.id} className="flex items-center space-x-2">
@@ -332,9 +332,9 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes (Optional)</FormLabel>
+                  <FormLabel>ملاحظات (اختيارية)</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Additional information..." {...field} />
+                    <Textarea placeholder="معلومات إضافية..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -343,10 +343,10 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
 
             <div className="flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
+                إلغاء
               </Button>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : trip?.id ? "Update Trip" : "Create Trip"}
+                {mutation.isPending ? "جاري الحفظ..." : trip?.id ? "تحديث الرحلة" : "إنشاء رحلة"}
               </Button>
             </div>
           </form>
