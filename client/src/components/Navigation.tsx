@@ -41,13 +41,13 @@ export function Navigation() {
   const navItems = [
     { 
       href: "/", 
-      label: "Dashboard", 
+      label: "لوحة التحكم", 
       icon: Home,
       active: location === "/" 
     },
     { 
       href: "/requests", 
-      label: "Requests", 
+      label: "الطلبات", 
       icon: MessageSquare,
       active: location === "/requests" 
     }
@@ -57,7 +57,7 @@ export function Navigation() {
   if (user?.role === 'admin') {
     navItems.push({ 
       href: "/admin", 
-      label: "Admin", 
+      label: "الإدارة", 
       icon: Settings,
       active: location === "/admin" 
     });
@@ -70,7 +70,7 @@ export function Navigation() {
           <div className="flex items-center space-x-8">
             <div className="flex-shrink-0 flex items-center">
               <Car className="h-8 w-8 text-primary mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">RideShare Pro</h1>
+              <h1 className="text-xl font-bold text-gray-900">رايد شير برو</h1>
             </div>
             
             {/* Navigation Links */}
@@ -126,7 +126,7 @@ export function Navigation() {
                 size="sm"
                 onClick={handleLogout}
               >
-                Logout
+                تسجيل الخروج
               </Button>
             </div>
           </div>

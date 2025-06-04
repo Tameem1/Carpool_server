@@ -13,18 +13,18 @@ export default function Landing() {
               <Car className="h-16 w-16 text-primary" />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Welcome to RideShare Pro
+              مرحباً بك في رايد شير برو
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              The smart carpool coordination platform that connects drivers and riders 
-              for efficient, sustainable transportation solutions.
+              منصة التنسيق الذكي لمشاركة الرحلات التي تربط السائقين والركاب
+              لحلول نقل فعالة ومستدامة.
             </p>
             <Button 
               size="lg" 
               className="bg-primary hover:bg-primary/90 text-white px-8 py-3"
               onClick={() => window.location.href = "/api/login"}
             >
-              Get Started
+              ابدأ الآن
             </Button>
           </div>
         </div>
@@ -35,10 +35,10 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Why Choose RideShare Pro?
+              لماذا تختار رايد شير برو؟
             </h2>
             <p className="text-lg text-gray-600">
-              Experience seamless carpool coordination with our comprehensive platform
+              استمتع بتنسيق مشاركة الرحلات السلس مع منصتنا الشاملة
             </p>
           </div>
 
@@ -48,9 +48,9 @@ export default function Landing() {
                 <div className="bg-primary/10 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Users className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Multi-Role Support</h3>
+                <h3 className="text-lg font-semibold mb-2">دعم متعدد الأدوار</h3>
                 <p className="text-gray-600 text-sm">
-                  Admin, driver, and rider roles with tailored experiences for each user type
+                  أدوار المدير والسائق والراكب مع تجارب مخصصة لكل نوع مستخدم
                 </p>
               </CardContent>
             </Card>
@@ -60,9 +60,9 @@ export default function Landing() {
                 <div className="bg-secondary/10 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Clock className="h-8 w-8 text-secondary" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Smart Matching</h3>
+                <h3 className="text-lg font-semibold mb-2">المطابقة الذكية</h3>
                 <p className="text-gray-600 text-sm">
-                  Advanced algorithm matches riders with drivers within ±2 hour windows
+                  خوارزمية متقدمة تطابق الركاب مع السائقين ضمن نوافذ زمنية ±٢ ساعة
                 </p>
               </CardContent>
             </Card>
@@ -72,9 +72,9 @@ export default function Landing() {
                 <div className="bg-success/10 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Shield className="h-8 w-8 text-success" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Real-time Notifications</h3>
+                <h3 className="text-lg font-semibold mb-2">الإشعارات الفورية</h3>
                 <p className="text-gray-600 text-sm">
-                  Instant Telegram notifications for all trip updates and requests
+                  إشعارات تيليجرام فورية لجميع تحديثات الرحلات والطلبات
                 </p>
               </CardContent>
             </Card>
@@ -84,9 +84,9 @@ export default function Landing() {
                 <div className="bg-warning/10 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Car className="h-8 w-8 text-warning" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Trip Management</h3>
+                <h3 className="text-lg font-semibold mb-2">إدارة الرحلات</h3>
                 <p className="text-gray-600 text-sm">
-                  Complete trip lifecycle management with recurring schedule support
+                  إدارة كاملة لدورة حياة الرحلة مع دعم الجدولة المتكررة
                 </p>
               </CardContent>
             </Card>
@@ -99,10 +99,10 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-white mb-4">
-              Ready to Start Your Journey?
+              هل أنت مستعد لبدء رحلتك؟
             </h2>
             <p className="text-xl text-blue-100 mb-8">
-              Join thousands of users who are already carpooling smarter
+              انضم إلى الآلاف من المستخدمين الذين يشاركون الرحلات بذكاء
             </p>
             <Button 
               size="lg" 
@@ -110,7 +110,7 @@ export default function Landing() {
               className="bg-white text-primary hover:bg-gray-100"
               onClick={() => window.location.href = "/api/login"}
             >
-              Sign In to Continue
+              سجل الدخول للمتابعة
             </Button>
           </div>
         </div>
