@@ -58,6 +58,26 @@ interface TripCardProps {
   currentUserId?: string;
 }
 
+// Utility function to detect Arabic text
+function isArabicText(text: string): boolean {
+  const arabicRegex = /[\u0600-\u06FF\u0750-\u077F]/;
+  return arabicRegex.test(text);
+}
+
+// Utility function to format route display with proper direction
+function formatRoute(fromLocation: string, toLocation: string): string {
+  const isFromArabic = isArabicText(fromLocation);
+  const isToArabic = isArabicText(toLocation);
+  
+  // If either location contains Arabic text, use RTL formatting
+  if (isFromArabic || isToArabic) {
+    return `${toLocation} ← ${fromLocation}`;
+  }
+  
+  // Default LTR formatting for non-Arabic text
+  return `${fromLocation} → ${toLocation}`;
+}
+
 export function TripCard({
   trip,
   onRequestSeat,
@@ -213,8 +233,8 @@ export function TripCard({
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              {trip.fromLocation} → {trip.toLocation}
+            <h3 className={`text-lg font-semibold text-gray-900 ${(isArabicText(trip.fromLocation) || isArabicText(trip.toLocation)) ? 'text-right' : 'text-left'}`}>
+              {formatRoute(trip.fromLocation, trip.toLocation)}
             </h3>
             <p className="text-sm text-gray-600 flex items-center mt-1">
               <Clock className="h-4 w-4 mr-1" />
