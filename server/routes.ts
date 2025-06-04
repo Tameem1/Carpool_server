@@ -82,6 +82,32 @@ class TelegramNotificationService {
 
 const telegramService = new TelegramNotificationService();
 
+// Helper function to check if a trip should be completed (2 hours after departure)
+function shouldTripBeCompleted(trip: any): boolean {
+  const now = new Date();
+  const departureTime = new Date(trip.departureTime);
+  const twoHoursAfterDeparture = new Date(departureTime.getTime() + 2 * 60 * 60 * 1000);
+  return now > twoHoursAfterDeparture && trip.status === "active";
+}
+
+// Function to update expired trips to completed status
+async function updateExpiredTrips() {
+  try {
+    const allTrips = await storage.getAllTrips();
+    const expiredTrips = allTrips.filter(trip => shouldTripBeCompleted(trip));
+    
+    for (const trip of expiredTrips) {
+      await storage.updateTrip(trip.id, { status: "completed" });
+    }
+    
+    if (expiredTrips.length > 0) {
+      console.log(`Updated ${expiredTrips.length} expired trips to completed status`);
+    }
+  } catch (error) {
+    console.error("Error updating expired trips:", error);
+  }
+}
+
 // Function to notify users with matching ride requests when a new trip is created
 async function notifyMatchingRideRequesters(trip: any) {
   try {
@@ -380,6 +406,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { from, to, date, status } = req.query;
       const searchDate = date ? new Date(date) : undefined;
       
+      // Update expired trips before fetching
+      await updateExpiredTrips();
+      
       // Get current user to check if admin
       const userId = req.session?.userId;
       let isAdmin = false;
@@ -397,9 +426,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const allTrips = await storage.getAllTrips();
         trips = allTrips.filter(trip => trip.status !== 'active');
       } else {
-        // Default to active trips only
+        // Default to active trips only - filter out trips that should be completed
         const allTrips = await storage.getAllTrips();
-        trips = allTrips.filter(trip => trip.status === 'active');
+        trips = allTrips.filter(trip => {
+          if (trip.status !== 'active') return false;
+          // Don't show trips that are past their 2-hour active window
+          return !shouldTripBeCompleted(trip);
+        });
       }
       
       // Apply additional filters if provided
@@ -485,6 +518,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      // Update expired trips before fetching
+      await updateExpiredTrips();
+      
       const trips = await storage.getUserTrips(userId);
       
       // Enrich with participant info and sync available seats with riders
@@ -687,7 +723,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await telegramService.sendNotification(
         trip.driverId,
         "New Rider Joined",
-        `A new rider has joined your trip from ${trip.fromLocation} to ${trip.toLocation}.`
+        `A new rider has joined your trip from ${trip.fromLocation} to ${trip.toLocation}.`,
+        "request_accepted"
       );
       
       res.json(updatedTrip);

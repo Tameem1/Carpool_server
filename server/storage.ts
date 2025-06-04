@@ -73,7 +73,8 @@ export class DatabaseStorage implements IStorage {
   // Update expired trips to completed status
   private async updateExpiredTrips(): Promise<void> {
     try {
-      const allTrips = await this.getAllTrips();
+      // Get trips directly from database to avoid circular dependency
+      const allTrips = await db.select().from(trips);
       const expiredTrips = allTrips.filter(trip => this.shouldTripBeCompleted(trip));
       
       for (const trip of expiredTrips) {
@@ -220,8 +221,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllTrips(): Promise<Trip[]> {
-    // First update any expired trips
-    await this.updateExpiredTrips();
     return await db.select().from(trips);
   }
 
@@ -243,9 +242,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchTrips(fromLocation?: string, toLocation?: string, date?: Date): Promise<Trip[]> {
-    // First update any expired trips
-    await this.updateExpiredTrips();
-    
     let query = db.select().from(trips).where(eq(trips.status, "active"));
     
     // Note: This is a simplified search. For production, you'd want to use proper text search capabilities
