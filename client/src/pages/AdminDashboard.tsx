@@ -131,7 +131,7 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteTrip = (tripId: number) => {
-    if (confirm("Are you sure you want to delete this trip?")) {
+    if (confirm("هل أنت متأكد من أنك تريد حذف هذه الرحلة؟")) {
       deleteTripMutation.mutate(tripId);
     }
   };
@@ -183,8 +183,8 @@ export default function AdminDashboard() {
         <Card className="w-full max-w-md mx-4">
           <CardContent className="pt-6">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-              <p className="text-gray-600">You need admin privileges to access this page.</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">تم رفض الوصول</h1>
+              <p className="text-gray-600">تحتاج إلى صلاحيات المدير للوصول إلى هذه الصفحة.</p>
             </div>
           </CardContent>
         </Card>
@@ -257,9 +257,9 @@ export default function AdminDashboard() {
                       )}
 
                       <div className="flex items-center space-x-3">
-                        <span className="text-sm font-medium text-gray-700">Compatible trips:</span>
+                        <span className="text-sm font-medium text-gray-700">الرحلات المتوافقة:</span>
                         {compatibleTrips.length === 0 ? (
-                          <span className="text-sm text-gray-500">No compatible trips available</span>
+                          <span className="text-sm text-gray-500">لا توجد رحلات متوافقة متاحة</span>
                         ) : (
                           <div className="flex flex-wrap gap-2">
                             {compatibleTrips.map((trip: any) => (
@@ -270,7 +270,7 @@ export default function AdminDashboard() {
                                   </div>
                                   <div className="text-xs text-gray-500">
                                     {format(new Date(trip.departureTime), "MMM d, h:mm a")} • 
-                                    {trip.availableSeats} seat{trip.availableSeats !== 1 ? 's' : ''} available
+                                    {trip.availableSeats} {trip.availableSeats !== 1 ? 'مقاعد' : 'مقعد'} متاح
                                   </div>
                                 </div>
                                 <Button
@@ -280,7 +280,7 @@ export default function AdminDashboard() {
                                   className="bg-green-600 hover:bg-green-700 text-white"
                                 >
                                   <UserPlus className="h-4 w-4 mr-1" />
-                                  {assignRideMutation.isPending ? "..." : "Assign"}
+                                  {assignRideMutation.isPending ? "..." : "تعيين"}
                                 </Button>
                               </div>
                             ))}
@@ -298,25 +298,25 @@ export default function AdminDashboard() {
         {/* Trip Management Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Trip Management</CardTitle>
+            <CardTitle>إدارة الرحلات</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-3 px-4">Trip Details</th>
-                    <th className="text-left py-3 px-4">Driver</th>
-                    <th className="text-left py-3 px-4">Seats</th>
-                    <th className="text-left py-3 px-4">Status</th>
-                    <th className="text-left py-3 px-4">Actions</th>
+                    <th className="text-left py-3 px-4">تفاصيل الرحلة</th>
+                    <th className="text-left py-3 px-4">السائق</th>
+                    <th className="text-left py-3 px-4">المقاعد</th>
+                    <th className="text-left py-3 px-4">الحالة</th>
+                    <th className="text-left py-3 px-4">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody>
                   {!Array.isArray(allTrips) || allTrips.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="text-center py-8 text-gray-500">
-                        No trips found. Create your first trip to get started.
+                        لم يتم العثور على رحلات. أنشئ رحلتك الأولى للبدء.
                       </td>
                     </tr>
                   ) : (
@@ -346,12 +346,12 @@ export default function AdminDashboard() {
                               </span>
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-500">No driver assigned</span>
+                            <span className="text-sm text-gray-500">لا يوجد سائق معين</span>
                           )}
                         </td>
                         <td className="py-4 px-4">
                           <span className="text-sm text-gray-900">
-                            {trip.participantCount || 0}/{trip.totalSeats} seats
+                            {trip.participantCount || 0}/{trip.totalSeats} مقعد
                           </span>
                         </td>
                         <td className="py-4 px-4">
