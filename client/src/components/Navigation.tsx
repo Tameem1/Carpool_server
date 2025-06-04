@@ -140,13 +140,9 @@ export function Navigation() {
               return (
                 <Link key={item.href} href={item.href}>
                   <Button
-                    variant={item.active ? "default" : "ghost"}
+                    variant="ghost"
                     size="sm"
-                    className={`flex items-center space-x-1 ${
-                      item.active 
-                        ? "bg-primary text-primary-foreground" 
-                        : "text-gray-600 hover:text-primary"
-                    }`}
+                    className="flex items-center space-x-1 text-gray-600 hover:text-primary"
                   >
                     <Icon className="h-4 w-4" />
                     <span className="text-xs">{item.label}</span>
