@@ -1,22 +1,66 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer } from "ws";
 import { storage } from "./storage";
 // import { setupAuth, isAuthenticated } from "./auth";
 import { insertTripSchema, insertRideRequestSchema, insertTripParticipantSchema } from "@shared/schema";
 import { z } from "zod";
 
-// Mock Telegram notification service
+// WebSocket connection management
+const connectedClients = new Set();
+
+function broadcastToAll(data: any) {
+  const message = JSON.stringify(data);
+  connectedClients.forEach((ws: any) => {
+    if (ws.readyState === 1) { // WebSocket.OPEN
+      ws.send(message);
+    }
+  });
+}
+
+function setupWebSocket(server: Server) {
+  const wss = new WebSocketServer({ 
+    port: 5001,
+    host: '0.0.0.0'
+  });
+  
+  wss.on('connection', (ws) => {
+    console.log('Client connected to real-time WebSocket');
+    connectedClients.add(ws);
+    
+    ws.on('close', () => {
+      console.log('Client disconnected from real-time WebSocket');
+      connectedClients.delete(ws);
+    });
+    
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      connectedClients.delete(ws);
+    });
+  });
+  
+  console.log('Real-time WebSocket server running on port 5001');
+  return wss;
+}
+
+// Real-time notification service with WebSocket broadcasting
 class TelegramNotificationService {
   async sendNotification(userId: string, title: string, message: string, type: string) {
     // In a real implementation, this would send to Telegram
     console.log(`[TELEGRAM] Sending to user ${userId}: ${title} - ${message}`);
     
     // Store as notification in our system
-    await storage.createNotification({
+    const notification = await storage.createNotification({
       userId,
       title,
       message,
       type: type as any,
+    });
+
+    // Broadcast notification to all connected clients for real-time updates
+    broadcastToAll({
+      type: 'notification',
+      data: notification
     });
   }
 
@@ -632,6 +676,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Find and notify users with matching ride requests
         await notifyMatchingRideRequesters(updatedTrip);
         
+        // Broadcast trip creation to all connected clients
+        broadcastToAll({
+          type: 'trip_created',
+          data: updatedTrip
+        });
+        
         return res.status(201).json(updatedTrip);
       }
       
@@ -640,6 +690,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Find and notify users with matching ride requests
       await notifyMatchingRideRequesters(trip);
+      
+      // Broadcast trip creation to all connected clients
+      broadcastToAll({
+        type: 'trip_created',
+        data: trip
+      });
       
       res.status(201).json(trip);
     } catch (error) {
@@ -669,6 +725,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updates = insertTripSchema.partial().parse(req.body);
       const updatedTrip = await storage.updateTrip(tripId, updates);
+      
+      // Broadcast trip update to all connected clients
+      broadcastToAll({
+        type: 'trip_updated',
+        data: updatedTrip
+      });
       
       res.json(updatedTrip);
     } catch (error) {
@@ -1139,5 +1201,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // Setup WebSocket for real-time updates
+  setupWebSocket(httpServer);
+  
   return httpServer;
 }
