@@ -69,9 +69,9 @@ function formatRoute(fromLocation: string, toLocation: string): string {
   const isFromArabic = isArabicText(fromLocation);
   const isToArabic = isArabicText(toLocation);
   
-  // If either location contains Arabic text, use RTL formatting
+  // If either location contains Arabic text, maintain logical order but use RTL arrow
   if (isFromArabic || isToArabic) {
-    return `${toLocation} ← ${fromLocation}`;
+    return `${fromLocation} ← ${toLocation}`;
   }
   
   // Default LTR formatting for non-Arabic text
