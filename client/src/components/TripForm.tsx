@@ -369,9 +369,74 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               />
             )}
 
-            {isAdmin && (
+            {isAdmin && trip?.id && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">إدارة الركاب الحاليين</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {getCurrentRiders().length > 0 ? (
+                      <div>
+                        <h4 className="font-medium mb-3">الركاب الحاليون:</h4>
+                        <div className="space-y-2">
+                          {getCurrentRiders().map((rider: any) => (
+                            <div key={rider.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={rider.profileImageUrl || ""} />
+                                  <AvatarFallback>
+                                    {rider.firstName?.[0]}{rider.lastName?.[0]}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-medium">{rider.firstName} {rider.lastName}</div>
+                                  <div className="text-sm text-gray-500">{rider.email}</div>
+                                </div>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleRiderRemove(rider.id)}
+                                disabled={removeRiderMutation.isPending}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <UserMinus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center py-4">لا يوجد ركاب حالياً</p>
+                    )}
+
+                    <div>
+                      <h4 className="font-medium mb-3">إضافة راكب جديد:</h4>
+                      <Select onValueChange={handleRiderAdd}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر راكباً لإضافته" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getAvailableUsers().map((user: any) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              <div className="flex items-center space-x-2">
+                                <span>{user.firstName} {user.lastName}</span>
+                                <span className="text-gray-500">({user.email})</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {isAdmin && !trip?.id && (
               <div>
-                <FormLabel>تعيين المشاركين</FormLabel>
+                <FormLabel>تعيين المشاركين (للرحلات الجديدة)</FormLabel>
                 <div className="mt-2">
                   <Select onValueChange={handleParticipantAdd}>
                     <SelectTrigger>
