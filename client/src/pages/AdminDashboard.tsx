@@ -13,6 +13,26 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { Plus, Edit, Trash2, UserPlus, MapPin, Clock } from "lucide-react";
 import { format } from "date-fns";
 
+// Utility function to detect Arabic text
+function isArabicText(text: string): boolean {
+  const arabicRegex = /[\u0600-\u06FF\u0750-\u077F]/;
+  return arabicRegex.test(text);
+}
+
+// Utility function to format route display with proper direction
+function formatRoute(fromLocation: string, toLocation: string): string {
+  const isFromArabic = isArabicText(fromLocation);
+  const isToArabic = isArabicText(toLocation);
+  
+  // If either location contains Arabic text, maintain logical order but use RTL arrow
+  if (isFromArabic || isToArabic) {
+    return `${fromLocation} ← ${toLocation}`;
+  }
+  
+  // Default LTR formatting for non-Arabic text
+  return `${fromLocation} → ${toLocation}`;
+}
+
 export default function AdminDashboard() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
@@ -233,9 +253,9 @@ export default function AdminDashboard() {
                               {request.rider?.firstName} {request.rider?.lastName}
                             </h4>
                             <div className="flex items-center space-x-4 text-sm text-gray-600">
-                              <div className="flex items-center">
+                              <div className={`flex items-center ${(isArabicText(request.fromLocation) || isArabicText(request.toLocation)) ? 'text-right' : 'text-left'}`}>
                                 <MapPin className="h-4 w-4 mr-1" />
-                                {request.fromLocation} → {request.toLocation}
+                                {formatRoute(request.fromLocation, request.toLocation)}
                               </div>
                               <div className="flex items-center">
                                 <Clock className="h-4 w-4 mr-1" />
@@ -324,8 +344,8 @@ export default function AdminDashboard() {
                       <tr key={trip.id} className="border-b">
                         <td className="py-4 px-4">
                           <div>
-                            <div className="font-medium text-gray-900">
-                              {trip.fromLocation} → {trip.toLocation}
+                            <div className={`font-medium text-gray-900 ${(isArabicText(trip.fromLocation) || isArabicText(trip.toLocation)) ? 'text-right' : 'text-left'}`}>
+                              {formatRoute(trip.fromLocation, trip.toLocation)}
                             </div>
                             <div className="text-sm text-gray-500">
                               {format(new Date(trip.departureTime), "MMM d, yyyy • h:mm a")}
