@@ -98,7 +98,7 @@ export default function Requests() {
                         تم الطلب في {format(new Date(request.createdAt), "MMM d, yyyy")}
                       </p>
                       <p className="text-sm text-gray-500">
-                        at {format(new Date(request.createdAt), "h:mm a")}
+                        في {format(new Date(request.createdAt), "h:mm a")}
                       </p>
                     </div>
                   </div>
@@ -107,26 +107,26 @@ export default function Requests() {
                     <div className="space-y-2">
                       <div className="flex items-center text-sm text-gray-600">
                         <MapPin className="h-4 w-4 mr-2 text-green-600" />
-                        <span className="font-medium">From:</span>
+                        <span className="font-medium">من:</span>
                         <span className="ml-1">{request.fromLocation}</span>
                       </div>
                       <div className="flex items-center text-sm text-gray-600">
                         <MapPin className="h-4 w-4 mr-2 text-red-600" />
-                        <span className="font-medium">To:</span>
+                        <span className="font-medium">إلى:</span>
                         <span className="ml-1">{request.toLocation}</span>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center text-sm text-gray-600">
                         <Clock className="h-4 w-4 mr-2 text-blue-600" />
-                        <span className="font-medium">Preferred Time:</span>
+                        <span className="font-medium">الوقت المفضل:</span>
                         <span className="ml-1">
                           {format(new Date(request.preferredTime), "MMM d, yyyy 'at' h:mm a")}
                         </span>
                       </div>
                       <div className="flex items-center text-sm text-gray-600">
                         <Users className="h-4 w-4 mr-2 text-purple-600" />
-                        <span className="font-medium">Passengers:</span>
+                        <span className="font-medium">الركاب:</span>
                         <span className="ml-1">{request.passengerCount || 1}</span>
                       </div>
                     </div>
@@ -134,7 +134,7 @@ export default function Requests() {
 
                   {request.notes && (
                     <div className="mb-4 p-3 bg-gray-50 rounded-md">
-                      <p className="text-sm font-medium text-gray-700 mb-1">Additional Requirements:</p>
+                      <p className="text-sm font-medium text-gray-700 mb-1">متطلبات إضافية:</p>
                       <p className="text-sm text-gray-600">{request.notes}</p>
                     </div>
                   )}
@@ -142,10 +142,10 @@ export default function Requests() {
                   {user.role === 'driver' && (
                     <div className="flex justify-end space-x-2 pt-4 border-t">
                       <Button variant="outline" size="sm">
-                        Contact Rider
+                        التواصل مع الراكب
                       </Button>
                       <Button size="sm" className="bg-success hover:bg-success/90">
-                        Offer Ride
+                        عرض رحلة
                       </Button>
                     </div>
                   )}
