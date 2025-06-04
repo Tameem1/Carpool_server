@@ -211,10 +211,10 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
 
             <div className="flex justify-end space-x-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
+                إلغاء
               </Button>
               <Button type="submit" disabled={createRequestMutation.isPending}>
-                {createRequestMutation.isPending ? "Submitting..." : "Request Ride"}
+                {createRequestMutation.isPending ? "جاري الإرسال..." : "طلب رحلة"}
               </Button>
             </div>
           </form>

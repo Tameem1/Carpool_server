@@ -24,8 +24,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
+        title: "غير مخول",
+        description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
         variant: "destructive",
       });
       setTimeout(() => {
@@ -55,8 +55,8 @@ export default function AdminDashboard() {
     },
     onSuccess: () => {
       toast({
-        title: "Trip Deleted",
-        description: "The trip has been deleted successfully.",
+        title: "تم حذف الرحلة",
+        description: "تم حذف الرحلة بنجاح.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
     },
@@ -73,8 +73,8 @@ export default function AdminDashboard() {
         return;
       }
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete trip",
+        title: "خطأ",
+        description: error.message || "فشل في حذف الرحلة",
         variant: "destructive",
       });
     },
@@ -86,8 +86,8 @@ export default function AdminDashboard() {
     },
     onSuccess: () => {
       toast({
-        title: "Ride Assigned",
-        description: "The ride request has been successfully assigned to the trip.",
+        title: "تم تعيين الرحلة",
+        description: "تم تعيين طلب الرحلة للرحلة بنجاح.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
       queryClient.invalidateQueries({ queryKey: ["/api/ride-requests/all"] });
@@ -196,23 +196,23 @@ export default function AdminDashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Admin Dashboard</h2>
+          <h2 className="text-2xl font-bold text-gray-900">لوحة تحكم المدير</h2>
           <Button onClick={() => setShowTripForm(true)} className="bg-primary hover:bg-primary/90">
             <Plus className="h-4 w-4 mr-2" />
-            Create Trip
+            إنشاء رحلة
           </Button>
         </div>
 
         {/* Ride Assignment Section */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Ride Request Assignment</CardTitle>
-            <p className="text-sm text-gray-600">Assign pending ride requests to available trips</p>
+            <CardTitle>تعيين طلبات الرحلات</CardTitle>
+            <p className="text-sm text-gray-600">تعيين طلبات الرحلات المعلقة للرحلات المتاحة</p>
           </CardHeader>
           <CardContent>
             {!Array.isArray(allRequests) || allRequests.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                No pending ride requests to assign.
+                لا توجد طلبات رحلات معلقة للتعيين.
               </div>
             ) : (
               <div className="space-y-4">
@@ -245,13 +245,13 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                         <Badge variant="outline" className="text-xs">
-                          {request.passengerCount} passenger{request.passengerCount !== 1 ? 's' : ''}
+                          {request.passengerCount} {request.passengerCount !== 1 ? 'ركاب' : 'راكب'}
                         </Badge>
                       </div>
                       
                       {request.notes && (
                         <div className="mb-4 p-3 bg-white rounded-md border">
-                          <p className="text-sm font-medium text-gray-700 mb-1">Notes:</p>
+                          <p className="text-sm font-medium text-gray-700 mb-1">ملاحظات:</p>
                           <p className="text-sm text-gray-600">{request.notes}</p>
                         </div>
                       )}
