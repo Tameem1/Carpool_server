@@ -14,12 +14,13 @@ import {
 import { TripCard } from "@/components/TripCard";
 import { TripForm } from "@/components/TripForm";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, Calendar, Users, MapPin, Settings, Filter } from "lucide-react";
+import { Plus, Calendar, Users, MapPin, Settings, Filter, ArrowUpDown } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [showTripForm, setShowTripForm] = useState(false);
   const [statusFilter, setStatusFilter] = useState("active");
+  const [sortBy, setSortBy] = useState("departure_time");
 
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
     queryKey: ["/api/trips", { status: statusFilter }],
@@ -35,6 +36,30 @@ export default function Dashboard() {
     queryKey: ["/api/stats"],
     enabled: user?.role === "admin",
   });
+
+  // Sorting function
+  const sortTrips = (trips: any[], sortBy: string) => {
+    if (!Array.isArray(trips)) return [];
+    
+    const sortedTrips = [...trips];
+    switch (sortBy) {
+      case "departure_time":
+        return sortedTrips.sort((a, b) => new Date(a.departureTime).getTime() - new Date(b.departureTime).getTime());
+      case "departure_time_desc":
+        return sortedTrips.sort((a, b) => new Date(b.departureTime).getTime() - new Date(a.departureTime).getTime());
+      case "available_seats":
+        return sortedTrips.sort((a, b) => b.availableSeats - a.availableSeats);
+      case "from_location":
+        return sortedTrips.sort((a, b) => a.fromLocation.localeCompare(b.fromLocation));
+      case "to_location":
+        return sortedTrips.sort((a, b) => a.toLocation.localeCompare(b.toLocation));
+      default:
+        return sortedTrips;
+    }
+  };
+
+  const sortedTrips = sortTrips(trips, sortBy);
+  const sortedMyTrips = sortTrips(myTrips, sortBy);
 
   if (tripsLoading || myTripsLoading) {
     return (
@@ -105,11 +130,26 @@ export default function Dashboard() {
                   </SelectContent>
                 </Select>
               </div>
-              <Badge variant="secondary">{trips.length} trips</Badge>
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="h-4 w-4 text-gray-500" />
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="departure_time">Earliest First</SelectItem>
+                    <SelectItem value="departure_time_desc">Latest First</SelectItem>
+                    <SelectItem value="available_seats">Most Seats</SelectItem>
+                    <SelectItem value="from_location">From A-Z</SelectItem>
+                    <SelectItem value="to_location">To A-Z</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Badge variant="secondary">{sortedTrips.length} trips</Badge>
             </div>
           </div>
 
-          {trips.length === 0 ? (
+          {sortedTrips.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Calendar className="h-12 w-12 text-gray-400 mb-4" />
@@ -127,7 +167,7 @@ export default function Dashboard() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trips.map((trip: any) => (
+              {sortedTrips.map((trip: any) => (
                 <TripCard
                   key={trip.id}
                   trip={trip}
@@ -143,10 +183,27 @@ export default function Dashboard() {
         <TabsContent value="my-trips" className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">My Trips</h2>
-            <Badge variant="secondary">{myTrips.length} trips</Badge>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="h-4 w-4 text-gray-500" />
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="departure_time">Earliest First</SelectItem>
+                    <SelectItem value="departure_time_desc">Latest First</SelectItem>
+                    <SelectItem value="available_seats">Most Seats</SelectItem>
+                    <SelectItem value="from_location">From A-Z</SelectItem>
+                    <SelectItem value="to_location">To A-Z</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Badge variant="secondary">{Array.isArray(myTrips) ? myTrips.length : 0} trips</Badge>
+            </div>
           </div>
 
-          {myTrips.length === 0 ? (
+          {!Array.isArray(myTrips) || myTrips.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <MapPin className="h-12 w-12 text-gray-400 mb-4" />
@@ -164,7 +221,7 @@ export default function Dashboard() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {myTrips.map((trip: any) => (
+              {sortedMyTrips.map((trip: any) => (
                 <TripCard
                   key={trip.id}
                   trip={trip}
