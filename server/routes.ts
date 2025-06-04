@@ -413,9 +413,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { from, to, date, status } = req.query;
       const searchDate = date ? new Date(date) : undefined;
       
-      // Update expired trips before fetching
-      await updateExpiredTrips();
-      
       // Get current user to check if admin
       const userId = req.session?.userId;
       let isAdmin = false;
@@ -520,9 +517,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
-
-      // Update expired trips before fetching
-      await updateExpiredTrips();
       
       const trips = await storage.getUserTrips(userId);
       

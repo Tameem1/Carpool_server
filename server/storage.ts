@@ -58,8 +58,7 @@ export class DatabaseStorage implements IStorage {
   constructor() {
     // Initialize sample users for testing (one-time setup)
     this.initializeSampleUsers();
-    // Run periodic cleanup every 30 minutes to update expired trips
-    setInterval(() => this.updateExpiredTrips(), 30 * 60 * 1000);
+    // Note: Periodic cleanup is handled manually via API calls to avoid aggressive filtering
   }
 
   // Check if a trip should be marked as completed (2 hours after departure time)
