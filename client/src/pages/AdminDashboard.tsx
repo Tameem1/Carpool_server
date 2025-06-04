@@ -257,40 +257,34 @@ export default function AdminDashboard() {
                       )}
 
                       <div className="flex items-center space-x-3">
-                        <span className="text-sm font-medium text-gray-700">Assign to trip:</span>
+                        <span className="text-sm font-medium text-gray-700">Compatible trips:</span>
                         {compatibleTrips.length === 0 ? (
                           <span className="text-sm text-gray-500">No compatible trips available</span>
                         ) : (
-                          <>
-                            <Select onValueChange={(tripId) => handleAssignRide(request.id, parseInt(tripId))}>
-                              <SelectTrigger className="w-80">
-                                <SelectValue placeholder="Select a compatible trip" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {compatibleTrips.map((trip: any) => (
-                                  <SelectItem key={trip.id} value={trip.id.toString()}>
-                                    <div className="flex flex-col">
-                                      <span className="font-medium">
-                                        {trip.fromLocation} → {trip.toLocation}
-                                      </span>
-                                      <span className="text-xs text-gray-500">
-                                        {format(new Date(trip.departureTime), "MMM d, h:mm a")} • 
-                                        {trip.availableSeats} seat{trip.availableSeats !== 1 ? 's' : ''} available
-                                      </span>
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={assignRideMutation.isPending}
-                            >
-                              <UserPlus className="h-4 w-4 mr-1" />
-                              {assignRideMutation.isPending ? "Assigning..." : "Assign"}
-                            </Button>
-                          </>
+                          <div className="flex flex-wrap gap-2">
+                            {compatibleTrips.map((trip: any) => (
+                              <div key={trip.id} className="flex items-center space-x-2 bg-white border rounded-lg p-3">
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm">
+                                    {trip.fromLocation} → {trip.toLocation}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {format(new Date(trip.departureTime), "MMM d, h:mm a")} • 
+                                    {trip.availableSeats} seat{trip.availableSeats !== 1 ? 's' : ''} available
+                                  </div>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleAssignRide(request.id, trip.id)}
+                                  disabled={assignRideMutation.isPending}
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                >
+                                  <UserPlus className="h-4 w-4 mr-1" />
+                                  {assignRideMutation.isPending ? "..." : "Assign"}
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
                     </div>
