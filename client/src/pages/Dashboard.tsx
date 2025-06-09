@@ -138,11 +138,6 @@ export default function Dashboard() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="departure_time">Earliest First</SelectItem>
-                    <SelectItem value="departure_time_desc">Latest First</SelectItem>
-                    <SelectItem value="available_seats">Most Seats</SelectItem>
-                    <SelectItem value="from_location">From A-Z</SelectItem>
-                    <SelectItem value="to_location">To A-Z</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
