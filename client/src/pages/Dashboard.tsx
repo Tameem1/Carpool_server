@@ -363,6 +363,11 @@ export default function Dashboard() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="departure_time">الأبكر أولاً</SelectItem>
+                    <SelectItem value="departure_time_desc">الأحدث أولاً</SelectItem>
+                    <SelectItem value="available_seats">أكثر المقاعد</SelectItem>
+                    <SelectItem value="from_location">من أ-ي</SelectItem>
+                    <SelectItem value="to_location">إلى أ-ي</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
