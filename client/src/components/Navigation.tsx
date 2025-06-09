@@ -48,12 +48,7 @@ export function Navigation() {
       icon: Home,
       active: location === "/",
     },
-    {
-      href: "/requests",
-      label: "الطلبات",
-      icon: MessageSquare,
-      active: location === "/requests",
-    },
+
   ];
 
   // Add role-specific nav items

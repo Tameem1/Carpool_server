@@ -8,7 +8,7 @@ import { Navigation } from "@/components/Navigation";
 import { RealTimeProvider } from "@/contexts/RealTimeContext";
 import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
-import Requests from "@/pages/Requests";
+
 import AdminDashboard from "@/pages/AdminDashboard";
 import DriverDashboard from "@/pages/DriverDashboard";
 import RiderDashboard from "@/pages/RiderDashboard";
@@ -39,14 +39,7 @@ function Router() {
               </div>
             )}
           </Route>
-          <Route path="/requests">
-            {() => (
-              <div className="min-h-screen bg-background">
-                <Navigation />
-                <Requests />
-              </div>
-            )}
-          </Route>
+
           <Route path="/admin">
             {() => (
               <div className="min-h-screen bg-background">
