@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { TripCard } from "@/components/TripCard";
 import { TripForm } from "@/components/TripForm";
+import { RideRequestForm } from "@/components/RideRequestForm";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -45,6 +46,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showTripForm, setShowTripForm] = useState(false);
+  const [showRideRequestForm, setShowRideRequestForm] = useState(false);
   const [statusFilter, setStatusFilter] = useState("active");
   const [sortBy, setSortBy] = useState("departure_time");
 
@@ -225,8 +227,19 @@ export default function Dashboard() {
       {user?.role === "admin" && (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>تعيين طلبات الرحلات</CardTitle>
-            <p className="text-sm text-gray-600">تعيين طلبات الرحلات المعلقة للرحلات المتاحة</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>تعيين طلبات الرحلات</CardTitle>
+                <p className="text-sm text-gray-600">تعيين طلبات الرحلات المعلقة للرحلات المتاحة</p>
+              </div>
+              <Button
+                onClick={() => setShowRideRequestForm(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                طلب رحلة
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {!Array.isArray(allRequests) || allRequests.length === 0 ? (
@@ -444,6 +457,7 @@ export default function Dashboard() {
       </Tabs>
 
       <TripForm open={showTripForm} onClose={() => setShowTripForm(false)} />
+      <RideRequestForm open={showRideRequestForm} onClose={() => setShowRideRequestForm(false)} />
     </div>
   );
 }
