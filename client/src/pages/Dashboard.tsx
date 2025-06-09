@@ -199,14 +199,26 @@ export default function Dashboard() {
               : "ابحث عن رحلات أو اعرض سيارتك"}
           </p>
         </div>
-        <Button
-          onClick={() => setShowTripForm(true)}
-          className="bg-primary hover:bg-primary/90 touch-friendly w-full sm:w-auto"
-          size="sm"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          إنشاء رحلة
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <Button
+            onClick={() => setShowTripForm(true)}
+            className="bg-primary hover:bg-primary/90 touch-friendly w-full sm:w-auto"
+            size="sm"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            إنشاء رحلة
+          </Button>
+          {user?.role !== "admin" && (
+            <Button
+              onClick={() => setShowRideRequestForm(true)}
+              className="bg-[#16b7a4] hover:bg-[#16b7a4]/90 text-white touch-friendly w-full sm:w-auto"
+              size="sm"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              طلب رحلة
+            </Button>
+          )}
+        </div>
       </div>
 
       
