@@ -22,10 +22,39 @@ export default function Dashboard() {
   const [statusFilter, setStatusFilter] = useState("active");
   const [sortBy, setSortBy] = useState("departure_time");
 
+  // Function to get today's trip range (5 AM today to 4 AM tomorrow)
+  const getTodayTripRange = () => {
+    const now = new Date();
+    const today = new Date(now);
+    
+    // If current time is before 5 AM, consider it part of previous day
+    if (now.getHours() < 5) {
+      today.setDate(today.getDate() - 1);
+    }
+    
+    // Start at 5 AM today
+    const startTime = new Date(today);
+    startTime.setHours(5, 0, 0, 0);
+    
+    // End at 4 AM tomorrow
+    const endTime = new Date(today);
+    endTime.setDate(endTime.getDate() + 1);
+    endTime.setHours(4, 0, 0, 0);
+    
+    return { startTime, endTime };
+  };
+
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
     queryKey: ["/api/trips", { status: statusFilter }],
     queryFn: () =>
       fetch(`/api/trips?status=${statusFilter}`).then((res) => res.json()),
+  });
+
+  // Filter trips to show only today's trips (5 AM to 4 AM next day)
+  const todayTrips = trips.filter((trip: any) => {
+    const { startTime, endTime } = getTodayTripRange();
+    const tripTime = new Date(trip.departureTime);
+    return tripTime >= startTime && tripTime <= endTime;
   });
 
   const { data: myTrips = [], isLoading: myTripsLoading } = useQuery({
@@ -59,7 +88,7 @@ export default function Dashboard() {
     }
   };
 
-  const sortedTrips = sortTrips(trips, sortBy);
+  const sortedTrips = sortTrips(todayTrips, sortBy);
   const sortedMyTrips = sortTrips(myTrips, sortBy);
 
   if (tripsLoading || myTripsLoading) {
@@ -116,7 +145,10 @@ export default function Dashboard() {
 
         <TabsContent value="all-trips" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">الرحلات المتاحة</h2>
+            <div>
+              <h2 className="text-xl font-semibold">رحلات اليوم</h2>
+              <p className="text-sm text-gray-500">من الساعة 5 صباحاً حتى 4 صباحاً من اليوم التالي</p>
+            </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-gray-500" />
@@ -150,14 +182,14 @@ export default function Dashboard() {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Calendar className="h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  لا توجد رحلات متاحة
+                  لا توجد رحلات لليوم
                 </h3>
                 <p className="text-gray-600 text-center mb-4">
-                  كن أول من ينشئ رحلة وساعد الآخرين في التنقل!
+                  كن أول من ينشئ رحلة اليوم وساعد الآخرين في التنقل!
                 </p>
                 <Button onClick={() => setShowTripForm(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  إنشاء أول رحلة
+                  إنشاء رحلة لليوم
                 </Button>
               </CardContent>
             </Card>
