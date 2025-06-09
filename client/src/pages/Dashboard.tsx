@@ -209,21 +209,7 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      {user?.role === "admin" && stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">
-                الطلبات المعلقة
-              </CardTitle>
-              <Settings className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="responsive-text-xl font-bold">{(stats as any).pendingRequests || 0}</div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      
 
       {user?.role === "admin" && (
         <Card className="mb-6 sm:mb-8">
