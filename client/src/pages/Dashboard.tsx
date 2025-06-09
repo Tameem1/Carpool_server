@@ -234,7 +234,7 @@ export default function Dashboard() {
               </div>
               <Button
                 onClick={() => setShowRideRequestForm(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="hover:bg-blue-700 text-white bg-[#16b7a4]"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 طلب رحلة
