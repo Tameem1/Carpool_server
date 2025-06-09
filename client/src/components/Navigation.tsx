@@ -74,7 +74,7 @@ export function Navigation() {
             <div className="flex-shrink-0 flex items-center">
               <Car className="h-6 w-6 sm:h-8 sm:w-8 text-primary mr-2 sm:mr-3" />
               <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white hidden xs:block">وصلني عالنادي</h1>
-              <h1 className="text-base font-bold text-gray-900 dark:text-white xs:hidden">وصلني</h1>
+              <h1 className="text-base font-bold text-gray-900 dark:text-white xs:hidden pl-[25px] pr-[25px] pt-[0px] pb-[0px]">وصلني</h1>
             </div>
 
             {/* Desktop Navigation Links */}
