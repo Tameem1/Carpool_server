@@ -229,8 +229,21 @@ export function TripCard({
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow relative">
       <CardContent className="p-6">
+        {/* Delete button in top-right corner for admin */}
+        {userRole === "admin" && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-2 right-2 h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+            onClick={() => deleteTripMutation.mutate()}
+            disabled={deleteTripMutation.isPending}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
+
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className={`text-lg font-semibold text-gray-900 ${(isArabicText(trip.fromLocation) || isArabicText(trip.toLocation)) ? 'text-right' : 'text-left'}`}>
@@ -288,19 +301,19 @@ export function TripCard({
             <p className="text-sm text-gray-600 mb-2">الركاب الحاليين</p>
             <div className="flex flex-wrap gap-2">
               {trip.riderDetails.map((rider) => (
-                <div key={rider.id} className="flex items-center gap-1">
-                  <Badge variant="secondary" className="text-xs">
+                <div key={rider.id} className="relative group">
+                  <Badge variant="secondary" className="text-xs pr-6">
                     {rider.firstName} {rider.lastName}
                   </Badge>
                   {userRole === "admin" && (
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-4 w-4 p-0 hover:bg-red-100"
+                      className="absolute -top-1 -right-1 h-5 w-5 p-0 rounded-full bg-red-100 hover:bg-red-200 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => removeRiderMutation.mutate(rider.id)}
                       disabled={removeRiderMutation.isPending}
                     >
-                      <UserMinus className="h-3 w-3 text-red-500" />
+                      <UserMinus className="h-3 w-3 text-red-600" />
                     </Button>
                   )}
                 </div>
@@ -310,23 +323,23 @@ export function TripCard({
         )}
 
         {userRole === "admin" && users && (
-          <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-2">أضف راكب</p>
-            <div className="flex items-center gap-2">
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg border">
+            <p className="text-sm font-medium text-gray-700 mb-3">أضف راكب للرحلة</p>
+            <div className="flex items-center gap-3">
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Select a user" />
+                <SelectTrigger className="flex-1 bg-white">
+                  <SelectValue placeholder="اختر مستخدم..." />
                 </SelectTrigger>
                 <SelectContent>
                   {(users as any[])
                     ?.filter(
                       (user: any) =>
-                        user.id !== trip.driver?.id &&
-                        !trip.riders?.includes(user.id),
+                        !trip.riders?.includes(user.id) &&
+                        (trip.riders?.length || 0) < trip.totalSeats
                     )
                     .map((user: any) => (
                       <SelectItem key={user.id} value={user.id}>
-                        {user.firstName} {user.lastName} ({user.role})
+                        {user.firstName} {user.lastName} ({user.role === 'admin' ? 'مدير' : user.role === 'driver' ? 'سائق' : 'راكب'})
                       </SelectItem>
                     ))}
                 </SelectContent>
@@ -341,9 +354,10 @@ export function TripCard({
                   addRiderMutation.isPending ||
                   (trip.riders?.length || 0) >= trip.totalSeats
                 }
+                className="bg-[#16b7a4] hover:bg-[#14a085] text-white"
               >
                 <UserPlus className="h-4 w-4 mr-1" />
-                Add
+                {addRiderMutation.isPending ? "..." : "إضافة"}
               </Button>
             </div>
           </div>
@@ -360,23 +374,8 @@ export function TripCard({
           </div>
 
           {showActions && (
-            <div className="flex space-x-2">
-              {/* Join Trip button - for users who are not the driver and not already riders */}
-              {currentUserId &&
-                currentUserId !== trip.driver?.id &&
-                !trip.riders?.includes(currentUserId) &&
-                trip.availableSeats > 0 &&
-                trip.status === "active" && (
-                  <Button
-                    onClick={() => joinTripMutation.mutate()}
-                    disabled={joinTripMutation.isPending}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    {joinTripMutation.isPending ? "Joining..." : "Join Trip"}
-                  </Button>
-                )}
-
-              {/* Request Seat button - alternative to join trip */}
+            <div className="flex flex-wrap gap-2">
+              {/* Request Seat button - for non-admin users */}
               {userRole === "rider" &&
                 onRequestSeat &&
                 trip.availableSeats > 0 &&
@@ -384,9 +383,10 @@ export function TripCard({
                 !trip.riders?.includes(currentUserId) && (
                   <Button
                     onClick={() => onRequestSeat(trip.id)}
-                    className="bg-primary hover:bg-primary/90"
+                    className="bg-[#16b7a4] hover:bg-[#14a085] text-white"
+                    size="sm"
                   >
-                    Request Seat
+                    طلب مقعد
                   </Button>
                 )}
 
@@ -396,30 +396,31 @@ export function TripCard({
                   disabled
                   variant="outline"
                   className="border-green-500 text-green-600"
+                  size="sm"
                 >
-                  Already Joined
+                  مشترك بالفعل
                 </Button>
               )}
 
+              {/* Edit and Cancel buttons for driver/admin */}
               {(userRole === "driver" || userRole === "admin") && onEdit && (
-                <Button variant="outline" onClick={() => onEdit(trip.id)}>
-                  Edit
+                <Button 
+                  variant="outline" 
+                  onClick={() => onEdit(trip.id)}
+                  size="sm"
+                  className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                >
+                  تعديل
                 </Button>
               )}
               {(userRole === "driver" || userRole === "admin") && onCancel && (
-                <Button variant="destructive" onClick={() => onCancel(trip.id)}>
-                  Cancel
-                </Button>
-              )}
-              {userRole === "admin" && (
-                <Button
-                  variant="destructive"
+                <Button 
+                  variant="outline" 
+                  onClick={() => onCancel(trip.id)}
                   size="sm"
-                  onClick={() => deleteTripMutation.mutate()}
-                  disabled={deleteTripMutation.isPending}
+                  className="border-orange-300 text-orange-600 hover:bg-orange-50"
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Delete
+                  إلغاء
                 </Button>
               )}
             </div>
