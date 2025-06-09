@@ -319,8 +319,8 @@ export function TripCard({
                   <SelectValue placeholder="اختر مستخدم..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {(users as any[])
-                    ?.filter(
+                  {users
+                    .filter(
                       (user: any) =>
                         !trip.riders?.includes(user.id) &&
                         (trip.riders?.length || 0) < trip.totalSeats
