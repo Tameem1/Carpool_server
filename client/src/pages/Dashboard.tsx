@@ -79,11 +79,11 @@ export default function Dashboard() {
   });
 
   // Filter trips to show only today's trips (5 AM to 4 AM next day)
-  const todayTrips = trips.filter((trip: any) => {
+  const todayTrips = Array.isArray(trips) ? trips.filter((trip: any) => {
     const { startTime, endTime } = getTodayTripRange();
     const tripTime = new Date(trip.departureTime);
     return tripTime >= startTime && tripTime <= endTime;
-  });
+  }) : [];
 
   const { data: myTrips = [], isLoading: myTripsLoading } = useQuery({
     queryKey: ["/api/trips/my"],
@@ -175,8 +175,8 @@ export default function Dashboard() {
     assignRideMutation.mutate({ requestId, tripId });
   };
 
-  const sortedTrips = sortTrips(todayTrips, sortBy);
-  const sortedMyTrips = sortTrips(myTrips, sortBy);
+  const sortedTrips = sortTrips(Array.isArray(todayTrips) ? todayTrips : [], sortBy);
+  const sortedMyTrips = sortTrips(Array.isArray(myTrips) ? myTrips : [], sortBy);
 
   if (tripsLoading || myTripsLoading) {
     return (

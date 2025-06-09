@@ -310,7 +310,7 @@ export function TripCard({
           </div>
         )}
 
-        {userRole === "admin" && users && (
+        {userRole === "admin" && users && Array.isArray(users) && (
           <div className="mb-3 sm:mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
             <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">أضف راكب للرحلة</p>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
@@ -363,7 +363,22 @@ export function TripCard({
 
           {showActions && (
             <div className="flex flex-wrap gap-2">
-              {/* Request Seat button - for non-admin users */}
+              {/* Join Trip button - for riders to directly join */}
+              {userRole === "rider" &&
+                trip.availableSeats > 0 &&
+                currentUserId !== trip.driver?.id &&
+                !trip.riders?.includes(currentUserId || "") && (
+                  <Button
+                    onClick={() => joinTripMutation.mutate()}
+                    className="bg-[#16b7a4] hover:bg-[#14a085] text-white touch-friendly"
+                    size="sm"
+                    disabled={joinTripMutation.isPending}
+                  >
+                    {joinTripMutation.isPending ? "جاري الانضمام..." : "انضم للرحلة"}
+                  </Button>
+                )}
+
+              {/* Request Seat button - fallback option */}
               {userRole === "rider" &&
                 onRequestSeat &&
                 trip.availableSeats > 0 &&
@@ -371,7 +386,8 @@ export function TripCard({
                 !trip.riders?.includes(currentUserId || "") && (
                   <Button
                     onClick={() => onRequestSeat(trip.id)}
-                    className="bg-[#16b7a4] hover:bg-[#14a085] text-white touch-friendly"
+                    variant="outline"
+                    className="border-[#16b7a4] text-[#16b7a4] hover:bg-[#16b7a4] hover:text-white touch-friendly"
                     size="sm"
                   >
                     طلب مقعد

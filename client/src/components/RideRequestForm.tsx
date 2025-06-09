@@ -153,7 +153,7 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="self">نفسي (المدير)</SelectItem>
-                        {users.map((user: any) => (
+                        {Array.isArray(users) && users.map((user: any) => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.firstName} {user.lastName} ({user.email})
                           </SelectItem>
