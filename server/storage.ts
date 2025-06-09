@@ -3,6 +3,7 @@ import {
   trips,
   rideRequests,
   tripParticipants,
+  tripJoinRequests,
   notifications,
   type User,
   type InsertUser,
@@ -12,6 +13,8 @@ import {
   type InsertRideRequest,
   type TripParticipant,
   type InsertTripParticipant,
+  type TripJoinRequest,
+  type InsertTripJoinRequest,
   type Notification,
   type InsertNotification,
   type UserRole,
@@ -47,6 +50,15 @@ export interface IStorage {
   addTripParticipant(participant: InsertTripParticipant): Promise<TripParticipant>;
   getTripParticipants(tripId: number): Promise<TripParticipant[]>;
   removeTripParticipant(tripId: number, userId: string): Promise<void>;
+  
+  // Trip join request operations
+  createTripJoinRequest(request: InsertTripJoinRequest): Promise<TripJoinRequest>;
+  getTripJoinRequest(id: number): Promise<TripJoinRequest | undefined>;
+  getTripJoinRequests(tripId: number): Promise<TripJoinRequest[]>;
+  getAllTripJoinRequests(): Promise<TripJoinRequest[]>;
+  getUserTripJoinRequests(userId: string): Promise<TripJoinRequest[]>;
+  updateTripJoinRequestStatus(id: number, status: TripJoinRequest["status"]): Promise<TripJoinRequest>;
+  deleteTripJoinRequest(id: number): Promise<void>;
   
   // Notification operations
   createNotification(notification: InsertNotification): Promise<Notification>;

@@ -58,12 +58,23 @@ export const tripParticipants = pgTable("trip_participants", {
   joinedAt: timestamp("joined_at").defaultNow(),
 });
 
+export const tripJoinRequests = pgTable("trip_join_requests", {
+  id: serial("id").primaryKey(),
+  tripId: integer("trip_id").notNull(),
+  riderId: varchar("rider_id").notNull(),
+  seatsRequested: integer("seats_requested").notNull().default(1),
+  message: text("message"),
+  status: varchar("status", { enum: ["pending", "approved", "declined"] }).default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull(),
   title: text("title").notNull(),
   message: text("message").notNull(),
-  type: varchar("type", { enum: ["trip_created", "request_received", "request_accepted", "request_declined", "trip_updated", "trip_match_found"] }).notNull(),
+  type: varchar("type", { enum: ["trip_created", "request_received", "request_accepted", "request_declined", "trip_updated", "trip_match_found", "join_request_received", "join_request_approved", "join_request_declined"] }).notNull(),
   isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -73,6 +84,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   trips: many(trips),
   rideRequests: many(rideRequests),
   tripParticipants: many(tripParticipants),
+  tripJoinRequests: many(tripJoinRequests),
   notifications: many(notifications),
 }));
 
@@ -83,6 +95,7 @@ export const tripsRelations = relations(trips, ({ one, many }) => ({
   }),
   participants: many(tripParticipants),
   rideRequests: many(rideRequests),
+  joinRequests: many(tripJoinRequests),
 }));
 
 export const rideRequestsRelations = relations(rideRequests, ({ one }) => ({
@@ -103,6 +116,17 @@ export const tripParticipantsRelations = relations(tripParticipants, ({ one }) =
   }),
   user: one(users, {
     fields: [tripParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
+export const tripJoinRequestsRelations = relations(tripJoinRequests, ({ one }) => ({
+  trip: one(trips, {
+    fields: [tripJoinRequests.tripId],
+    references: [trips.id],
+  }),
+  rider: one(users, {
+    fields: [tripJoinRequests.riderId],
     references: [users.id],
   }),
 }));
@@ -142,6 +166,12 @@ export const insertTripParticipantSchema = createInsertSchema(tripParticipants).
   joinedAt: true,
 });
 
+export const insertTripJoinRequestSchema = createInsertSchema(tripJoinRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
   createdAt: true,
@@ -156,6 +186,8 @@ export type RideRequest = typeof rideRequests.$inferSelect;
 export type InsertRideRequest = z.infer<typeof insertRideRequestSchema>;
 export type TripParticipant = typeof tripParticipants.$inferSelect;
 export type InsertTripParticipant = z.infer<typeof insertTripParticipantSchema>;
+export type TripJoinRequest = typeof tripJoinRequests.$inferSelect;
+export type InsertTripJoinRequest = z.infer<typeof insertTripJoinRequestSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type UserRole = typeof userRoles[number];
