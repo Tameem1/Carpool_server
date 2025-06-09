@@ -90,6 +90,7 @@ export function TripCard({
 }: TripCardProps) {
   const departureDate = new Date(trip.departureTime);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [showJoinRequestForm, setShowJoinRequestForm] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -379,6 +380,21 @@ export function TripCard({
                   </Button>
                 )}
 
+              {/* Request to Join button - for users to request joining trips */}
+              {(userRole === "user" || !userRole) &&
+                trip.availableSeats > 0 &&
+                currentUserId !== trip.driver?.id &&
+                !trip.riders?.includes(currentUserId || "") && (
+                  <Button
+                    onClick={() => setShowJoinRequestForm(true)}
+                    variant="outline"
+                    className="border-[#16b7a4] text-[#16b7a4] hover:bg-[#16b7a4] hover:text-white touch-friendly"
+                    size="sm"
+                  >
+                    طلب الانضمام
+                  </Button>
+                )}
+
               {/* Request Seat button - fallback option */}
               {userRole === "rider" &&
                 onRequestSeat &&
@@ -446,6 +462,14 @@ export function TripCard({
           )}
         </div>
       </CardContent>
+      
+      {/* Trip Join Request Form */}
+      <TripJoinRequestForm
+        open={showJoinRequestForm}
+        onClose={() => setShowJoinRequestForm(false)}
+        tripId={trip.id}
+        trip={trip}
+      />
     </Card>
   );
 }
