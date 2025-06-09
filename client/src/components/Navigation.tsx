@@ -59,6 +59,12 @@ export function Navigation() {
       icon: Settings,
       active: location === "/admin",
     });
+    navItems.push({
+      href: "/admin/join-requests",
+      label: "طلبات الانضمام",
+      icon: UserCheck,
+      active: location === "/admin/join-requests",
+    });
   }
 
   return (

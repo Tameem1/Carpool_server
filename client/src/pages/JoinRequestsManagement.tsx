@@ -53,7 +53,7 @@ export default function JoinRequestsManagement() {
   const { toast } = useToast();
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "declined">("pending");
 
-  const { data: joinRequests = [], isLoading, refetch } = useQuery({
+  const { data: joinRequests = [], isLoading, refetch } = useQuery<JoinRequest[]>({
     queryKey: ["/api/trip-join-requests"],
     enabled: user?.role === "admin",
   });
@@ -113,7 +113,7 @@ export default function JoinRequestsManagement() {
     );
   }
 
-  const filteredRequests = joinRequests.filter((request: JoinRequest) => {
+  const filteredRequests = joinRequests.filter((request) => {
     if (filter === "all") return true;
     return request.status === filter;
   });
@@ -173,9 +173,9 @@ export default function JoinRequestsManagement() {
         {/* Filter Tabs */}
         <div className="flex space-x-2 mb-6">
           {[
-            { key: "pending", label: "في الانتظار", count: joinRequests.filter((r: JoinRequest) => r.status === "pending").length },
-            { key: "approved", label: "مقبولة", count: joinRequests.filter((r: JoinRequest) => r.status === "approved").length },
-            { key: "declined", label: "مرفوضة", count: joinRequests.filter((r: JoinRequest) => r.status === "declined").length },
+            { key: "pending", label: "في الانتظار", count: joinRequests.filter((r) => r.status === "pending").length },
+            { key: "approved", label: "مقبولة", count: joinRequests.filter((r) => r.status === "approved").length },
+            { key: "declined", label: "مرفوضة", count: joinRequests.filter((r) => r.status === "declined").length },
             { key: "all", label: "الكل", count: joinRequests.length },
           ].map((tab) => (
             <Button
@@ -201,7 +201,7 @@ export default function JoinRequestsManagement() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">في الانتظار</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {joinRequests.filter((r: JoinRequest) => r.status === "pending").length}
+                    {joinRequests.filter((r) => r.status === "pending").length}
                   </p>
                 </div>
               </div>
@@ -215,7 +215,7 @@ export default function JoinRequestsManagement() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">مقبولة</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {joinRequests.filter((r: JoinRequest) => r.status === "approved").length}
+                    {joinRequests.filter((r) => r.status === "approved").length}
                   </p>
                 </div>
               </div>
@@ -229,7 +229,7 @@ export default function JoinRequestsManagement() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">مرفوضة</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {joinRequests.filter((r: JoinRequest) => r.status === "declined").length}
+                    {joinRequests.filter((r) => r.status === "declined").length}
                   </p>
                 </div>
               </div>
@@ -267,7 +267,7 @@ export default function JoinRequestsManagement() {
             </CardContent>
           </Card>
         ) : (
-          filteredRequests.map((request: JoinRequest) => (
+          filteredRequests.map((request) => (
             <Card key={request.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
