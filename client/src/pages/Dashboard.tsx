@@ -187,13 +187,13 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+    <div className="max-w-7xl mx-auto p-3 sm:p-6 mobile-safe-area">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 gap-4">
+        <div className="flex-1">
+          <h1 className="responsive-text-2xl font-bold text-gray-900 dark:text-white">
             مرحباً بعودتك، {user?.firstName}!
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 dark:text-gray-400 mt-1 sm:mt-2 text-sm sm:text-base">
             {user?.role === "admin"
               ? "إدارة منصة مشاركة الرحلات"
               : "ابحث عن رحلات أو اعرض سيارتك"}
@@ -201,7 +201,8 @@ export default function Dashboard() {
         </div>
         <Button
           onClick={() => setShowTripForm(true)}
-          className="bg-primary hover:bg-primary/90"
+          className="bg-primary hover:bg-primary/90 touch-friendly w-full sm:w-auto"
+          size="sm"
         >
           <Plus className="h-4 w-4 mr-2" />
           إنشاء رحلة
@@ -209,32 +210,33 @@ export default function Dashboard() {
       </div>
 
       {user?.role === "admin" && stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-xs sm:text-sm font-medium">
                 الطلبات المعلقة
               </CardTitle>
               <Settings className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.pendingRequests}</div>
+              <div className="responsive-text-xl font-bold">{(stats as any).pendingRequests || 0}</div>
             </CardContent>
           </Card>
         </div>
       )}
 
       {user?.role === "admin" && (
-        <Card className="mb-8">
+        <Card className="mb-6 sm:mb-8">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>تعيين طلبات الرحلات</CardTitle>
-                <p className="text-sm text-gray-600">تعيين طلبات الرحلات المعلقة للرحلات المتاحة</p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex-1">
+                <CardTitle className="responsive-text-lg">تعيين طلبات الرحلات</CardTitle>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">تعيين طلبات الرحلات المعلقة للرحلات المتاحة</p>
               </div>
               <Button
                 onClick={() => setShowRideRequestForm(true)}
-                className="hover:bg-blue-700 text-white bg-[#16b7a4]"
+                className="hover:bg-blue-700 text-white bg-[#16b7a4] touch-friendly w-full sm:w-auto"
+                size="sm"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 طلب رحلة
@@ -329,22 +331,22 @@ export default function Dashboard() {
       )}
 
       <Tabs defaultValue="all-trips" className="w-full">
-        <TabsList className={`grid w-full ${user?.role === "admin" ? "grid-cols-1" : "grid-cols-2"}`}>
-          <TabsTrigger value="all-trips">جميع الرحلات</TabsTrigger>
-          {user?.role !== "admin" && <TabsTrigger value="my-trips">رحلاتي</TabsTrigger>}
+        <TabsList className={`grid w-full ${user?.role === "admin" ? "grid-cols-1" : "grid-cols-2"} h-auto`}>
+          <TabsTrigger value="all-trips" className="touch-friendly text-sm">جميع الرحلات</TabsTrigger>
+          {user?.role !== "admin" && <TabsTrigger value="my-trips" className="touch-friendly text-sm">رحلاتي</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="all-trips" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-semibold">رحلات اليوم</h2>
-              <p className="text-sm text-gray-500">من الساعة 5 صباحاً حتى 4 صباحاً من اليوم التالي</p>
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+            <div className="flex-1">
+              <h2 className="responsive-text-xl font-semibold">رحلات اليوم</h2>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">من الساعة 5 صباحاً حتى 4 صباحاً من اليوم التالي</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-gray-500" />
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-full sm:w-32 touch-friendly">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -357,35 +359,35 @@ export default function Dashboard() {
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="h-4 w-4 text-gray-500" />
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-full sm:w-40 touch-friendly">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                   </SelectContent>
                 </Select>
               </div>
-              <Badge variant="secondary">{sortedTrips.length} رحلة</Badge>
+              <Badge variant="secondary" className="text-xs">{sortedTrips.length} رحلة</Badge>
             </div>
           </div>
 
           {sortedTrips.length === 0 ? (
             <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Calendar className="h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12">
+                <Calendar className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mb-3 sm:mb-4" />
+                <h3 className="responsive-text-lg font-medium text-gray-900 dark:text-white mb-2">
                   لا توجد رحلات لليوم
                 </h3>
-                <p className="text-gray-600 text-center mb-4">
+                <p className="text-gray-600 dark:text-gray-400 text-center mb-4 text-sm sm:text-base px-4">
                   كن أول من ينشئ رحلة اليوم وساعد الآخرين في التنقل!
                 </p>
-                <Button onClick={() => setShowTripForm(true)}>
+                <Button onClick={() => setShowTripForm(true)} className="touch-friendly">
                   <Plus className="h-4 w-4 mr-2" />
                   إنشاء رحلة لليوم
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
               {sortedTrips.map((trip: any) => (
                 <TripCard
                   key={trip.id}

@@ -346,7 +346,7 @@ export function TripCard({
               </Select>
               <Button
                 size="sm"
-                className="touch-friendly w-full sm:w-auto"
+                className="touch-friendly w-full sm:w-auto bg-[#16b7a4] hover:bg-[#14a085] text-white"
                 onClick={() =>
                   selectedUserId && addRiderMutation.mutate(selectedUserId)
                 }
@@ -355,19 +355,18 @@ export function TripCard({
                   addRiderMutation.isPending ||
                   (trip.riders?.length || 0) >= trip.totalSeats
                 }
-                className="bg-[#16b7a4] hover:bg-[#14a085] text-white"
               >
-                <UserPlus className="h-4 w-4 mr-1" />
+                <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 {addRiderMutation.isPending ? "..." : "إضافة"}
               </Button>
             </div>
           </div>
         )}
 
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center text-sm text-gray-600">
-              <Users className="h-4 w-4 mr-2" />
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+          <div className="flex items-center">
+            <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
               <span>
                 {trip.totalSeats - (trip.riders?.length || 0)} seats available
               </span>
@@ -381,10 +380,10 @@ export function TripCard({
                 onRequestSeat &&
                 trip.availableSeats > 0 &&
                 currentUserId !== trip.driver?.id &&
-                !trip.riders?.includes(currentUserId) && (
+                !trip.riders?.includes(currentUserId || "") && (
                   <Button
                     onClick={() => onRequestSeat(trip.id)}
-                    className="bg-[#16b7a4] hover:bg-[#14a085] text-white"
+                    className="bg-[#16b7a4] hover:bg-[#14a085] text-white touch-friendly"
                     size="sm"
                   >
                     طلب مقعد
@@ -396,7 +395,7 @@ export function TripCard({
                 <Button
                   disabled
                   variant="outline"
-                  className="border-green-500 text-green-600"
+                  className="border-green-500 text-green-600 text-xs sm:text-sm"
                   size="sm"
                 >
                   مشترك بالفعل
@@ -409,7 +408,7 @@ export function TripCard({
                   variant="outline" 
                   onClick={() => onEdit(trip.id)}
                   size="sm"
-                  className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                  className="border-blue-300 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 text-xs sm:text-sm touch-friendly"
                 >
                   تعديل
                 </Button>
@@ -419,7 +418,7 @@ export function TripCard({
                   variant="outline" 
                   onClick={() => onCancel(trip.id)}
                   size="sm"
-                  className="border-orange-300 text-orange-600 hover:bg-orange-50"
+                  className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900 text-xs sm:text-sm touch-friendly"
                 >
                   إلغاء
                 </Button>
