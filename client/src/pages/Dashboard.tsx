@@ -30,6 +30,7 @@ export default function Dashboard() {
 
   const { data: myTrips = [], isLoading: myTripsLoading } = useQuery({
     queryKey: ["/api/trips/my"],
+    enabled: user?.role !== "admin", // Don't fetch my trips for admin users
   });
 
   const { data: stats } = useQuery({
@@ -108,9 +109,9 @@ export default function Dashboard() {
       )}
 
       <Tabs defaultValue="all-trips" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className={`grid w-full ${user?.role === "admin" ? "grid-cols-1" : "grid-cols-2"}`}>
           <TabsTrigger value="all-trips">جميع الرحلات</TabsTrigger>
-          <TabsTrigger value="my-trips">رحلاتي</TabsTrigger>
+          {user?.role !== "admin" && <TabsTrigger value="my-trips">رحلاتي</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="all-trips" className="space-y-4">
@@ -180,59 +181,61 @@ export default function Dashboard() {
           )}
         </TabsContent>
 
-        <TabsContent value="my-trips" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">رحلاتي</h2>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <ArrowUpDown className="h-4 w-4 text-gray-500" />
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="departure_time">الأبكر أولاً</SelectItem>
-                    <SelectItem value="departure_time_desc">الأحدث أولاً</SelectItem>
-                    <SelectItem value="available_seats">أكثر المقاعد</SelectItem>
-                    <SelectItem value="from_location">من أ-ي</SelectItem>
-                    <SelectItem value="to_location">إلى أ-ي</SelectItem>
-                  </SelectContent>
-                </Select>
+        {user?.role !== "admin" && (
+          <TabsContent value="my-trips" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">رحلاتي</h2>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown className="h-4 w-4 text-gray-500" />
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="departure_time">الأبكر أولاً</SelectItem>
+                      <SelectItem value="departure_time_desc">الأحدث أولاً</SelectItem>
+                      <SelectItem value="available_seats">أكثر المقاعد</SelectItem>
+                      <SelectItem value="from_location">من أ-ي</SelectItem>
+                      <SelectItem value="to_location">إلى أ-ي</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Badge variant="secondary">{Array.isArray(myTrips) ? myTrips.length : 0} رحلة</Badge>
               </div>
-              <Badge variant="secondary">{Array.isArray(myTrips) ? myTrips.length : 0} رحلة</Badge>
             </div>
-          </div>
 
-          {!Array.isArray(myTrips) || myTrips.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <MapPin className="h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  لا توجد رحلات بعد
-                </h3>
-                <p className="text-gray-600 text-center mb-4">
-                  ابدأ بإنشاء رحلتك الأولى لمشاركة الرحلات مع الآخرين.
-                </p>
-                <Button onClick={() => setShowTripForm(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  إنشاء رحلة
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sortedMyTrips.map((trip: any) => (
-                <TripCard
-                  key={trip.id}
-                  trip={trip}
-                  userRole={user?.role}
-                  currentUserId={user?.id}
-                  showActions={true}
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
+            {!Array.isArray(myTrips) || myTrips.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <MapPin className="h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    لا توجد رحلات بعد
+                  </h3>
+                  <p className="text-gray-600 text-center mb-4">
+                    ابدأ بإنشاء رحلتك الأولى لمشاركة الرحلات مع الآخرين.
+                  </p>
+                  <Button onClick={() => setShowTripForm(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    إنشاء رحلة
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sortedMyTrips.map((trip: any) => (
+                  <TripCard
+                    key={trip.id}
+                    trip={trip}
+                    userRole={user?.role}
+                    currentUserId={user?.id}
+                    showActions={true}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        )}
       </Tabs>
 
       <TripForm open={showTripForm} onClose={() => setShowTripForm(false)} />
