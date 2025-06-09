@@ -87,14 +87,14 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-3 sm:mx-auto">
         <DialogHeader>
-          <DialogTitle>طلب رحلة</DialogTitle>
+          <DialogTitle className="responsive-text-lg">طلب رحلة</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
               <FormField
                 control={form.control}
                 name="fromLocation"

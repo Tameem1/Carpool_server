@@ -291,27 +291,28 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               name="departureTime"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>تاريخ ووقت الانطلاق</FormLabel>
+                  <FormLabel className="text-sm">تاريخ ووقت الانطلاق</FormLabel>
                   <FormControl>
-                    <Input type="datetime-local" {...field} />
+                    <Input type="datetime-local" className="touch-friendly" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <FormField
                 control={form.control}
                 name="totalSeats"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>إجمالي المقاعد</FormLabel>
+                    <FormLabel className="text-sm">إجمالي المقاعد</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min="1"
                         max="8"
+                        className="touch-friendly"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value))}
                       />
@@ -326,12 +327,13 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                 name="availableSeats"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>المقاعد المتاحة</FormLabel>
+                    <FormLabel className="text-sm">المقاعد المتاحة</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min="0"
                         max="8"
+                        className="touch-friendly"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value))}
                       />
@@ -348,10 +350,10 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                 name="driverId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>اختر السائق</FormLabel>
+                    <FormLabel className="text-sm">اختر السائق</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="touch-friendly">
                           <SelectValue placeholder="اختر سائقاً" />
                         </SelectTrigger>
                       </FormControl>
