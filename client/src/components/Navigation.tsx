@@ -67,17 +67,18 @@ export function Navigation() {
   }
 
   return (
-    <nav className="bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-8">
+    <nav className="bg-white dark:bg-gray-900 shadow-sm border-b mobile-safe-area">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-14 sm:h-16">
+          <div className="flex items-center space-x-4 sm:space-x-8">
             <div className="flex-shrink-0 flex items-center">
-              <Car className="h-8 w-8 text-primary mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">وصلني عالنادي</h1>
+              <Car className="h-6 w-6 sm:h-8 sm:w-8 text-primary mr-2 sm:mr-3" />
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white hidden xs:block">وصلني عالنادي</h1>
+              <h1 className="text-base font-bold text-gray-900 dark:text-white xs:hidden">وصلني</h1>
             </div>
 
-            {/* Navigation Links */}
-            <div className="hidden md:flex space-x-1">
+            {/* Desktop Navigation Links */}
+            <div className="hidden lg:flex space-x-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -85,10 +86,10 @@ export function Navigation() {
                     <Button
                       variant={item.active ? "default" : "ghost"}
                       size="sm"
-                      className={`flex items-center space-x-2 ${
+                      className={`flex items-center space-x-2 touch-friendly ${
                         item.active
                           ? "bg-primary text-primary-foreground"
-                          : "text-gray-600 hover:text-primary"
+                          : "text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary"
                       }`}
                     >
                       <Icon className="h-4 w-4" />
@@ -101,26 +102,36 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center">
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              تسجيل الخروج
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleLogout}
+              className="touch-friendly text-sm sm:text-base text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary"
+            >
+              <span className="hidden sm:inline">تسجيل الخروج</span>
+              <span className="sm:hidden">خروج</span>
             </Button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        <div className="md:hidden pb-3">
-          <div className="flex space-x-1">
+        {/* Mobile Navigation - Bottom Bar Style */}
+        <div className="lg:hidden border-t pt-2 pb-3">
+          <div className="flex justify-around space-x-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
-                <Link key={item.href} href={item.href}>
+                <Link key={item.href} href={item.href} className="flex-1">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex items-center space-x-1 text-gray-600 hover:text-primary"
+                    className={`w-full flex flex-col items-center justify-center py-2 px-1 touch-friendly ${
+                      item.active
+                        ? "text-primary bg-primary/10"
+                        : "text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary"
+                    }`}
                   >
-                    <Icon className="h-4 w-4" />
-                    <span className="text-xs">{item.label}</span>
+                    <Icon className="h-5 w-5 mb-1" />
+                    <span className="text-xs leading-tight">{item.label}</span>
                   </Button>
                 </Link>
               );

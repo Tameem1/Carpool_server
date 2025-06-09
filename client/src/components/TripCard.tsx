@@ -230,13 +230,13 @@ export function TripCard({
 
   return (
     <Card className="hover:shadow-md transition-shadow relative">
-      <CardContent className="p-6">
+      <CardContent className="p-3 sm:p-6">
         {/* Delete button in top-right corner for admin */}
         {userRole === "admin" && (
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-2 right-2 h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+            className="absolute top-2 right-2 h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 touch-friendly"
             onClick={() => deleteTripMutation.mutate()}
             disabled={deleteTripMutation.isPending}
           >
@@ -244,76 +244,76 @@ export function TripCard({
           </Button>
         )}
 
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h3 className={`text-lg font-semibold text-gray-900 ${(isArabicText(trip.fromLocation) || isArabicText(trip.toLocation)) ? 'text-right' : 'text-left'}`}>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 space-y-2 sm:space-y-0">
+          <div className="flex-1">
+            <h3 className={`responsive-text-lg font-semibold text-gray-900 dark:text-white ${(isArabicText(trip.fromLocation) || isArabicText(trip.toLocation)) ? 'text-right' : 'text-left'}`}>
               {formatRoute(trip.fromLocation, trip.toLocation)}
             </h3>
-            <p className="text-sm text-gray-600 flex items-center mt-1">
-              <Clock className="h-4 w-4 mr-1" />
-              {format(departureDate, "MMMM d, yyyy 'at' h:mm a")}
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex items-center mt-1">
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <span className="truncate">{format(departureDate, "MMM d, yyyy 'at' h:mm a")}</span>
             </p>
           </div>
-          <Badge className={getStatusColor(trip.status)}>{trip.status}</Badge>
+          <Badge className={`${getStatusColor(trip.status)} text-xs sm:text-sm`}>{trip.status}</Badge>
         </div>
 
         {trip.driver && (
-          <div className="flex items-center mb-4">
-            <Avatar className="h-10 w-10 mr-3">
+          <div className="flex items-center mb-3 sm:mb-4">
+            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 mr-2 sm:mr-3">
               <AvatarImage
                 src={trip.driver.profileImageUrl || ""}
                 alt="Driver"
               />
-              <AvatarFallback>
+              <AvatarFallback className="text-xs sm:text-sm">
                 {trip.driver.firstName[0]}
                 {trip.driver.lastName[0]}
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold text-gray-900">
+              <p className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
                 {trip.driver.firstName} {trip.driver.lastName}
               </p>
-              <p className="text-sm text-gray-600">Driver</p>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Driver</p>
             </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div>
-            <p className="text-sm text-gray-600">الانطلاق</p>
-            <p className="font-medium truncate">{trip.fromLocation}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
+          <div className="min-w-0">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">الانطلاق</p>
+            <p className="font-medium text-sm sm:text-base truncate">{trip.fromLocation}</p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">الوصول</p>
+            <p className="font-medium text-sm sm:text-base truncate">{trip.toLocation}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">الوصول</p>
-            <p className="font-medium truncate">{trip.toLocation}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">الركاب</p>
-            <p className="font-medium flex items-center">
-              <Users className="h-4 w-4 mr-1" />
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">الركاب</p>
+            <p className="font-medium text-sm sm:text-base flex items-center">
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               {trip.riders?.length || 0} / {trip.totalSeats}
             </p>
           </div>
         </div>
 
         {trip.riderDetails && trip.riderDetails.length > 0 && (
-          <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-2">الركاب الحاليين</p>
-            <div className="flex flex-wrap gap-2">
+          <div className="mb-3 sm:mb-4">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">الركاب الحاليين</p>
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               {trip.riderDetails.map((rider) => (
                 <div key={rider.id} className="relative group">
-                  <Badge variant="secondary" className="text-xs pr-6">
+                  <Badge variant="secondary" className="text-xs pr-4 sm:pr-6 py-1">
                     {rider.firstName} {rider.lastName}
                   </Badge>
                   {userRole === "admin" && (
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="absolute -top-1 -right-1 h-5 w-5 p-0 rounded-full bg-red-100 hover:bg-red-200 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 p-0 rounded-full bg-red-100 hover:bg-red-200 opacity-0 group-hover:opacity-100 transition-opacity touch-friendly"
                       onClick={() => removeRiderMutation.mutate(rider.id)}
                       disabled={removeRiderMutation.isPending}
                     >
-                      <UserMinus className="h-3 w-3 text-red-600" />
+                      <UserMinus className="h-2 w-2 sm:h-3 sm:w-3 text-red-600" />
                     </Button>
                   )}
                 </div>
@@ -323,11 +323,11 @@ export function TripCard({
         )}
 
         {userRole === "admin" && users && (
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg border">
-            <p className="text-sm font-medium text-gray-700 mb-3">أضف راكب للرحلة</p>
-            <div className="flex items-center gap-3">
+          <div className="mb-3 sm:mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+            <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">أضف راكب للرحلة</p>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                <SelectTrigger className="flex-1 bg-white">
+                <SelectTrigger className="flex-1 bg-white dark:bg-gray-700 text-sm touch-friendly">
                   <SelectValue placeholder="اختر مستخدم..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -346,6 +346,7 @@ export function TripCard({
               </Select>
               <Button
                 size="sm"
+                className="touch-friendly w-full sm:w-auto"
                 onClick={() =>
                   selectedUserId && addRiderMutation.mutate(selectedUserId)
                 }

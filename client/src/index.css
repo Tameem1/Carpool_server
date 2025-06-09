@@ -62,6 +62,14 @@
     direction: rtl;
     text-align: right;
   }
+
+  html {
+    overflow-x: hidden;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
 }
 
 /* Custom utility classes for the carpool app */
@@ -88,5 +96,38 @@
   
   .border-warning {
     border-color: hsl(var(--warning));
+  }
+
+  /* Mobile responsive utilities */
+  .mobile-safe-area {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .touch-friendly {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Fix for RTL spacing on mobile */
+  .mobile-rtl-fix {
+    direction: rtl;
+  }
+
+  .mobile-rtl-fix .flex {
+    flex-direction: row-reverse;
+  }
+
+  /* Responsive text sizes */
+  .responsive-text-lg {
+    @apply text-base sm:text-lg;
+  }
+
+  .responsive-text-xl {
+    @apply text-lg sm:text-xl;
+  }
+
+  .responsive-text-2xl {
+    @apply text-xl sm:text-2xl;
   }
 }
