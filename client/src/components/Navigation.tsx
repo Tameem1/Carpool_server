@@ -100,38 +100,10 @@ export function Navigation() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
-            {/* Real-time Status */}
-            <RealTimeStatus />
-            
-            {/* Notification Badge */}
-            <div className="relative">
-              <Bell className="h-5 w-5 text-gray-600 cursor-pointer hover:text-primary transition-colors" />
-              {unreadCount > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-2 -right-2 h-5 w-5 text-xs flex items-center justify-center p-0 bg-warning hover:bg-warning"
-                >
-                  {unreadCount}
-                </Badge>
-              )}
-            </div>
-            {/* Profile */}
-            <div className="flex items-center space-x-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user?.profileImageUrl || ""} alt="Profile" />
-                <AvatarFallback>
-                  {user?.firstName?.[0]}
-                  {user?.lastName?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-medium">
-                {user?.firstName} {user?.lastName}
-              </span>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                تسجيل الخروج
-              </Button>
-            </div>
+          <div className="flex items-center">
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              تسجيل الخروج
+            </Button>
           </div>
         </div>
 
