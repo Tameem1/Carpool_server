@@ -229,20 +229,8 @@ export function TripCard({
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow relative">
+    <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-3 sm:p-6">
-        {/* Delete button in top-right corner for admin */}
-        {userRole === "admin" && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute top-2 right-2 h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 touch-friendly"
-            onClick={() => deleteTripMutation.mutate()}
-            disabled={deleteTripMutation.isPending}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        )}
 
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 space-y-2 sm:space-y-0">
           <div className="flex-1">
@@ -421,6 +409,20 @@ export function TripCard({
                   className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900 text-xs sm:text-sm touch-friendly"
                 >
                   إلغاء
+                </Button>
+              )}
+              
+              {/* Delete button for admin */}
+              {userRole === "admin" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 text-xs sm:text-sm touch-friendly"
+                  onClick={() => deleteTripMutation.mutate()}
+                  disabled={deleteTripMutation.isPending}
+                >
+                  <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  {deleteTripMutation.isPending ? "..." : "حذف"}
                 </Button>
               )}
             </div>
