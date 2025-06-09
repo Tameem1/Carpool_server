@@ -360,6 +360,51 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(tripParticipants.tripId, tripId), eq(tripParticipants.userId, userId)));
   }
 
+  // Trip join request operations
+  async createTripJoinRequest(requestData: InsertTripJoinRequest): Promise<TripJoinRequest> {
+    const [request] = await db
+      .insert(tripJoinRequests)
+      .values({
+        tripId: requestData.tripId,
+        riderId: requestData.riderId,
+        seatsRequested: requestData.seatsRequested || 1,
+        message: requestData.message,
+        status: "pending",
+      })
+      .returning();
+    return request;
+  }
+
+  async getTripJoinRequest(id: number): Promise<TripJoinRequest | undefined> {
+    const [request] = await db.select().from(tripJoinRequests).where(eq(tripJoinRequests.id, id));
+    return request;
+  }
+
+  async getTripJoinRequests(tripId: number): Promise<TripJoinRequest[]> {
+    return await db.select().from(tripJoinRequests).where(eq(tripJoinRequests.tripId, tripId));
+  }
+
+  async getAllTripJoinRequests(): Promise<TripJoinRequest[]> {
+    return await db.select().from(tripJoinRequests).orderBy(tripJoinRequests.createdAt);
+  }
+
+  async getUserTripJoinRequests(userId: string): Promise<TripJoinRequest[]> {
+    return await db.select().from(tripJoinRequests).where(eq(tripJoinRequests.riderId, userId));
+  }
+
+  async updateTripJoinRequestStatus(id: number, status: TripJoinRequest["status"]): Promise<TripJoinRequest> {
+    const [request] = await db
+      .update(tripJoinRequests)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(tripJoinRequests.id, id))
+      .returning();
+    return request;
+  }
+
+  async deleteTripJoinRequest(id: number): Promise<void> {
+    await db.delete(tripJoinRequests).where(eq(tripJoinRequests.id, id));
+  }
+
   // Notification operations
   async createNotification(notificationData: InsertNotification): Promise<Notification> {
     const [notification] = await db

@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer } from "ws";
 import { storage } from "./storage";
 // import { setupAuth, isAuthenticated } from "./auth";
-import { insertTripSchema, insertRideRequestSchema, insertTripParticipantSchema } from "@shared/schema";
+import { insertTripSchema, insertRideRequestSchema, insertTripParticipantSchema, insertTripJoinRequestSchema } from "@shared/schema";
 import { z } from "zod";
 
 // WebSocket connection management
@@ -889,6 +889,240 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting trip:", error);
       res.status(500).json({ message: "Failed to delete trip" });
+    }
+  });
+
+  // Trip join request routes
+  // Create a join request for a specific trip
+  app.post('/api/trips/:id/join-requests', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const tripId = parseInt(id);
+      const { seatsRequested, message } = req.body;
+      const riderId = req.currentUser.id;
+      
+      const trip = await storage.getTrip(tripId);
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+
+      // Check if user is the driver
+      if (trip.driverId === riderId) {
+        return res.status(400).json({ message: "You cannot request to join your own trip" });
+      }
+
+      // Check if user is already a rider
+      const currentRiders = trip.riders || [];
+      if (currentRiders.includes(riderId)) {
+        return res.status(400).json({ message: "You are already a rider on this trip" });
+      }
+
+      // Check if user has already requested to join
+      const existingRequests = await storage.getTripJoinRequests(tripId);
+      const userHasRequest = existingRequests.some(req => req.riderId === riderId && req.status === 'pending');
+      if (userHasRequest) {
+        return res.status(400).json({ message: "You have already requested to join this trip" });
+      }
+
+      // Check if trip has available seats
+      if (trip.availableSeats < (seatsRequested || 1)) {
+        return res.status(400).json({ message: "Not enough available seats" });
+      }
+
+      const joinRequestData = insertTripJoinRequestSchema.parse({
+        tripId,
+        riderId,
+        seatsRequested: seatsRequested || 1,
+        message
+      });
+
+      const joinRequest = await storage.createTripJoinRequest(joinRequestData);
+
+      // Notify driver about the join request
+      const driver = await storage.getUser(trip.driverId);
+      const requester = await storage.getUser(riderId);
+      
+      if (driver && requester) {
+        await storage.createNotification({
+          userId: driver.id,
+          title: "طلب انضمام جديد",
+          message: `${requester.firstName} ${requester.lastName} طلب الانضمام إلى رحلتك من ${trip.fromLocation} إلى ${trip.toLocation}`,
+          type: "join_request_received"
+        });
+
+        // Broadcast notification to driver
+        broadcastToAll({
+          type: 'join_request_created',
+          data: { joinRequest, trip, requester }
+        });
+      }
+
+      res.json(joinRequest);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
+      console.error("Error creating join request:", error);
+      res.status(500).json({ message: "Failed to create join request" });
+    }
+  });
+
+  // Get all join requests for admin
+  app.get('/api/trip-join-requests', requireRole(['admin']), async (req: any, res) => {
+    try {
+      const joinRequests = await storage.getAllTripJoinRequests();
+      
+      // Enrich with trip and rider info
+      const enrichedRequests = await Promise.all(
+        joinRequests.map(async (request) => {
+          const trip = await storage.getTrip(request.tripId);
+          const rider = await storage.getUser(request.riderId);
+          const driver = trip ? await storage.getUser(trip.driverId) : null;
+          
+          return {
+            ...request,
+            trip: trip ? {
+              ...trip,
+              driver: driver ? {
+                id: driver.id,
+                firstName: driver.firstName,
+                lastName: driver.lastName,
+                profileImageUrl: driver.profileImageUrl,
+              } : null,
+            } : null,
+            rider: rider ? {
+              id: rider.id,
+              firstName: rider.firstName,
+              lastName: rider.lastName,
+              profileImageUrl: rider.profileImageUrl,
+            } : null,
+          };
+        })
+      );
+      
+      res.json(enrichedRequests);
+    } catch (error) {
+      console.error("Error fetching join requests:", error);
+      res.status(500).json({ message: "Failed to fetch join requests" });
+    }
+  });
+
+  // Get join requests for a specific trip
+  app.get('/api/trips/:id/join-requests', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const tripId = parseInt(id);
+      
+      const trip = await storage.getTrip(tripId);
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+
+      // Only trip driver and admin can see join requests
+      if (trip.driverId !== req.currentUser.id && req.currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      const joinRequests = await storage.getTripJoinRequests(tripId);
+      
+      // Enrich with rider info
+      const enrichedRequests = await Promise.all(
+        joinRequests.map(async (request) => {
+          const rider = await storage.getUser(request.riderId);
+          return {
+            ...request,
+            rider: rider ? {
+              id: rider.id,
+              firstName: rider.firstName,
+              lastName: rider.lastName,
+              profileImageUrl: rider.profileImageUrl,
+            } : null,
+          };
+        })
+      );
+      
+      res.json(enrichedRequests);
+    } catch (error) {
+      console.error("Error fetching trip join requests:", error);
+      res.status(500).json({ message: "Failed to fetch trip join requests" });
+    }
+  });
+
+  // Approve/decline join request
+  app.patch('/api/trip-join-requests/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const requestId = parseInt(id);
+      
+      if (!['approved', 'declined'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      const joinRequest = await storage.getTripJoinRequest(requestId);
+      if (!joinRequest) {
+        return res.status(404).json({ message: "Join request not found" });
+      }
+
+      const trip = await storage.getTrip(joinRequest.tripId);
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+
+      // Only trip driver and admin can approve/decline
+      if (trip.driverId !== req.currentUser.id && req.currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      if (joinRequest.status !== 'pending') {
+        return res.status(400).json({ message: "Join request has already been processed" });
+      }
+
+      const updatedRequest = await storage.updateTripJoinRequestStatus(requestId, status);
+      
+      if (status === 'approved') {
+        // Add rider to trip
+        const currentRiders = trip.riders || [];
+        if (trip.availableSeats >= joinRequest.seatsRequested) {
+          const updatedRiders = [...currentRiders, joinRequest.riderId];
+          await storage.updateTrip(trip.id, { 
+            riders: updatedRiders,
+            availableSeats: trip.totalSeats - updatedRiders.length
+          });
+
+          // Create trip participant record
+          await storage.addTripParticipant({
+            tripId: trip.id,
+            userId: joinRequest.riderId,
+            seatsBooked: joinRequest.seatsRequested,
+            status: "confirmed"
+          });
+        }
+      }
+
+      // Notify requester about the decision
+      const requester = await storage.getUser(joinRequest.riderId);
+      if (requester) {
+        await storage.createNotification({
+          userId: requester.id,
+          title: status === 'approved' ? "تم قبول طلبك" : "تم رفض طلبك",
+          message: status === 'approved' 
+            ? `تم قبول طلبك للانضمام إلى الرحلة من ${trip.fromLocation} إلى ${trip.toLocation}`
+            : `تم رفض طلبك للانضمام إلى الرحلة من ${trip.fromLocation} إلى ${trip.toLocation}`,
+          type: status === 'approved' ? "join_request_approved" : "join_request_declined"
+        });
+
+        // Broadcast notification
+        broadcastToAll({
+          type: 'join_request_updated',
+          data: { joinRequest: updatedRequest, trip, status }
+        });
+      }
+
+      res.json(updatedRequest);
+    } catch (error) {
+      console.error("Error updating join request:", error);
+      res.status(500).json({ message: "Failed to update join request" });
     }
   });
 
