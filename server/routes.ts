@@ -1011,7 +1011,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Trip join request routes
-  // Create a join request for a specific trip
+  // Create a join request for a specific trip (auto-approved)
   app.post('/api/trips/:id/join-requests', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
@@ -1037,45 +1037,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if user has already requested to join
       const existingRequests = await storage.getTripJoinRequests(tripId);
-      const userHasRequest = existingRequests.some(req => req.riderId === riderId && req.status === 'pending');
+      const userHasRequest = existingRequests.some(req => req.riderId === riderId);
       if (userHasRequest) {
         return res.status(400).json({ message: "You have already requested to join this trip" });
       }
 
       // Check if trip has available seats
-      if (trip.availableSeats < (seatsRequested || 1)) {
+      const requestedSeats = seatsRequested || 1;
+      if (trip.availableSeats < requestedSeats) {
         return res.status(400).json({ message: "Not enough available seats" });
       }
 
+      // Create join request with approved status
       const joinRequestData = insertTripJoinRequestSchema.parse({
         tripId,
         riderId,
-        seatsRequested: seatsRequested || 1,
-        message
+        seatsRequested: requestedSeats,
+        message,
+        status: 'approved'
       });
 
       const joinRequest = await storage.createTripJoinRequest(joinRequestData);
 
-      // Notify driver about the join request
+      // Automatically add rider to trip
+      const updatedRiders = [...currentRiders, riderId];
+      const updatedTrip = await storage.updateTrip(tripId, {
+        riders: updatedRiders,
+        availableSeats: trip.totalSeats - updatedRiders.length
+      });
+
+      // Add trip participant record
+      await storage.addTripParticipant({
+        tripId,
+        userId: riderId,
+        seatsBooked: requestedSeats
+      });
+
+      // Notify driver about the new rider
       const driver = await storage.getUser(trip.driverId);
       const requester = await storage.getUser(riderId);
       
       if (driver && requester) {
         await storage.createNotification({
           userId: driver.id,
-          title: "طلب انضمام جديد",
-          message: `${requester.firstName} ${requester.lastName} طلب الانضمام إلى رحلتك من ${trip.fromLocation} إلى ${trip.toLocation}`,
-          type: "join_request_received"
+          title: "راكب جديد انضم للرحلة",
+          message: `${requester.firstName} ${requester.lastName} انضم إلى رحلتك من ${trip.fromLocation} إلى ${trip.toLocation}`,
+          type: "rider_joined"
         });
 
-        // Broadcast notification to driver
+        // Notify rider about successful join
+        await storage.createNotification({
+          userId: riderId,
+          title: "تم الانضمام للرحلة بنجاح",
+          message: `تم قبولك في الرحلة من ${trip.fromLocation} إلى ${trip.toLocation}`,
+          type: "join_approved"
+        });
+
+        // Broadcast notification
         broadcastToAll({
-          type: 'join_request_created',
-          data: { joinRequest, trip, requester }
+          type: 'rider_joined',
+          data: { joinRequest, trip: updatedTrip, rider: requester }
         });
       }
 
-      res.json(joinRequest);
+      res.json({
+        ...joinRequest,
+        trip: updatedTrip
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid input", errors: error.errors });

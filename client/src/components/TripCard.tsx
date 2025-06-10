@@ -412,7 +412,7 @@ export function TripCard({
                     className="border-[#16b7a4] text-[#16b7a4] hover:bg-[#16b7a4] hover:text-white touch-friendly"
                     size="sm"
                   >
-                    طلب الانضمام
+                    انضم للرحلة
                   </Button>
                 )}
 
