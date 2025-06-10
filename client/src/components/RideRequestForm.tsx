@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableUserSelect } from "@/components/ui/searchable-user-select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -146,21 +147,18 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>طلب للمستخدم</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر مستخدماً (اتركه فارغاً لنفسك)" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="self">نفسي (المدير)</SelectItem>
-                        {Array.isArray(users) && users.map((user: any) => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.firstName} {user.lastName} ({user.email})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <SearchableUserSelect
+                        users={Array.isArray(users) ? users : []}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="اختر مستخدماً (اتركه فارغاً لنفسك)"
+                        allowSelf={true}
+                        selfLabel="نفسي (المدير)"
+                        selfValue="self"
+                        showRole={false}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

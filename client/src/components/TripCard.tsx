@@ -2,13 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableUserSelect } from "@/components/ui/searchable-user-select";
 import {
   MapPin,
   Clock,
@@ -336,24 +330,15 @@ export function TripCard({
           <div className="mb-3 sm:mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
             <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">أضف راكب للرحلة</p>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                <SelectTrigger className="flex-1 bg-white dark:bg-gray-700 text-sm touch-friendly">
-                  <SelectValue placeholder="اختر مستخدم..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {users
-                    .filter(
-                      (user: any) =>
-                        !trip.riders?.includes(user.id) &&
-                        (trip.riders?.length || 0) < trip.totalSeats
-                    )
-                    .map((user: any) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {`${user.firstName} ${user.lastName} (${user.role === 'admin' ? 'مدير' : user.role === 'driver' ? 'سائق' : 'راكب'})`}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+              <SearchableUserSelect
+                users={users}
+                value={selectedUserId}
+                onValueChange={setSelectedUserId}
+                placeholder="اختر مستخدم..."
+                excludeUserIds={trip.riders || []}
+                showRole={true}
+                className="flex-1 bg-white dark:bg-gray-700 text-sm touch-friendly"
+              />
               <Button
                 size="sm"
                 className="touch-friendly w-full sm:w-auto bg-[#16b7a4] hover:bg-[#14a085] text-white"
