@@ -77,39 +77,7 @@ export class DatabaseStorage implements IStorage {
     // Note: Periodic cleanup is handled manually via API calls to avoid aggressive filtering
   }
 
-  // Check if a trip should be marked as completed (2 hours after departure time)
-  private shouldTripBeCompleted(trip: Trip): boolean {
-    const now = new Date();
-    const departureTime = new Date(trip.departureTime);
-    const twoHoursAfterDeparture = new Date(departureTime.getTime() + 2 * 60 * 60 * 1000);
-    
-    // Only mark as completed if:
-    // 1. Trip status is currently active
-    // 2. Current time is more than 2 hours after departure time
-    // 3. Departure time is in the past (not a future trip)
-    return trip.status === "active" && 
-           now > twoHoursAfterDeparture && 
-           now > departureTime;
-  }
 
-  // Update expired trips to completed status
-  private async updateExpiredTrips(): Promise<void> {
-    try {
-      // Get trips directly from database to avoid circular dependency
-      const allTrips = await db.select().from(trips);
-      const expiredTrips = allTrips.filter(trip => this.shouldTripBeCompleted(trip));
-      
-      for (const trip of expiredTrips) {
-        await this.updateTrip(trip.id, { status: "completed" });
-      }
-      
-      if (expiredTrips.length > 0) {
-        console.log(`Updated ${expiredTrips.length} expired trips to completed status`);
-      }
-    } catch (error) {
-      console.error("Error updating expired trips:", error);
-    }
-  }
 
   private async initializeSampleUsers() {
     try {
@@ -232,7 +200,6 @@ export class DatabaseStorage implements IStorage {
         isRecurring: tripData.isRecurring || false,
         recurringDays: tripData.recurringDays || null,
         notes: tripData.notes || null,
-        status: tripData.status || "active",
       })
       .returning();
     return trip;
@@ -282,17 +249,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchTrips(fromLocation?: string, toLocation?: string, date?: Date): Promise<Trip[]> {
-    let query = db.select().from(trips).where(eq(trips.status, "active"));
-    
-    // Note: This is a simplified search. For production, you'd want to use proper text search capabilities
-    const allTrips = await query;
+    const allTrips = await db.select().from(trips);
     
     return allTrips.filter(trip => {
-      // Check if trip is still within the 2-hour active window
-      if (this.shouldTripBeCompleted(trip)) {
-        return false;
-      }
-      
       if (fromLocation && !trip.fromLocation.toLowerCase().includes(fromLocation.toLowerCase())) {
         return false;
       }

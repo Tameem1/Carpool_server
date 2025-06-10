@@ -31,7 +31,6 @@ export const trips = pgTable("trips", {
   isRecurring: boolean("is_recurring").default(false),
   recurringDays: text("recurring_days"), // JSON array of days
   notes: text("notes"),
-  status: varchar("status", { enum: ["active", "completed", "cancelled"] }).default("active"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

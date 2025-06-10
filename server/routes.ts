@@ -127,37 +127,7 @@ class TelegramNotificationService {
 const telegramService = new TelegramNotificationService();
 
 // Helper function to check if a trip should be completed (2 hours after departure)
-function shouldTripBeCompleted(trip: any): boolean {
-  const now = new Date();
-  const departureTime = new Date(trip.departureTime);
-  const twoHoursAfterDeparture = new Date(departureTime.getTime() + 2 * 60 * 60 * 1000);
-  
-  // Only mark as completed if:
-  // 1. Trip status is currently active
-  // 2. Current time is more than 2 hours after departure time
-  // 3. Departure time is in the past (not a future trip)
-  return trip.status === "active" && 
-         now > twoHoursAfterDeparture && 
-         now > departureTime;
-}
 
-// Function to update expired trips to completed status
-async function updateExpiredTrips() {
-  try {
-    const allTrips = await storage.getAllTrips();
-    const expiredTrips = allTrips.filter(trip => shouldTripBeCompleted(trip));
-    
-    for (const trip of expiredTrips) {
-      await storage.updateTrip(trip.id, { status: "completed" });
-    }
-    
-    if (expiredTrips.length > 0) {
-      console.log(`Updated ${expiredTrips.length} expired trips to completed status`);
-    }
-  } catch (error) {
-    console.error("Error updating expired trips:", error);
-  }
-}
 
 // Function to notify users with matching ride requests when a new trip is created
 async function notifyMatchingRideRequesters(trip: any) {
@@ -521,7 +491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Trip routes
   app.get('/api/trips', async (req: any, res) => {
     try {
-      const { from, to, date, status } = req.query;
+      const { from, to, date } = req.query;
       const searchDate = date ? new Date(date) : undefined;
       
       // Get current user to check if admin
@@ -533,18 +503,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isAdmin = user?.role === 'admin';
       }
       
-      // Get trips based on status filter
-      let trips;
-      if (status === 'all') {
-        trips = await storage.getAllTrips();
-      } else if (status === 'inactive') {
-        const allTrips = await storage.getAllTrips();
-        trips = allTrips.filter(trip => trip.status !== 'active');
-      } else {
-        // Default to active trips only
-        const allTrips = await storage.getAllTrips();
-        trips = allTrips.filter(trip => trip.status === 'active');
-      }
+      // Get all trips
+      let trips = await storage.getAllTrips();
       
       // Apply additional filters if provided
       if (from || to || date) {
@@ -564,11 +524,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           return true;
         });
-      }
-      
-      // For non-admin users, filter out full trips unless they specifically want to see all
-      if (!isAdmin && status !== 'all') {
-        trips = trips.filter(trip => trip.availableSeats > 0);
       }
       
       // Enrich with driver info and sync available seats with riders
@@ -1428,10 +1383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Not enough available seats in the trip" });
       }
 
-      // Check if trip is active
-      if (trip.status !== 'active') {
-        return res.status(400).json({ message: "Trip is not active" });
-      }
+
 
       // Accept the request and assign to trip
       await storage.updateRideRequestStatus(requestId, "accepted", tripId);
