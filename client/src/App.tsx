@@ -12,7 +12,7 @@ import Dashboard from "@/pages/Dashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import DriverDashboard from "@/pages/DriverDashboard";
 import RiderDashboard from "@/pages/RiderDashboard";
-import JoinRequestsManagement from "@/pages/JoinRequestsManagement";
+
 import { UserProfile } from "@/components/UserProfile";
 import NotFound from "@/pages/not-found";
 
@@ -66,14 +66,7 @@ function Router() {
               </div>
             )}
           </Route>
-          <Route path="/admin/join-requests">
-            {() => (
-              <div className="min-h-screen bg-background">
-                <Navigation />
-                <JoinRequestsManagement />
-              </div>
-            )}
-          </Route>
+
 
           <Route path="/profile">
             {() => (

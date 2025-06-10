@@ -57,15 +57,7 @@ export function Navigation() {
 
   ];
 
-  // Add role-specific nav items
-  if (user?.role === "admin") {
-    navItems.push({
-      href: "/admin/join-requests",
-      label: "طلبات الانضمام",
-      icon: UserCheck,
-      active: location === "/admin/join-requests",
-    });
-  }
+  // Admin users see the same dashboard with additional admin features
 
   return (
     <nav className="bg-white dark:bg-gray-900 shadow-sm border-b mobile-safe-area">
