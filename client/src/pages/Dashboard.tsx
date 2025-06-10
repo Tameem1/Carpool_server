@@ -297,9 +297,16 @@ export default function Dashboard() {
                       )}
 
                       <div className="flex flex-col space-y-3">
-                        <span className="text-sm font-medium text-gray-700">الرحلات المتوافقة:</span>
-                        {compatibleTrips.length === 0 ? (
-                          <span className="text-sm text-gray-500">لا توجد رحلات متوافقة متاحة</span>
+                        <span className="text-sm font-medium text-gray-700">جميع الرحلات المتاحة لهذا اليوم:</span>
+                        {compatibleTrips.length > 0 && (
+                          <div className="mb-2 p-2 bg-green-50 rounded-md">
+                            <span className="text-xs text-green-700 font-medium">
+                              الرحلات المتوافقة ({compatibleTrips.length}): تطابق في الموقع والوقت
+                            </span>
+                          </div>
+                        )}
+                        {!Array.isArray(trips) || trips.length === 0 ? (
+                          <span className="text-sm text-gray-500">لا توجد رحلات متاحة لهذا اليوم</span>
                         ) : (
                           <div className="flex items-center gap-3">
                             <div className="flex-1">
@@ -308,35 +315,48 @@ export default function Dashboard() {
                                   <SelectValue placeholder="اختر رحلة (مرتبة حسب الأقرب زمنياً)" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {compatibleTrips.map((trip: any) => {
-                                    const requestTime = new Date(request.preferredTime).getTime();
-                                    const tripTime = new Date(trip.departureTime).getTime();
-                                    const timeDiffMinutes = Math.abs(tripTime - requestTime) / (1000 * 60);
-                                    const timeDiffHours = Math.floor(timeDiffMinutes / 60);
-                                    const remainingMinutes = Math.floor(timeDiffMinutes % 60);
-                                    
-                                    let timeDiffText = "";
-                                    if (timeDiffHours > 0) {
-                                      timeDiffText = `${timeDiffHours}س ${remainingMinutes}د`;
-                                    } else {
-                                      timeDiffText = `${remainingMinutes}د`;
-                                    }
-                                    
-                                    return (
-                                      <SelectItem key={trip.id} value={trip.id.toString()}>
-                                        <div className="flex flex-col">
-                                          <div className="font-medium">
-                                            {trip.fromLocation} → {trip.toLocation}
+                                  {trips
+                                    .filter((trip: any) => trip.availableSeats > 0 && trip.status === 'active')
+                                    .sort((a: any, b: any) => {
+                                      const requestTime = new Date(request.preferredTime).getTime();
+                                      const aTimeDiff = Math.abs(new Date(a.departureTime).getTime() - requestTime);
+                                      const bTimeDiff = Math.abs(new Date(b.departureTime).getTime() - requestTime);
+                                      return aTimeDiff - bTimeDiff;
+                                    })
+                                    .map((trip: any) => {
+                                      const requestTime = new Date(request.preferredTime).getTime();
+                                      const tripTime = new Date(trip.departureTime).getTime();
+                                      const timeDiffMinutes = Math.abs(tripTime - requestTime) / (1000 * 60);
+                                      const timeDiffHours = Math.floor(timeDiffMinutes / 60);
+                                      const remainingMinutes = Math.floor(timeDiffMinutes % 60);
+                                      
+                                      let timeDiffText = "";
+                                      if (timeDiffHours > 0) {
+                                        timeDiffText = `${timeDiffHours}س ${remainingMinutes}د`;
+                                      } else {
+                                        timeDiffText = `${remainingMinutes}د`;
+                                      }
+
+                                      // Check if this trip is compatible
+                                      const isCompatible = compatibleTrips.some((compatTrip: any) => compatTrip.id === trip.id);
+                                      
+                                      return (
+                                        <SelectItem key={trip.id} value={trip.id.toString()}>
+                                          <div className="flex flex-col">
+                                            <div className={`font-medium ${isCompatible ? 'text-green-600' : ''}`}>
+                                              {isCompatible && '✓ '}
+                                              {trip.fromLocation} → {trip.toLocation}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                              {format(new Date(trip.departureTime), "MMM d, h:mm a")} • 
+                                              {trip.availableSeats} {trip.availableSeats !== 1 ? 'مقاعد' : 'مقعد'} متاح •
+                                              فرق زمني: {timeDiffText}
+                                              {isCompatible && <span className="text-green-600 ml-1">• متوافق</span>}
+                                            </div>
                                           </div>
-                                          <div className="text-xs text-gray-500">
-                                            {format(new Date(trip.departureTime), "MMM d, h:mm a")} • 
-                                            {trip.availableSeats} {trip.availableSeats !== 1 ? 'مقاعد' : 'مقعد'} متاح •
-                                            فرق زمني: {timeDiffText}
-                                          </div>
-                                        </div>
-                                      </SelectItem>
-                                    );
-                                  })}
+                                        </SelectItem>
+                                      );
+                                    })}
                                 </SelectContent>
                               </Select>
                             </div>
