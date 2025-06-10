@@ -25,7 +25,7 @@ interface User {
 }
 
 interface SearchableUserSelectProps {
-  users: User[]
+  users: any[]
   value?: string
   onValueChange: (value: string) => void
   placeholder?: string
@@ -79,7 +79,7 @@ export function SearchableUserSelect({
   // Find selected user
   const selectedUser = React.useMemo(() => {
     if (value === selfValue && allowSelf) return null
-    return users.find(user => user.id === value)
+    return Array.isArray(users) ? users.find((user: any) => user.id === value) : null
   }, [users, value, allowSelf, selfValue])
 
   const displayValue = React.useMemo(() => {
