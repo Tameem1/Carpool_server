@@ -60,12 +60,6 @@ export function Navigation() {
   // Add role-specific nav items
   if (user?.role === "admin") {
     navItems.push({
-      href: "/admin",
-      label: "الإدارة",
-      icon: Settings,
-      active: location === "/admin",
-    });
-    navItems.push({
       href: "/admin/join-requests",
       label: "طلبات الانضمام",
       icon: UserCheck,
