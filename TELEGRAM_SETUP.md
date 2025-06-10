@@ -54,17 +54,7 @@ Admins will receive notifications like this:
 👥 عدد الركاب: ٢
 📝 ملاحظات: رحلة عائلية
 
----
-
-🚗 New Ride Request from Ahmed Mohammed
-
-📍 From: Riyadh
-📍 To: Jeddah
-🕐 Preferred Time: 6/10/2025, 3:00 PM
-👥 Passengers: 2
-📝 Notes: Family trip
-
-Request ID: 123
+رقم الطلب: 123
 ```
 
 ## Troubleshooting

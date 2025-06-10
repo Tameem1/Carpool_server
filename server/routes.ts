@@ -104,7 +104,7 @@ class TelegramNotificationService {
 
       if (!request || !rider) return;
 
-      const title = "طلب رحلة جديد - New Ride Request";
+      const title = "طلب رحلة جديد";
       const message = `
 🚗 *طلب رحلة جديد من ${rider.firstName} ${rider.lastName}*
 
@@ -114,17 +114,7 @@ class TelegramNotificationService {
 👥 *عدد الركاب:* ${request.passengerCount}
 ${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ''}
 
----
-
-🚗 *New Ride Request from ${rider.firstName} ${rider.lastName}*
-
-📍 *From:* ${request.fromLocation}
-📍 *To:* ${request.toLocation}
-🕐 *Preferred Time:* ${new Date(request.preferredTime).toLocaleString('en-US')}
-👥 *Passengers:* ${request.passengerCount}
-${request.notes ? `📝 *Notes:* ${request.notes}` : ''}
-
-*Request ID:* ${requestId}
+*رقم الطلب:* ${requestId}
       `;
 
       // Notify all admin users
