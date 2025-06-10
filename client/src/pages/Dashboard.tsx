@@ -144,9 +144,9 @@ export default function Dashboard() {
   });
 
   const getCompatibleTrips = (request: any) => {
-    if (!Array.isArray(trips)) return [];
+    if (!Array.isArray(todayTrips)) return [];
     
-    const compatibleTrips = trips.filter((trip: any) => {
+    const compatibleTrips = todayTrips.filter((trip: any) => {
       // Check if trip has available seats
       if (trip.availableSeats < 1) return false;
       
@@ -298,6 +298,9 @@ export default function Dashboard() {
 
                       <div className="flex flex-col space-y-3">
                         <span className="text-sm font-medium text-gray-700">جميع الرحلات المتاحة لهذا اليوم:</span>
+                        <div className="text-xs text-gray-500 mb-2">
+                          إجمالي الرحلات: {todayTrips.length} | الرحلات النشطة: {todayTrips.filter(t => t.status === 'active').length} | المقاعد متاحة: {todayTrips.filter(t => t.availableSeats > 0).length}
+                        </div>
                         {compatibleTrips.length > 0 && (
                           <div className="mb-2 p-2 bg-green-50 rounded-md">
                             <span className="text-xs text-green-700 font-medium">
@@ -305,7 +308,7 @@ export default function Dashboard() {
                             </span>
                           </div>
                         )}
-                        {!Array.isArray(trips) || trips.length === 0 ? (
+                        {!Array.isArray(todayTrips) || todayTrips.length === 0 ? (
                           <span className="text-sm text-gray-500">لا توجد رحلات متاحة لهذا اليوم</span>
                         ) : (
                           <div className="flex items-center gap-3">
@@ -315,7 +318,7 @@ export default function Dashboard() {
                                   <SelectValue placeholder="اختر رحلة (مرتبة حسب الأقرب زمنياً)" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {trips
+                                  {todayTrips
                                     .filter((trip: any) => trip.availableSeats > 0 && trip.status === 'active')
                                     .sort((a: any, b: any) => {
                                       const requestTime = new Date(request.preferredTime).getTime();
