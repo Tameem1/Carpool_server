@@ -30,6 +30,7 @@ import { TripJoinRequestForm } from "./TripJoinRequestForm";
 interface TripCardProps {
   trip: {
     id: number;
+    driverId?: string;
     fromLocation: string;
     toLocation: string;
     departureTime: string;
@@ -310,7 +311,7 @@ export function TripCard({
                   
                   <div className="flex items-center space-x-1 sm:space-x-2">
                     {/* Phone number button for driver */}
-                    {(userRole === "driver" && trip.driver?.id === currentUserId) && rider.phoneNumber && (
+                    {(userRole === "driver" && trip.driverId === currentUserId) && rider.phoneNumber && (
                       <Button
                         size="sm"
                         variant="outline"

@@ -433,6 +433,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update existing users with phone numbers (one-time migration)
+  app.post('/api/users/migrate-phone-numbers', async (req: any, res) => {
+    try {
+      const phoneUpdates = [
+        { id: 'admin-1', phoneNumber: '+1-555-0001' },
+        { id: 'user-1', phoneNumber: '+1-555-0002' },
+        { id: 'user-2', phoneNumber: '+1-555-0003' },
+        { id: 'driver-1', phoneNumber: '+1-555-0101' },
+        { id: 'driver-2', phoneNumber: '+1-555-0102' },
+        { id: 'rider-1', phoneNumber: '+1-555-0201' },
+        { id: 'rider-2', phoneNumber: '+1-555-0202' },
+      ];
+
+      for (const update of phoneUpdates) {
+        const existingUser = await storage.getUser(update.id);
+        if (existingUser && !existingUser.phoneNumber) {
+          await storage.upsertUser({
+            ...existingUser,
+            phoneNumber: update.phoneNumber,
+          });
+        }
+      }
+
+      res.json({ message: 'Phone numbers migrated successfully' });
+    } catch (error) {
+      console.error("Error migrating phone numbers:", error);
+      res.status(500).json({ message: "Failed to migrate phone numbers" });
+    }
+  });
+
   // Update user profile
   app.patch('/api/users/profile', isAuthenticated, async (req: any, res) => {
     try {
