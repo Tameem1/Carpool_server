@@ -970,7 +970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all join requests for admin
   app.get('/api/trip-join-requests', requireRole(['admin']), async (req: any, res) => {
     try {
-      const joinRequests = await storage.getAllTripJoinRequests();
+      const joinRequests = await storage.getTodayTripJoinRequests();
       
       // Enrich with trip and rider info
       const enrichedRequests = await Promise.all(
@@ -1130,7 +1130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all ride requests (accessible to all authenticated users)
   app.get('/api/ride-requests/all', isAuthenticated, async (req: any, res) => {
     try {
-      const requests = await storage.getPendingRideRequests();
+      const requests = await storage.getTodayRideRequests();
       
       // Enrich with rider info
       const enrichedRequests = await Promise.all(
