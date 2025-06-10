@@ -303,7 +303,7 @@ export default function Dashboard() {
                           <br />
                           الرحلات بعد التصفية: {todayTrips.filter((trip: any) => trip.availableSeats >= 0).length}
                           <br />
-                          أول رحلة: {todayTrips.length > 0 ? `${todayTrips[0].fromLocation} → ${todayTrips[0].toLocation} (${todayTrips[0].availableSeats} مقاعد)` : 'لا يوجد'}
+                          أول رحلة: {todayTrips.length > 0 ? `${formatRoute(todayTrips[0].fromLocation, todayTrips[0].toLocation)} (${todayTrips[0].availableSeats} مقاعد)` : 'لا يوجد'}
                         </div>
                         {compatibleTrips.length > 0 && (
                           <div className="mb-2 p-2 bg-green-50 rounded-md">
@@ -357,7 +357,7 @@ export default function Dashboard() {
                                             <div className="flex flex-col">
                                               <div className={`font-medium ${isCompatible ? 'text-green-600' : ''}`}>
                                                 {isCompatible && '✓ '}
-                                                {trip.fromLocation} → {trip.toLocation}
+                                                {formatRoute(trip.fromLocation, trip.toLocation)}
                                               </div>
                                               <div className="text-xs text-gray-500">
                                                 {format(new Date(trip.departureTime), "MMM d, h:mm a")} • 
