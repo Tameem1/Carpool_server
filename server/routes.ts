@@ -5,6 +5,7 @@ import { storage } from "./storage";
 // import { setupAuth, isAuthenticated } from "./auth";
 import { insertTripSchema, insertRideRequestSchema, insertTripParticipantSchema, insertTripJoinRequestSchema } from "@shared/schema";
 import { z } from "zod";
+import TelegramBot from "node-telegram-bot-api";
 
 // WebSocket connection management
 const connectedClients = new Set();
@@ -49,8 +50,15 @@ class TelegramNotificationService {
 
   constructor() {
     if (process.env.TELEGRAM_BOT_TOKEN) {
-      const TelegramBot = require('node-telegram-bot-api');
-      this.bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
+      try {
+        this.bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
+        console.log('[TELEGRAM] Bot initialized successfully');
+      } catch (error) {
+        console.error('[TELEGRAM] Failed to initialize bot:', error);
+        this.bot = null;
+      }
+    } else {
+      console.log('[TELEGRAM] No bot token found in environment variables');
     }
   }
 
