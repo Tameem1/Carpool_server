@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Phone, Mail, Save } from "lucide-react";
+import { User, Phone, Mail, Save, MessageCircle } from "lucide-react";
 
 export function UserProfile() {
   const { user } = useAuth();
@@ -19,6 +19,7 @@ export function UserProfile() {
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
     phoneNumber: user?.phoneNumber || "",
+    telegramId: user?.telegramId || "",
   });
 
   const updateProfileMutation = useMutation({
@@ -127,6 +128,25 @@ export function UserProfile() {
                 Your phone number will be visible to drivers when you join their trips
               </p>
             </div>
+
+            {user?.role === 'admin' && (
+              <div>
+                <Label htmlFor="telegramId" className="flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  Telegram ID
+                </Label>
+                <Input
+                  id="telegramId"
+                  value={formData.telegramId}
+                  onChange={(e) => handleInputChange("telegramId", e.target.value)}
+                  placeholder="Enter your Telegram ID (e.g., 123456789)"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Your Telegram ID is required to receive notifications about new ride requests. 
+                  To find your Telegram ID, message @userinfobot on Telegram.
+                </p>
+              </div>
+            )}
 
             <Button 
               type="submit" 

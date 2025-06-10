@@ -469,6 +469,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user profile
+  app.patch('/api/users/profile', async (req: any, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { firstName, lastName, phoneNumber, telegramId } = req.body;
+      
+      const existingUser = await storage.getUser(userId);
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const updatedUser = await storage.upsertUser({
+        ...existingUser,
+        firstName: firstName || existingUser.firstName,
+        lastName: lastName || existingUser.lastName,
+        phoneNumber: phoneNumber || existingUser.phoneNumber,
+        telegramId: telegramId || existingUser.telegramId,
+      });
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Update existing users with phone numbers (one-time migration)
   app.post('/api/users/migrate-phone-numbers', async (req: any, res) => {
     try {
@@ -499,8 +529,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update user profile
-  app.patch('/api/users/profile', isAuthenticated, async (req: any, res) => {
+  // Update user role (admin only)
+  app.patch('/api/users/:id/role', async (req: any, res) => {
     try {
       const userId = req.session?.userId;
       const { firstName, lastName, phoneNumber } = req.body;
