@@ -18,6 +18,7 @@ import {
   UserPlus,
   UserMinus,
   Trash2,
+  Phone,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
@@ -39,6 +40,7 @@ interface TripCardProps {
       id: string;
       firstName: string;
       lastName: string;
+      phoneNumber?: string;
       profileImageUrl?: string;
     }[];
 
@@ -291,23 +293,49 @@ export function TripCard({
         {trip.riderDetails && trip.riderDetails.length > 0 && (
           <div className="mb-3 sm:mb-4">
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">الركاب الحاليين</p>
-            <div className="flex flex-wrap gap-1 sm:gap-2">
+            <div className="space-y-2">
               {trip.riderDetails.map((rider) => (
-                <div key={rider.id} className="relative group">
-                  <Badge variant="secondary" className="text-xs pr-4 sm:pr-6 py-1">
-                    {rider.firstName} {rider.lastName}
-                  </Badge>
-                  {userRole === "admin" && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 p-0 rounded-full bg-red-100 hover:bg-red-200 opacity-0 group-hover:opacity-100 transition-opacity touch-friendly"
-                      onClick={() => removeRiderMutation.mutate(rider.id)}
-                      disabled={removeRiderMutation.isPending}
-                    >
-                      <UserMinus className="h-2 w-2 sm:h-3 sm:w-3 text-red-600" />
-                    </Button>
-                  )}
+                <div key={rider.id} className="relative group flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
+                      <AvatarImage src={rider.profileImageUrl || ""} />
+                      <AvatarFallback className="text-xs">
+                        {rider.firstName?.[0]}{rider.lastName?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs sm:text-sm font-medium">
+                      {rider.firstName} {rider.lastName}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-1 sm:space-x-2">
+                    {/* Phone number button for driver */}
+                    {(userRole === "driver" && trip.driver?.id === currentUserId) && rider.phoneNumber && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-6 w-6 sm:h-8 sm:w-8 p-0 border-green-300 text-green-600 hover:bg-green-50 dark:hover:bg-green-900"
+                        onClick={() => window.open(`tel:${rider.phoneNumber}`, '_self')}
+                        title={`Call ${rider.firstName}: ${rider.phoneNumber}`}
+                      >
+                        <Phone className="h-3 w-3 sm:h-4 sm:w-4" />
+                      </Button>
+                    )}
+                    
+                    {/* Remove rider button for admin */}
+                    {userRole === "admin" && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 sm:h-8 sm:w-8 p-0 rounded-full bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 touch-friendly"
+                        onClick={() => removeRiderMutation.mutate(rider.id)}
+                        disabled={removeRiderMutation.isPending}
+                        title={`Remove ${rider.firstName}`}
+                      >
+                        <UserMinus className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
