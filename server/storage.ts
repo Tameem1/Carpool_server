@@ -249,8 +249,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(trips.driverId, userId),
-          gte(trips.createdAt, start),
-          lt(trips.createdAt, end)
+          gte(trips.departureTime, start),
+          lt(trips.departureTime, end)
         )
       );
   }

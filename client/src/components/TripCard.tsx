@@ -57,6 +57,7 @@ interface TripCardProps {
   showActions?: boolean;
   userRole?: string;
   currentUserId?: string;
+  hideJoinRequest?: boolean;
 }
 
 // Utility function to detect Arabic text
@@ -87,6 +88,7 @@ export function TripCard({
   showActions = true,
   userRole,
   currentUserId,
+  hideJoinRequest = false,
 }: TripCardProps) {
   const departureDate = new Date(trip.departureTime);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
@@ -381,7 +383,8 @@ export function TripCard({
                 )}
 
               {/* Request to Join button - for users to request joining trips */}
-              {(userRole === "user" || !userRole) &&
+              {!hideJoinRequest &&
+                (userRole === "user" || !userRole) &&
                 trip.availableSeats > 0 &&
                 currentUserId !== trip.driver?.id &&
                 !trip.riders?.includes(currentUserId || "") && (

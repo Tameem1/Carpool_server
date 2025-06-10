@@ -453,6 +453,7 @@ export default function Dashboard() {
                     userRole={user?.role}
                     currentUserId={user?.id}
                     showActions={true}
+                    hideJoinRequest={true}
                   />
                 ))}
               </div>
