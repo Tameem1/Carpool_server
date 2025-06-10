@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableUserSelect } from "@/components/ui/searchable-user-select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -329,20 +330,16 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm">اختر السائق</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="touch-friendly">
-                          <SelectValue placeholder="اختر سائقاً" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {users.map((user: any) => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.firstName} {user.lastName} ({user.email})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <SearchableUserSelect
+                        users={users}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="اختر سائقاً"
+                        showRole={false}
+                        className="touch-friendly"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -393,21 +390,17 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
 
                     <div>
                       <h4 className="font-medium mb-3">إضافة راكب جديد:</h4>
-                      <Select onValueChange={(value) => { handleRiderAdd(value); }} value="">
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر راكباً لإضافته" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getAvailableUsers().map((user: any) => (
-                            <SelectItem key={user.id} value={user.id}>
-                              <div className="flex items-center space-x-2">
-                                <span>{user.firstName} {user.lastName}</span>
-                                <span className="text-gray-500">({user.email})</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SearchableUserSelect
+                        users={getAvailableUsers()}
+                        value=""
+                        onValueChange={(value) => { 
+                          if (value) {
+                            handleRiderAdd(value);
+                          }
+                        }}
+                        placeholder="اختر راكباً لإضافته"
+                        showRole={false}
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -418,20 +411,18 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               <div>
                 <FormLabel>تعيين المشاركين (للرحلات الجديدة)</FormLabel>
                 <div className="mt-2">
-                  <Select onValueChange={(value) => { handleParticipantAdd(value); }} value="">
-                    <SelectTrigger>
-                      <SelectValue placeholder="إضافة مشارك" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {users
-                        .filter((user: any) => !selectedParticipants.includes(user.id))
-                        .map((user: any) => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.firstName} {user.lastName} ({user.email})
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableUserSelect
+                    users={users}
+                    value=""
+                    onValueChange={(value) => { 
+                      if (value) {
+                        handleParticipantAdd(value);
+                      }
+                    }}
+                    placeholder="إضافة مشارك"
+                    excludeUserIds={selectedParticipants}
+                    showRole={false}
+                  />
                   
                   {selectedParticipants.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
