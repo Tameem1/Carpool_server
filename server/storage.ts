@@ -20,7 +20,7 @@ import {
   type UserRole,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, gte, lt } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -43,6 +43,7 @@ export interface IStorage {
   getRideRequest(id: number): Promise<RideRequest | undefined>;
   getUserRideRequests(userId: string): Promise<RideRequest[]>;
   getPendingRideRequests(): Promise<RideRequest[]>;
+  getTodayRideRequests(): Promise<RideRequest[]>;
   updateRideRequestStatus(id: number, status: RideRequest["status"], tripId?: number): Promise<RideRequest>;
   deleteRideRequest(id: number): Promise<void>;
   
@@ -56,6 +57,7 @@ export interface IStorage {
   getTripJoinRequest(id: number): Promise<TripJoinRequest | undefined>;
   getTripJoinRequests(tripId: number): Promise<TripJoinRequest[]>;
   getAllTripJoinRequests(): Promise<TripJoinRequest[]>;
+  getTodayTripJoinRequests(): Promise<TripJoinRequest[]>;
   getUserTripJoinRequests(userId: string): Promise<TripJoinRequest[]>;
   updateTripJoinRequestStatus(id: number, status: TripJoinRequest["status"]): Promise<TripJoinRequest>;
   deleteTripJoinRequest(id: number): Promise<void>;
@@ -319,6 +321,38 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(rideRequests).where(eq(rideRequests.status, "pending"));
   }
 
+  private getCustomDayRange(date?: Date): { start: Date; end: Date } {
+    const now = date || new Date();
+    const currentHour = now.getHours();
+    
+    // If it's before 5 AM, we're in the previous day (started at 5 AM yesterday)
+    const dayStart = new Date(now);
+    if (currentHour < 5) {
+      dayStart.setDate(dayStart.getDate() - 1);
+    }
+    dayStart.setHours(5, 0, 0, 0);
+    
+    // Day ends at 4 AM the next day
+    const dayEnd = new Date(dayStart);
+    dayEnd.setDate(dayEnd.getDate() + 1);
+    dayEnd.setHours(4, 0, 0, 0);
+    
+    return { start: dayStart, end: dayEnd };
+  }
+
+  async getTodayRideRequests(): Promise<RideRequest[]> {
+    const { start, end } = this.getCustomDayRange();
+    return await db.select()
+      .from(rideRequests)
+      .where(
+        and(
+          eq(rideRequests.status, "pending"),
+          gte(rideRequests.createdAt, start),
+          lt(rideRequests.createdAt, end)
+        )
+      );
+  }
+
   async updateRideRequestStatus(id: number, status: RideRequest["status"], tripId?: number): Promise<RideRequest> {
     const [request] = await db
       .update(rideRequests)
@@ -386,6 +420,19 @@ export class DatabaseStorage implements IStorage {
 
   async getAllTripJoinRequests(): Promise<TripJoinRequest[]> {
     return await db.select().from(tripJoinRequests).orderBy(tripJoinRequests.createdAt);
+  }
+
+  async getTodayTripJoinRequests(): Promise<TripJoinRequest[]> {
+    const { start, end } = this.getCustomDayRange();
+    return await db.select()
+      .from(tripJoinRequests)
+      .where(
+        and(
+          gte(tripJoinRequests.createdAt, start),
+          lt(tripJoinRequests.createdAt, end)
+        )
+      )
+      .orderBy(tripJoinRequests.createdAt);
   }
 
   async getUserTripJoinRequests(userId: string): Promise<TripJoinRequest[]> {
