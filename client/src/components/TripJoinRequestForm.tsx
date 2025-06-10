@@ -78,9 +78,10 @@ export function TripJoinRequestForm({ open, onClose, tripId, trip }: TripJoinReq
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/trips/my"] });
       toast({
-        title: "تم الإرسال",
-        description: "تم إرسال طلب الانضمام بنجاح. سيتم إشعارك عند الموافقة أو الرفض.",
+        title: "تم الانضمام بنجاح",
+        description: "لقد انضممت إلى الرحلة بنجاح. تم إشعار السائق.",
       });
       onClose();
       form.reset();
@@ -116,9 +117,9 @@ export function TripJoinRequestForm({ open, onClose, tripId, trip }: TripJoinReq
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-right">طلب الانضمام للرحلة</DialogTitle>
+          <DialogTitle className="text-right">الانضمام للرحلة</DialogTitle>
           <DialogDescription className="text-right">
-            أرسل طلباً للانضمام إلى هذه الرحلة
+            انضم إلى هذه الرحلة فوراً
           </DialogDescription>
         </DialogHeader>
 
@@ -185,7 +186,7 @@ export function TripJoinRequestForm({ open, onClose, tripId, trip }: TripJoinReq
                   disabled={isSubmitting || joinRequestMutation.isPending}
                   className="flex-1"
                 >
-                  {isSubmitting || joinRequestMutation.isPending ? "جاري الإرسال..." : "إرسال الطلب"}
+                  {isSubmitting || joinRequestMutation.isPending ? "جاري الانضمام..." : "انضم الآن"}
                 </Button>
                 <Button
                   type="button"

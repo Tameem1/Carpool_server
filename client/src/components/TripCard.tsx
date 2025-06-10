@@ -349,7 +349,7 @@ export function TripCard({
                     )
                     .map((user: any) => (
                       <SelectItem key={user.id} value={user.id}>
-                        {user.firstName} {user.lastName} ({user.role === 'admin' ? 'مدير' : user.role === 'driver' ? 'سائق' : 'راكب'})
+                        {`${user.firstName} ${user.lastName} (${user.role === 'admin' ? 'مدير' : user.role === 'driver' ? 'سائق' : 'راكب'})`}
                       </SelectItem>
                     ))}
                 </SelectContent>
