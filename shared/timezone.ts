@@ -33,6 +33,19 @@ export function formatGMTPlus3(date: Date, locale: string = 'ar-SA'): string {
 }
 
 /**
+ * Format time only for GMT+3 display (without date)
+ */
+export function formatGMTPlus3TimeOnly(date: Date, locale: string = 'ar-SA'): string {
+  const gmt3Date = toGMTPlus3(date);
+  return gmt3Date.toLocaleTimeString(locale, {
+    timeZone: 'Asia/Riyadh', // GMT+3
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+}
+
+/**
  * Parse datetime-local input value to GMT+3 then convert to UTC for storage
  */
 export function parseDateTimeLocalToUTC(dateTimeLocal: string | Date): Date {

@@ -6,7 +6,7 @@ import { storage } from "./storage";
 import { insertTripSchema, insertRideRequestSchema, insertTripParticipantSchema, insertTripJoinRequestSchema } from "@shared/schema";
 import { z } from "zod";
 import TelegramBot from "node-telegram-bot-api";
-import { formatGMTPlus3, parseDateTimeLocalToUTC, formatDateForInput } from "@shared/timezone";
+import { formatGMTPlus3, formatGMTPlus3TimeOnly, parseDateTimeLocalToUTC, formatDateForInput } from "@shared/timezone";
 
 // WebSocket connection management
 const connectedClients = new Set();
@@ -111,7 +111,7 @@ class TelegramNotificationService {
 
 📍 *من:* ${request.fromLocation}
 📍 *إلى:* ${request.toLocation}
-🕐 *الوقت المفضل:* ${formatGMTPlus3(new Date(request.preferredTime), 'ar-SA')}
+🕐 *الوقت المفضل:* ${formatGMTPlus3TimeOnly(new Date(request.preferredTime), 'ar-SA')}
 👥 *عدد الركاب:* ${request.passengerCount}
 ${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ''}
 
