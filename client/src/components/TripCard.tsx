@@ -235,7 +235,7 @@ export function TripCard({
             </h3>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex items-center mt-1">
               <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span className="truncate">{format(departureDate, "MMM d, yyyy 'at' h:mm a")}</span>
+              <span className="truncate">{formatGMTPlus3(departureDate, 'ar-SA')}</span>
             </p>
           </div>
 
