@@ -759,16 +759,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? req.body.driverId 
         : userId;
 
+      // Convert datetime-local input from GMT+3 to UTC before schema parsing
+      const departureTimeUTC = req.body.departureTime ? 
+        parseDateTimeLocalToUTC(req.body.departureTime).toISOString() : 
+        req.body.departureTime;
+
       console.log('Trip creation payload:', req.body);
       
       const tripData = insertTripSchema.parse({
         ...req.body,
+        departureTime: departureTimeUTC,
         driverId,
         totalSeats: req.body.availableSeats, // Initially all seats are available
       });
-
-      // Convert the parsed departureTime from GMT+3 to UTC for storage
-      tripData.departureTime = parseDateTimeLocalToUTC(tripData.departureTime);
       
       console.log('Parsed trip data:', tripData);
 
@@ -1346,13 +1349,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? req.body.riderId 
         : userId;
 
+      // Convert datetime-local input from GMT+3 to UTC before schema parsing
+      const preferredTimeUTC = req.body.preferredTime ? 
+        parseDateTimeLocalToUTC(req.body.preferredTime).toISOString() : 
+        req.body.preferredTime;
+
       const requestData = insertRideRequestSchema.parse({
         ...req.body,
+        preferredTime: preferredTimeUTC,
         riderId: riderId,
       });
-
-      // Convert the parsed preferredTime from GMT+3 to UTC for storage
-      requestData.preferredTime = parseDateTimeLocalToUTC(requestData.preferredTime);
 
       const request = await storage.createRideRequest(requestData);
       
