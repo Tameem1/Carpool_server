@@ -83,7 +83,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
     resolver: zodResolver(tripFormSchema),
     defaultValues: {
       fromLocation: trip?.fromLocation || "",
-      toLocation: trip?.toLocation || "",
+      toLocation: trip?.toLocation || "النادي",
       departureTime: trip?.departureTime ? formatDateForInput(new Date(trip.departureTime)) : "",
       availableSeats: trip?.availableSeats || 1,
       totalSeats: trip?.totalSeats || trip?.availableSeats || 1,
@@ -100,7 +100,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
     if (trip) {
       form.reset({
         fromLocation: trip.fromLocation || "",
-        toLocation: trip.toLocation || "",
+        toLocation: trip.toLocation || "النادي",
         departureTime: trip.departureTime ? formatDateForInput(new Date(trip.departureTime)) : "",
         availableSeats: trip.availableSeats || 1,
         totalSeats: trip.totalSeats || trip.availableSeats || 1,
@@ -113,7 +113,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
     } else {
       form.reset({
         fromLocation: "",
-        toLocation: "",
+        toLocation: "النادي",
         departureTime: "",
         availableSeats: 1,
         totalSeats: 1,
@@ -352,7 +352,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm">اختر السائق</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="touch-friendly">
                           <SelectValue placeholder="اختر سائقاً" />
@@ -416,7 +416,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
 
                     <div>
                       <h4 className="font-medium mb-3">إضافة راكب جديد:</h4>
-                      <Select onValueChange={handleRiderAdd}>
+                      <Select onValueChange={(value) => { handleRiderAdd(value); }} value="">
                         <SelectTrigger>
                           <SelectValue placeholder="اختر راكباً لإضافته" />
                         </SelectTrigger>
@@ -441,7 +441,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               <div>
                 <FormLabel>تعيين المشاركين (للرحلات الجديدة)</FormLabel>
                 <div className="mt-2">
-                  <Select onValueChange={handleParticipantAdd}>
+                  <Select onValueChange={(value) => { handleParticipantAdd(value); }} value="">
                     <SelectTrigger>
                       <SelectValue placeholder="إضافة مشارك" />
                     </SelectTrigger>
