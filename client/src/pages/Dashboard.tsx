@@ -18,7 +18,7 @@ import { RideRequestForm } from "@/components/RideRequestForm";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Calendar, Users, MapPin, Settings, Filter, ArrowUpDown, Clock, UserPlus } from "lucide-react";
+import { Plus, Calendar, Users, MapPin, Settings, ArrowUpDown, Clock, UserPlus } from "lucide-react";
 import { format } from "date-fns";
 
 // Utility function to detect Arabic text
@@ -47,7 +47,7 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const [showTripForm, setShowTripForm] = useState(false);
   const [showRideRequestForm, setShowRideRequestForm] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("active");
+
   const [sortBy, setSortBy] = useState("departure_time");
 
   // Function to get today's trip range (5 AM today to 4 AM tomorrow)
@@ -73,9 +73,9 @@ export default function Dashboard() {
   };
 
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
-    queryKey: ["/api/trips", { status: statusFilter }],
+    queryKey: ["/api/trips"],
     queryFn: () =>
-      fetch(`/api/trips?status=${statusFilter}`).then((res) => res.json()),
+      fetch(`/api/trips`).then((res) => res.json()),
   });
 
   // Filter trips to show only today's trips (5 AM to 4 AM next day)
@@ -341,19 +341,6 @@ export default function Dashboard() {
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">من الساعة 5 صباحاً حتى 4 صباحاً من اليوم التالي</p>
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-gray-500" />
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-32 touch-friendly">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">نشطة</SelectItem>
-                    <SelectItem value="inactive">غير نشطة</SelectItem>
-                    <SelectItem value="all">الكل</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="h-4 w-4 text-gray-500" />
                 <Select value={sortBy} onValueChange={setSortBy}>

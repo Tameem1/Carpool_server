@@ -1464,9 +1464,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allRequests = await storage.getPendingRideRequests();
 
       const stats = {
-        activeTrips: allTrips.filter(t => t.status === 'active').length,
+        activeTrips: allTrips.length,
         totalUsers: allUsers.length,
-        completedTrips: allTrips.filter(t => t.status === 'completed').length,
+        completedTrips: 0,
         pendingRequests: allRequests.length,
       };
 
