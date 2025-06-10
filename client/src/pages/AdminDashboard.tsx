@@ -224,14 +224,13 @@ export default function AdminDashboard() {
                     <th className="text-left py-3 px-4">تفاصيل الرحلة</th>
                     <th className="text-left py-3 px-4">السائق</th>
                     <th className="text-left py-3 px-4">المقاعد</th>
-                    <th className="text-left py-3 px-4">الحالة</th>
                     <th className="text-left py-3 px-4">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody>
                   {!Array.isArray(allTrips) || allTrips.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="text-center py-8 text-gray-500">
+                      <td colSpan={4} className="text-center py-8 text-gray-500">
                         لم يتم العثور على رحلات. أنشئ رحلتك الأولى للبدء.
                       </td>
                     </tr>
@@ -270,11 +269,7 @@ export default function AdminDashboard() {
                             {trip.participantCount || 0}/{trip.totalSeats} مقعد
                           </span>
                         </td>
-                        <td className="py-4 px-4">
-                          <Badge className={getStatusColor(trip.status)}>
-                            {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
-                          </Badge>
-                        </td>
+
                         <td className="py-4 px-4">
                           <div className="flex space-x-2">
                             <Button
