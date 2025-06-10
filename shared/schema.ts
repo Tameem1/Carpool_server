@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   phoneNumber: varchar("phone_number"),
   profileImageUrl: varchar("profile_image_url"),
+  telegramId: varchar("telegram_id"),
   role: varchar("role", { enum: userRoles }).notNull().default("user"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

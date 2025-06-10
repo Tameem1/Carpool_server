@@ -28,6 +28,7 @@ export interface IStorage {
   upsertUser(user: InsertUser): Promise<User>;
   updateUserRole(id: string, role: UserRole): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  getAdminUsers(): Promise<User[]>;
   
   // Trip operations
   createTrip(trip: InsertTrip): Promise<Trip>;
@@ -183,6 +184,10 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users);
+  }
+
+  async getAdminUsers(): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.role, "admin"));
   }
 
   // Trip operations

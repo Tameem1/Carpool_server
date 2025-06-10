@@ -45,10 +45,16 @@ function setupWebSocket(server: Server) {
 
 // Real-time notification service with WebSocket broadcasting
 class TelegramNotificationService {
+  private bot: any;
+
+  constructor() {
+    if (process.env.TELEGRAM_BOT_TOKEN) {
+      const TelegramBot = require('node-telegram-bot-api');
+      this.bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
+    }
+  }
+
   async sendNotification(userId: string, title: string, message: string, type: string) {
-    // In a real implementation, this would send to Telegram
-    console.log(`[TELEGRAM] Sending to user ${userId}: ${title} - ${message}`);
-    
     // Store as notification in our system
     const notification = await storage.createNotification({
       userId,
@@ -57,11 +63,71 @@ class TelegramNotificationService {
       type: type as any,
     });
 
+    // Send to Telegram if bot is configured and user has telegram_id
+    if (this.bot) {
+      try {
+        const user = await storage.getUser(userId);
+        if (user?.telegramId) {
+          const telegramMessage = `*${title}*\n\n${message}`;
+          await this.bot.sendMessage(user.telegramId, telegramMessage, { parse_mode: 'Markdown' });
+          console.log(`[TELEGRAM] Message sent to user ${userId} (${user.telegramId}): ${title}`);
+        } else {
+          console.log(`[TELEGRAM] No Telegram ID found for user ${userId}`);
+        }
+      } catch (error) {
+        console.error(`[TELEGRAM] Failed to send message to user ${userId}:`, error);
+      }
+    } else {
+      console.log(`[TELEGRAM] Bot not configured. Would send to user ${userId}: ${title} - ${message}`);
+    }
+
     // Broadcast notification to all connected clients for real-time updates
     broadcastToAll({
       type: 'notification',
       data: notification
     });
+  }
+
+  async notifyAdminsRideRequestCreated(requestId: number, riderId: string) {
+    try {
+      const request = await storage.getRideRequest(requestId);
+      const rider = await storage.getUser(riderId);
+      const admins = await storage.getAdminUsers();
+
+      if (!request || !rider) return;
+
+      const title = "طلب رحلة جديد - New Ride Request";
+      const message = `
+🚗 *طلب رحلة جديد من ${rider.firstName} ${rider.lastName}*
+
+📍 *من:* ${request.fromLocation}
+📍 *إلى:* ${request.toLocation}
+🕐 *الوقت المفضل:* ${new Date(request.preferredTime).toLocaleString('ar-EG')}
+👥 *عدد الركاب:* ${request.passengerCount}
+${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ''}
+
+---
+
+🚗 *New Ride Request from ${rider.firstName} ${rider.lastName}*
+
+📍 *From:* ${request.fromLocation}
+📍 *To:* ${request.toLocation}
+🕐 *Preferred Time:* ${new Date(request.preferredTime).toLocaleString('en-US')}
+👥 *Passengers:* ${request.passengerCount}
+${request.notes ? `📝 *Notes:* ${request.notes}` : ''}
+
+*Request ID:* ${requestId}
+      `;
+
+      // Notify all admin users
+      for (const admin of admins) {
+        await this.sendNotification(admin.id, title, message, "admin_ride_request_created");
+      }
+
+      console.log(`[TELEGRAM] Notified ${admins.length} admin(s) about new ride request ${requestId}`);
+    } catch (error) {
+      console.error("[TELEGRAM] Error notifying admins about ride request:", error);
+    }
   }
 
   async notifyTripCreated(tripId: number, driverId: string) {
@@ -1270,6 +1336,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const trip of matchingTrips) {
         await telegramService.notifyRideRequestReceived(trip.driverId, request.id);
       }
+      
+      // Notify all admin users about the new ride request
+      await telegramService.notifyAdminsRideRequestCreated(request.id, riderId);
       
       // Broadcast ride request creation to all connected clients
       broadcastToAll({
