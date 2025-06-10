@@ -476,7 +476,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const { firstName, lastName, phoneNumber, telegramId } = req.body;
+      // Only allow phoneNumber and telegramId to be updated
+      const { phoneNumber, telegramId } = req.body;
       
       const existingUser = await storage.getUser(userId);
       if (!existingUser) {
@@ -485,10 +486,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedUser = await storage.upsertUser({
         ...existingUser,
-        firstName: firstName || existingUser.firstName,
-        lastName: lastName || existingUser.lastName,
-        phoneNumber: phoneNumber || existingUser.phoneNumber,
-        telegramId: telegramId || existingUser.telegramId,
+        phoneNumber: phoneNumber !== undefined ? phoneNumber : existingUser.phoneNumber,
+        telegramId: telegramId !== undefined ? telegramId : existingUser.telegramId,
       });
 
       res.json(updatedUser);

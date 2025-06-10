@@ -16,8 +16,6 @@ export function UserProfile() {
   const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
     phoneNumber: user?.phoneNumber || "",
     telegramId: user?.telegramId || "",
   });
@@ -96,19 +94,27 @@ export function UserProfile() {
                 <Label htmlFor="firstName">First Name</Label>
                 <Input
                   id="firstName"
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange("firstName", e.target.value)}
-                  placeholder="Enter your first name"
+                  value={user?.firstName || ""}
+                  readOnly
+                  disabled
+                  className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  First name cannot be changed
+                </p>
               </div>
               <div>
                 <Label htmlFor="lastName">Last Name</Label>
                 <Input
                   id="lastName"
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange("lastName", e.target.value)}
-                  placeholder="Enter your last name"
+                  value={user?.lastName || ""}
+                  readOnly
+                  disabled
+                  className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Last name cannot be changed
+                </p>
               </div>
             </div>
             
@@ -129,24 +135,24 @@ export function UserProfile() {
               </p>
             </div>
 
-            {user?.role === 'admin' && (
-              <div>
-                <Label htmlFor="telegramId" className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4" />
-                  Telegram ID
-                </Label>
-                <Input
-                  id="telegramId"
-                  value={formData.telegramId}
-                  onChange={(e) => handleInputChange("telegramId", e.target.value)}
-                  placeholder="Enter your Telegram ID (e.g., 123456789)"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Your Telegram ID is required to receive notifications about new ride requests. 
-                  To find your Telegram ID, message @userinfobot on Telegram.
-                </p>
-              </div>
-            )}
+            <div>
+              <Label htmlFor="telegramId" className="flex items-center gap-2">
+                <MessageCircle className="h-4 w-4" />
+                Telegram ID
+              </Label>
+              <Input
+                id="telegramId"
+                value={formData.telegramId}
+                onChange={(e) => handleInputChange("telegramId", e.target.value)}
+                placeholder="Enter your Telegram ID (e.g., 123456789)"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {user?.role === 'admin' 
+                  ? "Your Telegram ID is required to receive notifications about new ride requests. To find your Telegram ID, message @userinfobot on Telegram."
+                  : "Optional: Your Telegram ID for notifications."
+                }
+              </p>
+            </div>
 
             <Button 
               type="submit" 
