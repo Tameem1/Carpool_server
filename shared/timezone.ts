@@ -35,9 +35,9 @@ export function formatGMTPlus3(date: Date, locale: string = 'ar-SA'): string {
 /**
  * Parse datetime-local input value to GMT+3 then convert to UTC for storage
  */
-export function parseDateTimeLocalToUTC(dateTimeLocal: string): Date {
+export function parseDateTimeLocalToUTC(dateTimeLocal: string | Date): Date {
   // datetime-local gives us local time, we treat it as GMT+3
-  const localDate = new Date(dateTimeLocal);
+  const localDate = typeof dateTimeLocal === 'string' ? new Date(dateTimeLocal) : dateTimeLocal;
   // Convert from GMT+3 to UTC for storage
   return fromGMTPlus3ToUTC(localDate);
 }

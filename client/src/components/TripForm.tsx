@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { X, UserMinus, UserPlus } from "lucide-react";
+import { formatDateForInput, nowGMTPlus3 } from "@shared/timezone";
 
 const tripFormSchema = z.object({
   fromLocation: z.string().min(1, "موقع الانطلاق مطلوب"),
@@ -83,7 +84,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
     defaultValues: {
       fromLocation: trip?.fromLocation || "",
       toLocation: trip?.toLocation || "",
-      departureTime: trip?.departureTime ? new Date(trip.departureTime).toISOString().slice(0, 16) : "",
+      departureTime: trip?.departureTime ? formatDateForInput(new Date(trip.departureTime)) : "",
       availableSeats: trip?.availableSeats || 1,
       totalSeats: trip?.totalSeats || trip?.availableSeats || 1,
       isRecurring: trip?.isRecurring || false,
@@ -100,7 +101,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       form.reset({
         fromLocation: trip.fromLocation || "",
         toLocation: trip.toLocation || "",
-        departureTime: trip.departureTime ? new Date(trip.departureTime).toISOString().slice(0, 16) : "",
+        departureTime: trip.departureTime ? formatDateForInput(new Date(trip.departureTime)) : "",
         availableSeats: trip.availableSeats || 1,
         totalSeats: trip.totalSeats || trip.availableSeats || 1,
         isRecurring: trip.isRecurring || false,

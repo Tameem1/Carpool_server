@@ -761,7 +761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Convert datetime-local input from GMT+3 to UTC for storage
       const departureTimeUTC = req.body.departureTime ? 
-        parseDateTimeLocalToUTC(new Date(req.body.departureTime)) : 
+        parseDateTimeLocalToUTC(req.body.departureTime) : 
         new Date(req.body.departureTime);
 
       console.log('Trip creation payload:', req.body);

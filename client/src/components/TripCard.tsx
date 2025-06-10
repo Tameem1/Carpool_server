@@ -21,6 +21,7 @@ import {
   Phone,
 } from "lucide-react";
 import { format } from "date-fns";
+import { formatGMTPlus3 } from "@shared/timezone";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
