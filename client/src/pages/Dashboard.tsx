@@ -146,7 +146,7 @@ export default function Dashboard() {
   const getCompatibleTrips = (request: any) => {
     if (!Array.isArray(trips)) return [];
     
-    return trips.filter((trip: any) => {
+    const compatibleTrips = trips.filter((trip: any) => {
       // Check if trip has available seats
       if (trip.availableSeats < 1) return false;
       
@@ -168,6 +168,14 @@ export default function Dashboard() {
       const twoHours = 2 * 60 * 60 * 1000;
       
       return timeDiff <= twoHours;
+    });
+
+    // Sort by time proximity (closest to requested time first)
+    return compatibleTrips.sort((a: any, b: any) => {
+      const requestTime = new Date(request.preferredTime).getTime();
+      const aTimeDiff = Math.abs(new Date(a.departureTime).getTime() - requestTime);
+      const bTimeDiff = Math.abs(new Date(b.departureTime).getTime() - requestTime);
+      return aTimeDiff - bTimeDiff;
     });
   };
 
@@ -288,34 +296,53 @@ export default function Dashboard() {
                         </div>
                       )}
 
-                      <div className="flex items-center space-x-3">
+                      <div className="flex flex-col space-y-3">
                         <span className="text-sm font-medium text-gray-700">الرحلات المتوافقة:</span>
                         {compatibleTrips.length === 0 ? (
                           <span className="text-sm text-gray-500">لا توجد رحلات متوافقة متاحة</span>
                         ) : (
-                          <div className="flex flex-wrap gap-2">
-                            {compatibleTrips.map((trip: any) => (
-                              <div key={trip.id} className="flex items-center space-x-2 bg-white border rounded-lg p-3">
-                                <div className="flex-1">
-                                  <div className="font-medium text-sm">
-                                    {trip.fromLocation} → {trip.toLocation}
-                                  </div>
-                                  <div className="text-xs text-gray-500">
-                                    {format(new Date(trip.departureTime), "MMM d, h:mm a")} • 
-                                    {trip.availableSeats} {trip.availableSeats !== 1 ? 'مقاعد' : 'مقعد'} متاح
-                                  </div>
-                                </div>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleAssignRide(request.id, trip.id)}
-                                  disabled={assignRideMutation.isPending}
-                                  className="bg-green-600 hover:bg-green-700 text-white"
-                                >
-                                  <UserPlus className="h-4 w-4 mr-1" />
-                                  {assignRideMutation.isPending ? "..." : "تعيين"}
-                                </Button>
-                              </div>
-                            ))}
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1">
+                              <Select onValueChange={(value) => handleAssignRide(request.id, parseInt(value))}>
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="اختر رحلة (مرتبة حسب الأقرب زمنياً)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {compatibleTrips.map((trip: any) => {
+                                    const requestTime = new Date(request.preferredTime).getTime();
+                                    const tripTime = new Date(trip.departureTime).getTime();
+                                    const timeDiffMinutes = Math.abs(tripTime - requestTime) / (1000 * 60);
+                                    const timeDiffHours = Math.floor(timeDiffMinutes / 60);
+                                    const remainingMinutes = Math.floor(timeDiffMinutes % 60);
+                                    
+                                    let timeDiffText = "";
+                                    if (timeDiffHours > 0) {
+                                      timeDiffText = `${timeDiffHours}س ${remainingMinutes}د`;
+                                    } else {
+                                      timeDiffText = `${remainingMinutes}د`;
+                                    }
+                                    
+                                    return (
+                                      <SelectItem key={trip.id} value={trip.id.toString()}>
+                                        <div className="flex flex-col">
+                                          <div className="font-medium">
+                                            {trip.fromLocation} → {trip.toLocation}
+                                          </div>
+                                          <div className="text-xs text-gray-500">
+                                            {format(new Date(trip.departureTime), "MMM d, h:mm a")} • 
+                                            {trip.availableSeats} {trip.availableSeats !== 1 ? 'مقاعد' : 'مقعد'} متاح •
+                                            فرق زمني: {timeDiffText}
+                                          </div>
+                                        </div>
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {assignRideMutation.isPending && (
+                              <div className="text-sm text-gray-500">جاري التعيين...</div>
+                            )}
                           </div>
                         )}
                       </div>

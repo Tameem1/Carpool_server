@@ -157,7 +157,7 @@ export default function AdminDashboard() {
   const getCompatibleTrips = (request: any) => {
     if (!Array.isArray(allTrips)) return [];
     
-    return allTrips.filter((trip: any) => {
+    const compatibleTrips = allTrips.filter((trip: any) => {
       // Check if trip has available seats
       if (trip.availableSeats < 1) return false;
       
@@ -176,6 +176,14 @@ export default function AdminDashboard() {
       const twoHours = 2 * 60 * 60 * 1000;
       
       return timeDiff <= twoHours;
+    });
+
+    // Sort by time proximity (closest to requested time first)
+    return compatibleTrips.sort((a: any, b: any) => {
+      const requestTime = new Date(request.preferredTime).getTime();
+      const aTimeDiff = Math.abs(new Date(a.departureTime).getTime() - requestTime);
+      const bTimeDiff = Math.abs(new Date(b.departureTime).getTime() - requestTime);
+      return aTimeDiff - bTimeDiff;
     });
   };
 
