@@ -132,18 +132,7 @@ export default function AdminDashboard() {
     },
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-success/20 text-success";
-      case "completed":
-        return "bg-gray-100 text-gray-600";
-      case "cancelled":
-        return "bg-destructive/20 text-destructive";
-      default:
-        return "bg-warning/20 text-warning";
-    }
-  };
+
 
   const handleEditTrip = (trip: any) => {
     setEditingTrip(trip);
@@ -171,9 +160,6 @@ export default function AdminDashboard() {
     return allTrips.filter((trip: any) => {
       // Check if trip has available seats
       if (trip.availableSeats < 1) return false;
-      
-      // Check if trip is active
-      if (trip.status !== 'active') return false;
       
       // Check location compatibility (basic string matching)
       const fromMatch = trip.fromLocation.toLowerCase().includes(request.fromLocation.toLowerCase()) ||

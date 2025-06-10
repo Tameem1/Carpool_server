@@ -52,7 +52,6 @@ interface TripCardProps {
       profileImageUrl?: string;
     };
     participantCount?: number;
-    status: string;
   };
   onRequestSeat?: (tripId: number) => void;
   onEdit?: (tripId: number) => void;
@@ -222,18 +221,7 @@ export function TripCard({
     },
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-success/20 text-success";
-      case "completed":
-        return "bg-gray-100 text-gray-600";
-      case "cancelled":
-        return "bg-destructive/20 text-destructive";
-      default:
-        return "bg-warning/20 text-warning";
-    }
-  };
+
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -249,7 +237,7 @@ export function TripCard({
               <span className="truncate">{format(departureDate, "MMM d, yyyy 'at' h:mm a")}</span>
             </p>
           </div>
-          <Badge className={`${getStatusColor(trip.status)} text-xs sm:text-sm`}>{trip.status}</Badge>
+
         </div>
 
         {trip.driver && (
