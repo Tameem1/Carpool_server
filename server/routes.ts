@@ -569,7 +569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
-      const trips = await storage.getUserTrips(userId);
+      const trips = await storage.getTodayUserTrips(userId);
       
       // Enrich with participant info and sync available seats with riders
       const enrichedTrips = await Promise.all(
@@ -1210,7 +1210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const requests = await storage.getUserRideRequests(userId);
+      const requests = await storage.getTodayUserRideRequests(userId);
       res.json(requests);
     } catch (error) {
       console.error("Error fetching user ride requests:", error);

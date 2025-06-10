@@ -33,6 +33,7 @@ export interface IStorage {
   createTrip(trip: InsertTrip): Promise<Trip>;
   getTrip(id: number): Promise<Trip | undefined>;
   getUserTrips(userId: string): Promise<Trip[]>;
+  getTodayUserTrips(userId: string): Promise<Trip[]>;
   getAllTrips(): Promise<Trip[]>;
   updateTrip(id: number, updates: Partial<InsertTrip>): Promise<Trip>;
   deleteTrip(id: number): Promise<void>;
@@ -42,6 +43,7 @@ export interface IStorage {
   createRideRequest(request: InsertRideRequest): Promise<RideRequest>;
   getRideRequest(id: number): Promise<RideRequest | undefined>;
   getUserRideRequests(userId: string): Promise<RideRequest[]>;
+  getTodayUserRideRequests(userId: string): Promise<RideRequest[]>;
   getPendingRideRequests(): Promise<RideRequest[]>;
   getTodayRideRequests(): Promise<RideRequest[]>;
   updateRideRequestStatus(id: number, status: RideRequest["status"], tripId?: number): Promise<RideRequest>;
@@ -240,6 +242,19 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(trips).where(eq(trips.driverId, userId));
   }
 
+  async getTodayUserTrips(userId: string): Promise<Trip[]> {
+    const { start, end } = this.getCustomDayRange();
+    return await db.select()
+      .from(trips)
+      .where(
+        and(
+          eq(trips.driverId, userId),
+          gte(trips.createdAt, start),
+          lt(trips.createdAt, end)
+        )
+      );
+  }
+
   async getAllTrips(): Promise<Trip[]> {
     return await db.select().from(trips);
   }
@@ -315,6 +330,19 @@ export class DatabaseStorage implements IStorage {
 
   async getUserRideRequests(userId: string): Promise<RideRequest[]> {
     return await db.select().from(rideRequests).where(eq(rideRequests.riderId, userId));
+  }
+
+  async getTodayUserRideRequests(userId: string): Promise<RideRequest[]> {
+    const { start, end } = this.getCustomDayRange();
+    return await db.select()
+      .from(rideRequests)
+      .where(
+        and(
+          eq(rideRequests.riderId, userId),
+          gte(rideRequests.createdAt, start),
+          lt(rideRequests.createdAt, end)
+        )
+      );
   }
 
   async getPendingRideRequests(): Promise<RideRequest[]> {
