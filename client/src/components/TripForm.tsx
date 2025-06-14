@@ -23,7 +23,7 @@ import { formatDateForInput, nowGMTPlus3, parseDateTimeLocalToUTC } from "@share
 const tripFormSchema = z.object({
   fromLocation: z.string().min(1, "موقع الانطلاق مطلوب"),
   toLocation: z.string().min(1, "الوجهة مطلوبة"),
-  departureTime: z.string().min(1, "التاريخ والوقت مطلوبان"),
+  departureTime: z.string().min(1, "الوقت مطلوب"),
   availableSeats: z.number().min(1, "مقعد واحد على الأقل مطلوب").max(8, "8 مقاعد كحد أقصى"),
   totalSeats: z.number().min(1, "مقعد واحد على الأقل مطلوب").max(8, "8 مقاعد كحد أقصى"),
   isRecurring: z.boolean().default(false),
