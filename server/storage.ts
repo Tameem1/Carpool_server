@@ -240,7 +240,7 @@ export class DatabaseStorage implements IStorage {
   async updateTrip(id: number, updates: Partial<InsertTrip>): Promise<Trip> {
     const [trip] = await db
       .update(trips)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: nowGMTPlus3() })
       .where(eq(trips.id, id))
       .returning();
     if (!trip) throw new Error("Trip not found");
@@ -445,7 +445,7 @@ export class DatabaseStorage implements IStorage {
   async updateTripJoinRequestStatus(id: number, status: TripJoinRequest["status"]): Promise<TripJoinRequest> {
     const [request] = await db
       .update(tripJoinRequests)
-      .set({ status, updatedAt: new Date() })
+      .set({ status, updatedAt: nowGMTPlus3() })
       .where(eq(tripJoinRequests.id, id))
       .returning();
     return request;

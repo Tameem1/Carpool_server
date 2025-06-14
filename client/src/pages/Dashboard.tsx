@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Calendar, Users, MapPin, Settings, ArrowUpDown, Clock, UserPlus } from "lucide-react";
 import { format } from "date-fns";
+import { formatGMTPlus3 } from "@shared/timezone";
 
 // Utility function to detect Arabic text
 function isArabicText(text: string): boolean {

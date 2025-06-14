@@ -12,6 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Plus, Edit, Trash2, UserPlus, MapPin, Clock } from "lucide-react";
 import { format } from "date-fns";
+import { formatGMTPlus3 } from "@shared/timezone";
 
 // Utility function to detect Arabic text
 function isArabicText(text: string): boolean {
