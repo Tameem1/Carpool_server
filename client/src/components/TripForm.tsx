@@ -20,6 +20,22 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { X, UserMinus, UserPlus } from "lucide-react";
 import { formatDateForInput, nowGMTPlus3, parseDateTimeLocalToUTC } from "@shared/timezone";
 
+// Helper function to convert time to today's date with that time
+function timeToTodayTimestamp(timeString: string): string {
+  if (!timeString) return "";
+  const today = new Date();
+  const [hours, minutes] = timeString.split(':');
+  today.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+  return today.toISOString();
+}
+
+// Helper function to extract time from timestamp
+function extractTimeFromTimestamp(timestamp: string): string {
+  if (!timestamp) return "";
+  const date = new Date(timestamp);
+  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+}
+
 const tripFormSchema = z.object({
   fromLocation: z.string().min(1, "موقع الانطلاق مطلوب"),
   toLocation: z.string().min(1, "الوجهة مطلوبة"),
@@ -85,7 +101,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
     defaultValues: {
       fromLocation: trip?.fromLocation || "",
       toLocation: trip?.toLocation || "النادي",
-      departureTime: trip?.departureTime ? formatDateForInput(new Date(trip.departureTime)) : "",
+      departureTime: trip?.departureTime ? extractTimeFromTimestamp(trip.departureTime) : "",
       availableSeats: trip?.availableSeats || 1,
       totalSeats: trip?.totalSeats || trip?.availableSeats || 1,
       isRecurring: trip?.isRecurring || false,
@@ -102,7 +118,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       form.reset({
         fromLocation: trip.fromLocation || "",
         toLocation: trip.toLocation || "النادي",
-        departureTime: trip.departureTime ? formatDateForInput(new Date(trip.departureTime)) : "",
+        departureTime: trip.departureTime ? extractTimeFromTimestamp(trip.departureTime) : "",
         availableSeats: trip.availableSeats || 1,
         totalSeats: trip.totalSeats || trip.availableSeats || 1,
         isRecurring: trip.isRecurring || false,
@@ -172,7 +188,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       const payload = {
         ...data,
         participantIds: selectedParticipants,
-        departureTime: data.departureTime + ":00.000Z",
+        departureTime: timeToTodayTimestamp(data.departureTime),
         riders: trip?.id ? undefined : selectedParticipants, // Only set riders for new trips
       };
       
@@ -293,9 +309,9 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               name="departureTime"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm">تاريخ ووقت الانطلاق</FormLabel>
+                  <FormLabel className="text-sm">وقت الانطلاق</FormLabel>
                   <FormControl>
-                    <Input type="datetime-local" className="touch-friendly" {...field} />
+                    <Input type="time" className="touch-friendly" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
