@@ -758,16 +758,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? req.body.driverId 
         : userId;
 
-      // Convert datetime-local input from GMT+3 to UTC before schema parsing
-      const departureTimeUTC = req.body.departureTime ? 
-        parseDateTimeLocalToUTC(req.body.departureTime).toISOString() : 
-        req.body.departureTime;
-
       console.log('Trip creation payload:', req.body);
       
       const tripData = insertTripSchema.parse({
         ...req.body,
-        departureTime: departureTimeUTC,
         driverId,
         totalSeats: req.body.availableSeats, // Initially all seats are available
       });
