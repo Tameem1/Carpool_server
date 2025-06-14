@@ -17,10 +17,18 @@ import {
 import { format } from "date-fns";
 import { formatGMTPlus3 } from "@shared/timezone";
 import { useState } from "react";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { TripJoinRequestForm } from "./TripJoinRequestForm";
+
+// Helper function to extract and format time from timestamp
+function formatTimeOnly(timestamp: string): string {
+  if (!timestamp) return "";
+  const date = new Date(timestamp);
+  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+}
 
 interface TripCardProps {
   trip: {
@@ -88,6 +96,7 @@ export function TripCard({
   hideJoinRequest = false,
 }: TripCardProps) {
   const departureDate = new Date(trip.departureTime);
+  const departureTimeOnly = formatTimeOnly(trip.departureTime);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [showJoinRequestForm, setShowJoinRequestForm] = useState(false);
   const { toast } = useToast();

@@ -135,9 +135,9 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
               name="preferredTime"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>التاريخ والوقت المفضل</FormLabel>
+                  <FormLabel>الوقت المفضل</FormLabel>
                   <FormControl>
-                    <Input type="datetime-local" {...field} />
+                    <Input type="time" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
