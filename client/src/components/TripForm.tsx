@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { X, UserMinus, UserPlus } from "lucide-react";
-import { formatDateForInput, nowGMTPlus3 } from "@shared/timezone";
+import { formatDateForInput, nowGMTPlus3, parseDateTimeLocalToUTC } from "@shared/timezone";
 
 const tripFormSchema = z.object({
   fromLocation: z.string().min(1, "موقع الانطلاق مطلوب"),
@@ -172,7 +172,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       const payload = {
         ...data,
         participantIds: selectedParticipants,
-        departureTime: new Date(data.departureTime).toISOString(),
+        departureTime: parseDateTimeLocalToUTC(data.departureTime).toISOString(),
         riders: trip?.id ? undefined : selectedParticipants, // Only set riders for new trips
       };
       

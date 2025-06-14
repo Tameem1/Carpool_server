@@ -20,9 +20,11 @@ export function fromGMTPlus3ToUTC(date: Date): Date {
  * Format date for GMT+3 display
  */
 export function formatGMTPlus3(date: Date, locale: string = 'ar-SA'): string {
-  const gmt3Date = toGMTPlus3(date);
+  // Convert UTC to GMT+3
+  const gmt3Time = date.getTime() + GMT_PLUS_3_OFFSET;
+  const gmt3Date = new Date(gmt3Time);
+  
   return gmt3Date.toLocaleString(locale, {
-    timeZone: 'Asia/Riyadh', // GMT+3
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -36,9 +38,11 @@ export function formatGMTPlus3(date: Date, locale: string = 'ar-SA'): string {
  * Format time only for GMT+3 display (without date)
  */
 export function formatGMTPlus3TimeOnly(date: Date, locale: string = 'ar-SA'): string {
-  const gmt3Date = toGMTPlus3(date);
+  // Convert UTC to GMT+3
+  const gmt3Time = date.getTime() + GMT_PLUS_3_OFFSET;
+  const gmt3Date = new Date(gmt3Time);
+  
   return gmt3Date.toLocaleTimeString(locale, {
-    timeZone: 'Asia/Riyadh', // GMT+3
     hour: '2-digit',
     minute: '2-digit',
     hour12: true
@@ -46,20 +50,36 @@ export function formatGMTPlus3TimeOnly(date: Date, locale: string = 'ar-SA'): st
 }
 
 /**
- * Parse datetime-local input value to GMT+3 then convert to UTC for storage
+ * Parse datetime-local input value as GMT+3 and convert to UTC for storage
  */
 export function parseDateTimeLocalToUTC(dateTimeLocal: string | Date): Date {
   // datetime-local gives us local time, we treat it as GMT+3
-  const localDate = typeof dateTimeLocal === 'string' ? new Date(dateTimeLocal) : dateTimeLocal;
-  // Convert from GMT+3 to UTC for storage
-  return fromGMTPlus3ToUTC(localDate);
+  let localDate: Date;
+  
+  if (typeof dateTimeLocal === 'string') {
+    // Parse the string as local time (assumed to be GMT+3)
+    localDate = new Date(dateTimeLocal);
+  } else {
+    localDate = dateTimeLocal;
+  }
+  
+  // The parsed date is interpreted in the browser's timezone
+  // We need to adjust it to be GMT+3 then convert to UTC
+  const offsetMinutes = localDate.getTimezoneOffset();
+  const utcTime = localDate.getTime() + (offsetMinutes * 60000);
+  const gmt3Time = utcTime + GMT_PLUS_3_OFFSET;
+  
+  return new Date(gmt3Time);
 }
 
 /**
- * Convert UTC date from database to datetime-local format for input
+ * Convert UTC date from database to datetime-local format for input (as GMT+3)
  */
 export function formatDateForInput(utcDate: Date): string {
-  const gmt3Date = toGMTPlus3(utcDate);
+  // Convert UTC to GMT+3
+  const gmt3Time = utcDate.getTime() + GMT_PLUS_3_OFFSET;
+  const gmt3Date = new Date(gmt3Time);
+  
   // Format for datetime-local input (YYYY-MM-DDTHH:mm)
   const year = gmt3Date.getFullYear();
   const month = String(gmt3Date.getMonth() + 1).padStart(2, '0');

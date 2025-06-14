@@ -12,7 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { formatDateForInput } from "@shared/timezone";
+import { formatDateForInput, parseDateTimeLocalToUTC } from "@shared/timezone";
 
 const rideRequestFormSchema = z.object({
   fromLocation: z.string().min(1, "موقع الانطلاق مطلوب"),
@@ -57,7 +57,7 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
     mutationFn: async (data: RideRequestFormData) => {
       const payload = {
         ...data,
-        preferredTime: new Date(data.preferredTime).toISOString(),
+        preferredTime: parseDateTimeLocalToUTC(data.preferredTime).toISOString(),
         // Don't send riderId if it's "self" or empty, let server use current user
         riderId: data.riderId === "self" || !data.riderId ? undefined : data.riderId,
       };
