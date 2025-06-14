@@ -14,6 +14,13 @@ import { Plus, Edit, Trash2, UserPlus, MapPin, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { formatGMTPlus3 } from "@shared/timezone";
 
+// Helper function to extract and format time from timestamp
+function formatTimeOnly(timestamp: string): string {
+  if (!timestamp) return "";
+  const date = new Date(timestamp);
+  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+}
+
 // Utility function to detect Arabic text
 function isArabicText(text: string): boolean {
   const arabicRegex = /[\u0600-\u06FF\u0750-\u077F]/;
@@ -252,7 +259,7 @@ export default function AdminDashboard() {
                               {formatRoute(trip.fromLocation, trip.toLocation)}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {format(new Date(trip.departureTime), "MMM d, yyyy • h:mm a")}
+                              {formatTimeOnly(trip.departureTime)}
                             </div>
                           </div>
                         </td>
