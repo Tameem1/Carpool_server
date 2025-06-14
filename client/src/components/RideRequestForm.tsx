@@ -57,7 +57,7 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
     mutationFn: async (data: RideRequestFormData) => {
       const payload = {
         ...data,
-        preferredTime: parseDateTimeLocalToUTC(data.preferredTime).toISOString(),
+        preferredTime: new Date(data.preferredTime).toISOString(),
         // Don't send riderId if it's "self" or empty, let server use current user
         riderId: data.riderId === "self" || !data.riderId ? undefined : data.riderId,
       };

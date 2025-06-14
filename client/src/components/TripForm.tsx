@@ -172,7 +172,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       const payload = {
         ...data,
         participantIds: selectedParticipants,
-        departureTime: parseDateTimeLocalToUTC(data.departureTime).toISOString(),
+        departureTime: new Date(data.departureTime).toISOString(),
         riders: trip?.id ? undefined : selectedParticipants, // Only set riders for new trips
       };
       

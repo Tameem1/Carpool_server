@@ -6,7 +6,7 @@ import { storage } from "./storage";
 import { insertTripSchema, insertRideRequestSchema, insertTripParticipantSchema, insertTripJoinRequestSchema } from "@shared/schema";
 import { z } from "zod";
 import TelegramBot from "node-telegram-bot-api";
-import { formatGMTPlus3, formatGMTPlus3TimeOnly, parseDateTimeLocalToUTC, formatDateForInput } from "@shared/timezone";
+import { formatGMTPlus3, formatGMTPlus3TimeOnly, formatDateForInput } from "@shared/timezone";
 
 // WebSocket connection management
 const connectedClients = new Set();
@@ -1219,14 +1219,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? req.body.riderId 
         : userId;
 
-      // Convert datetime-local input from GMT+3 to UTC before schema parsing
-      const preferredTimeUTC = req.body.preferredTime ? 
-        parseDateTimeLocalToUTC(req.body.preferredTime).toISOString() : 
-        req.body.preferredTime;
-
+      // Use the datetime as-is (already processed by client if needed)
       const requestData = insertRideRequestSchema.parse({
         ...req.body,
-        preferredTime: preferredTimeUTC,
         riderId: riderId,
       });
 
