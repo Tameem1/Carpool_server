@@ -42,7 +42,8 @@ const tripFormSchema = z.object({
   departureTime: z.string().min(1, "الوقت مطلوب"),
   availableSeats: z.number().min(1, "مقعد واحد على الأقل مطلوب").max(8, "8 مقاعد كحد أقصى"),
   totalSeats: z.number().min(1, "مقعد واحد على الأقل مطلوب").max(8, "8 مقاعد كحد أقصى"),
-  notes: z.string().optional(),
+  isRecurring: z.boolean().default(false),
+  recurringDays: z.array(z.string()).optional(),
   driverId: z.string().optional(),
   participantIds: z.array(z.string()).optional(),
 });
@@ -91,7 +92,8 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       departureTime: trip?.departureTime ? extractTimeFromTimestamp(trip.departureTime) : "",
       availableSeats: trip?.availableSeats || 1,
       totalSeats: trip?.totalSeats || trip?.availableSeats || 1,
-      notes: trip?.notes || "",
+      isRecurring: trip?.isRecurring || false,
+      recurringDays: trip?.recurringDays || [],
       driverId: trip?.driverId || "",
       participantIds: [],
     },
@@ -106,6 +108,8 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
         departureTime: trip.departureTime ? extractTimeFromTimestamp(trip.departureTime) : "",
         availableSeats: trip.availableSeats || 1,
         totalSeats: trip.totalSeats || trip.availableSeats || 1,
+        isRecurring: trip.isRecurring || false,
+        recurringDays: trip.recurringDays || [],
         driverId: trip.driverId || "",
         participantIds: [],
       });
@@ -116,7 +120,8 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
         departureTime: "",
         availableSeats: 1,
         totalSeats: 1,
-        notes: trip.notes || "",
+        isRecurring: false,
+        recurringDays: [],
         driverId: "",
         participantIds: [],
       });
