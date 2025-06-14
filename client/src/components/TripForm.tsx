@@ -42,8 +42,6 @@ const tripFormSchema = z.object({
   departureTime: z.string().min(1, "الوقت مطلوب"),
   availableSeats: z.number().min(1, "مقعد واحد على الأقل مطلوب").max(8, "8 مقاعد كحد أقصى"),
   totalSeats: z.number().min(1, "مقعد واحد على الأقل مطلوب").max(8, "8 مقاعد كحد أقصى"),
-  isRecurring: z.boolean().default(false),
-  recurringDays: z.array(z.string()).optional(),
   notes: z.string().optional(),
   driverId: z.string().optional(),
   participantIds: z.array(z.string()).optional(),
@@ -57,21 +55,12 @@ interface TripFormProps {
   trip?: any;
 }
 
-const daysOfWeek = [
-  { id: "monday", label: "الاثنين" },
-  { id: "tuesday", label: "الثلاثاء" },
-  { id: "wednesday", label: "الأربعاء" },
-  { id: "thursday", label: "الخميس" },
-  { id: "friday", label: "الجمعة" },
-  { id: "saturday", label: "السبت" },
-  { id: "sunday", label: "الأحد" },
-];
+
 
 export function TripForm({ open, onClose, trip }: TripFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
   const [currentRiders, setCurrentRiders] = useState<string[]>([]);
 
@@ -86,11 +75,9 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
   // Initialize form data when trip changes
   useEffect(() => {
     if (trip) {
-      setSelectedDays(trip.recurringDays || []);
       setCurrentRiders(trip.riders || []);
       setSelectedParticipants([]);
     } else {
-      setSelectedDays([]);
       setCurrentRiders([]);
       setSelectedParticipants([]);
     }
@@ -104,8 +91,6 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       departureTime: trip?.departureTime ? extractTimeFromTimestamp(trip.departureTime) : "",
       availableSeats: trip?.availableSeats || 1,
       totalSeats: trip?.totalSeats || trip?.availableSeats || 1,
-      isRecurring: trip?.isRecurring || false,
-      recurringDays: trip?.recurringDays || [],
       notes: trip?.notes || "",
       driverId: trip?.driverId || "",
       participantIds: [],
@@ -121,9 +106,6 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
         departureTime: trip.departureTime ? extractTimeFromTimestamp(trip.departureTime) : "",
         availableSeats: trip.availableSeats || 1,
         totalSeats: trip.totalSeats || trip.availableSeats || 1,
-        isRecurring: trip.isRecurring || false,
-        recurringDays: trip.recurringDays || [],
-        notes: trip.notes || "",
         driverId: trip.driverId || "",
         participantIds: [],
       });
@@ -134,9 +116,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
         departureTime: "",
         availableSeats: 1,
         totalSeats: 1,
-        isRecurring: false,
-        recurringDays: [],
-        notes: "",
+        notes: trip.notes || "",
         driverId: "",
         participantIds: [],
       });
@@ -220,13 +200,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
     mutation.mutate(data);
   };
 
-  const handleDayToggle = (dayId: string) => {
-    const newDays = selectedDays.includes(dayId)
-      ? selectedDays.filter(d => d !== dayId)
-      : [...selectedDays, dayId];
-    setSelectedDays(newDays);
-    form.setValue('recurringDays', newDays);
-  };
+  
 
   const handleParticipantAdd = (userId: string) => {
     if (!selectedParticipants.includes(userId)) {
@@ -318,26 +292,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="availableSeats"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm">المقاعد المتاحة</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="8"
-                      className="touch-friendly"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
 
             {isAdmin && (
               <FormField
@@ -460,57 +415,9 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               </div>
             )}
 
-            <FormField
-              control={form.control}
-              name="isRecurring"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>رحلة متكررة</FormLabel>
-                  </div>
-                </FormItem>
-              )}
-            />
+            
 
-            {form.watch('isRecurring') && (
-              <div>
-                <FormLabel>اختر الأيام</FormLabel>
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  {daysOfWeek.map((day) => (
-                    <div key={day.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={day.id}
-                        checked={selectedDays.includes(day.id)}
-                        onCheckedChange={() => handleDayToggle(day.id)}
-                      />
-                      <label htmlFor={day.id} className="text-sm font-medium">
-                        {day.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ملاحظات (اختيارية)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="معلومات إضافية..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
 
             <div className="flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={onClose}>
