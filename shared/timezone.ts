@@ -53,23 +53,20 @@ export function formatGMTPlus3TimeOnly(date: Date, locale: string = 'ar-SA'): st
  * Parse datetime-local input value as GMT+3 and convert to UTC for storage
  */
 export function parseDateTimeLocalToUTC(dateTimeLocal: string | Date): Date {
-  // datetime-local gives us local time, we treat it as GMT+3
+  // datetime-local gives us the time the user wants in GMT+3
+  // We need to convert this GMT+3 time to UTC for database storage
   let localDate: Date;
   
   if (typeof dateTimeLocal === 'string') {
-    // Parse the string as local time (assumed to be GMT+3)
+    // Parse the string - this creates a date in the browser's local timezone
     localDate = new Date(dateTimeLocal);
   } else {
     localDate = dateTimeLocal;
   }
   
-  // The parsed date is interpreted in the browser's timezone
-  // We need to adjust it to be GMT+3 then convert to UTC
-  const offsetMinutes = localDate.getTimezoneOffset();
-  const utcTime = localDate.getTime() + (offsetMinutes * 60000);
-  const gmt3Time = utcTime + GMT_PLUS_3_OFFSET;
-  
-  return new Date(gmt3Time);
+  // Since the user entered this time intending it to be GMT+3,
+  // we need to subtract 3 hours to get the equivalent UTC time
+  return new Date(localDate.getTime() - GMT_PLUS_3_OFFSET);
 }
 
 /**
