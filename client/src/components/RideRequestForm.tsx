@@ -3,7 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableUserSelect } from "@/components/ui/searchable-user-select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -18,8 +17,6 @@ const rideRequestFormSchema = z.object({
   fromLocation: z.string().min(1, "موقع الانطلاق مطلوب"),
   toLocation: z.string().min(1, "الوجهة مطلوبة"),
   preferredTime: z.string().min(1, "الوقت المفضل مطلوب"),
-  passengerCount: z.number().min(1, "راكب واحد على الأقل مطلوب").max(4, "4 ركاب كحد أقصى"),
-  notes: z.string().optional(),
   riderId: z.string().optional(), // For admin to select rider
 });
 
@@ -47,8 +44,6 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
       fromLocation: "",
       toLocation: "",
       preferredTime: "",
-      passengerCount: 1,
-      notes: "",
       riderId: "",
     },
   });
@@ -165,48 +160,9 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
               />
             )}
 
-            <FormField
-              control={form.control}
-              name="passengerCount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>عدد الركاب</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="اختر عدد الركاب" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {[1, 2, 3, 4].map((num) => (
-                        <SelectItem key={num} value={num.toString()}>
-                          {num} {num > 1 ? 'ركاب' : 'راكب'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
 
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>متطلبات إضافية</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="أي متطلبات خاصة أو ملاحظات..." 
-                      rows={3} 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
 
             <div className="flex justify-end space-x-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={onClose}>
