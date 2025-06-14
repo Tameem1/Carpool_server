@@ -17,14 +17,11 @@ export function fromGMTPlus3ToUTC(date: Date): Date {
 }
 
 /**
- * Format date for GMT+3 display
+ * Format date for GMT+3 display (treat stored date as GMT+3)
  */
 export function formatGMTPlus3(date: Date, locale: string = 'ar-SA'): string {
-  // Convert UTC to GMT+3
-  const gmt3Time = date.getTime() + GMT_PLUS_3_OFFSET;
-  const gmt3Date = new Date(gmt3Time);
-  
-  return gmt3Date.toLocaleString(locale, {
+  // Display the date as-is (assume it's already in GMT+3)
+  return date.toLocaleString(locale, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -38,11 +35,8 @@ export function formatGMTPlus3(date: Date, locale: string = 'ar-SA'): string {
  * Format time only for GMT+3 display (without date)
  */
 export function formatGMTPlus3TimeOnly(date: Date, locale: string = 'ar-SA'): string {
-  // Convert UTC to GMT+3
-  const gmt3Time = date.getTime() + GMT_PLUS_3_OFFSET;
-  const gmt3Date = new Date(gmt3Time);
-  
-  return gmt3Date.toLocaleTimeString(locale, {
+  // Display the time as-is (assume it's already in GMT+3)
+  return date.toLocaleTimeString(locale, {
     hour: '2-digit',
     minute: '2-digit',
     hour12: true
@@ -50,46 +44,33 @@ export function formatGMTPlus3TimeOnly(date: Date, locale: string = 'ar-SA'): st
 }
 
 /**
- * Parse datetime-local input value as GMT+3 and convert to UTC for storage
+ * Parse datetime-local input value and store as-is (treat as GMT+3)
  */
 export function parseDateTimeLocalToUTC(dateTimeLocal: string | Date): Date {
-  // datetime-local gives us the time the user wants in GMT+3
-  // We need to convert this GMT+3 time to UTC for database storage
-  let localDate: Date;
-  
+  // Store the time exactly as entered - no timezone conversion
   if (typeof dateTimeLocal === 'string') {
-    // Parse the string - this creates a date in the browser's local timezone
-    localDate = new Date(dateTimeLocal);
-  } else {
-    localDate = dateTimeLocal;
+    return new Date(dateTimeLocal);
   }
-  
-  // Since the user entered this time intending it to be GMT+3,
-  // we need to subtract 3 hours to get the equivalent UTC time
-  return new Date(localDate.getTime() - GMT_PLUS_3_OFFSET);
+  return dateTimeLocal;
 }
 
 /**
- * Convert UTC date from database to datetime-local format for input (as GMT+3)
+ * Convert date from database to datetime-local format for input (no conversion)
  */
-export function formatDateForInput(utcDate: Date): string {
-  // Convert UTC to GMT+3
-  const gmt3Time = utcDate.getTime() + GMT_PLUS_3_OFFSET;
-  const gmt3Date = new Date(gmt3Time);
-  
-  // Format for datetime-local input (YYYY-MM-DDTHH:mm)
-  const year = gmt3Date.getFullYear();
-  const month = String(gmt3Date.getMonth() + 1).padStart(2, '0');
-  const day = String(gmt3Date.getDate()).padStart(2, '0');
-  const hours = String(gmt3Date.getHours()).padStart(2, '0');
-  const minutes = String(gmt3Date.getMinutes()).padStart(2, '0');
+export function formatDateForInput(date: Date): string {
+  // Use the date as-is for input formatting
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
   
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 /**
- * Get current time in GMT+3
+ * Get current time (treat as GMT+3)
  */
 export function nowGMTPlus3(): Date {
-  return toGMTPlus3(new Date());
+  return new Date();
 }
