@@ -21,6 +21,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lt } from "drizzle-orm";
+import { nowGMTPlus3, toGMTPlus3, GMT_PLUS_3_OFFSET } from "@shared/timezone";
 
 export interface IStorage {
   // User operations
@@ -165,7 +166,7 @@ export class DatabaseStorage implements IStorage {
           lastName: userData.lastName || null,
           profileImageUrl: userData.profileImageUrl || null,
           role: userData.role || "user",
-          updatedAt: new Date(),
+          updatedAt: nowGMTPlus3(),
         }
       })
       .returning();
@@ -175,7 +176,7 @@ export class DatabaseStorage implements IStorage {
   async updateUserRole(id: string, role: UserRole): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ role, updatedAt: new Date() })
+      .set({ role, updatedAt: nowGMTPlus3() })
       .where(eq(users.id, id))
       .returning();
     if (!user) throw new Error("User not found");
@@ -319,22 +320,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   private getCustomDayRange(date?: Date): { start: Date; end: Date } {
-    const now = date || new Date();
+    // Use GMT+3 time for all calculations
+    const now = date ? toGMTPlus3(date) : nowGMTPlus3();
     const currentHour = now.getHours();
     
-    // If it's before 5 AM, we're in the previous day (started at 5 AM yesterday)
+    // If it's before 5 AM GMT+3, we're in the previous day (started at 5 AM yesterday GMT+3)
     const dayStart = new Date(now);
     if (currentHour < 5) {
       dayStart.setDate(dayStart.getDate() - 1);
     }
     dayStart.setHours(5, 0, 0, 0);
     
-    // Day ends at 4 AM the next day
+    // Day ends at 4 AM the next day GMT+3
     const dayEnd = new Date(dayStart);
     dayEnd.setDate(dayEnd.getDate() + 1);
     dayEnd.setHours(4, 0, 0, 0);
     
-    return { start: dayStart, end: dayEnd };
+    // Convert back to UTC for database queries
+    const startUTC = new Date(dayStart.getTime() - 3 * 60 * 60 * 1000);
+    const endUTC = new Date(dayEnd.getTime() - 3 * 60 * 60 * 1000);
+    
+    return { start: startUTC, end: endUTC };
   }
 
   async getTodayRideRequests(): Promise<RideRequest[]> {
@@ -356,7 +362,7 @@ export class DatabaseStorage implements IStorage {
       .set({ 
         status, 
         tripId: tripId || undefined,
-        updatedAt: new Date() 
+        updatedAt: nowGMTPlus3() 
       })
       .where(eq(rideRequests.id, id))
       .returning();
