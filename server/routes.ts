@@ -447,7 +447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all users (admin only)
+  // Get all users (any authenticated user can access for trip management)
   app.get('/api/users', async (req: any, res) => {
     try {
       const userId = req.session?.userId;
@@ -456,10 +456,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const user = await storage.getUser(userId);
-      if (!user || user.role !== 'admin') {
-        return res.status(403).json({ message: "Forbidden" });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
 
+      // All authenticated users can access user list for trip management
       const users = await storage.getAllUsers();
       res.json(users);
     } catch (error) {

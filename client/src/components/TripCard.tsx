@@ -421,6 +421,25 @@ export function TripCard({
                 </Button>
               )}
 
+              {/* Add Rider button - visible for trip driver */}
+              {trip.driverId === currentUserId && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-[#16b7a4] text-[#16b7a4] hover:bg-[#16b7a4] hover:text-white text-xs sm:text-sm touch-friendly"
+                  onClick={() => {
+                    // Scroll to add rider section
+                    const addRiderSection = document.querySelector('[data-add-rider-section]');
+                    if (addRiderSection) {
+                      addRiderSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                  }}
+                >
+                  <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  إضافة راكب
+                </Button>
+              )}
+
               {/* Edit and Cancel buttons for trip driver or admin */}
               {(trip.driverId === currentUserId || userRole === "admin") && onEdit && (
                 <Button 
