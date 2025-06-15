@@ -3,20 +3,17 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User roles enum - simplified to only admin and user (no distinction between driver/rider)
-export const userRoles = ["admin", "user"] as const;
+// User roles enum - expanded to include teacher, student, manager
+export const userRoles = ["teacher", "student", "manager", "admin"] as const;
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  phoneNumber: varchar("phone_number"),
-  profileImageUrl: varchar("profile_image_url"),
+  username: varchar("username").notNull(),
+  section: varchar("section").notNull(),
+  telegramUsername: varchar("telegram_username"),
+  password: varchar("password").notNull(),
   telegramId: varchar("telegram_id"),
-  role: varchar("role", { enum: userRoles }).notNull().default("user"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  role: varchar("role", { enum: userRoles }).notNull().default("student"),
 });
 
 export const trips = pgTable("trips", {

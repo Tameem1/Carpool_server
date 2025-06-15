@@ -26,10 +26,13 @@ import { nowGMTPlus3, toGMTPlus3, GMT_PLUS_3_OFFSET } from "@shared/timezone";
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
+  getUserByUsernameAndSection(username: string, section: string): Promise<User | undefined>;
   upsertUser(user: InsertUser): Promise<User>;
   updateUserRole(id: string, role: UserRole): Promise<User>;
   getAllUsers(): Promise<User[]>;
   getAdminUsers(): Promise<User[]>;
+  getUsersBySection(section: string): Promise<User[]>;
+  getUniqueSections(): Promise<string[]>;
   
   // Trip operations
   createTrip(trip: InsertTrip): Promise<Trip>;
