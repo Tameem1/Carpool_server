@@ -1,0 +1,3116 @@
+[
+  {
+    "id": 2,
+    "username": "يمان",
+    "password": "423718",
+    "role": "teacher",
+    "telegram_username": "815104249",
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 3,
+    "username": "مهدي",
+    "password": "418243",
+    "role": "teacher",
+    "telegram_username": "1871928445",
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 4,
+    "username": "عدنان",
+    "password": "999",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 5,
+    "username": "عرفان",
+    "password": "106275",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 7,
+    "username": "خالد ح",
+    "password": "9ad9a3d80358d3c78a649c7c54adf1eb96d3b6d2a78386aa2b47a697db2720c7fe66e6a8583f34c886c52dffa4bdc62b9a7412233f101f83154a7cf6c290bf21.ac8f1f5de3ce0191a4f9d77ded018121",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 8,
+    "username": "جلال",
+    "password": "882530",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 9,
+    "username": " كريم",
+    "password": "241930",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 10,
+    "username": "جواد",
+    "password": "373280",
+    "role": "manager",
+    "telegram_username": "459479223",
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 11,
+    "username": "زهير مس",
+    "password": "925861d225754d89fef450f222b8b060aa3a476fdfeb328968ac27ac2816f06e55c251972c974cffd5741ec9f6364e009ca2c9b5fa1b3f072b2baf0d5d081f8e.7f598ec4f4545e05a1a943b3954dc267",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 12,
+    "username": " عبادة عط",
+    "password": "f13ab395b168dfd60ea4a3d4f3c0474972f68c75b9271435f1d913fbed0b6b893bd2a1409d96f476f0a22fa38659b72a5c4c4a397065f3a9b25ebb8dcaff2b83.0ad84ffe324b1f786a4f325912524bbe",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 13,
+    "username": "رفيق",
+    "password": "204509",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 14,
+    "username": "عامر",
+    "password": "834019",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 15,
+    "username": "براء زر",
+    "password": "0d35722acda457e7da246e191e0c332b1a6db8c6cec28db22e3f4d9dae2ce5dbea46d94b53eab69461b10e19145c87f38631fb44136f61e2fc2bb0d2ad59186e.f80886067a9fd1f2deefbfefe9f2fef3",
+    "role": "teacher",
+    "telegram_username": "571318965",
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 16,
+    "username": "حسن",
+    "password": "982934",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 17,
+    "username": "عبد الرحمن ه",
+    "password": "eb1627c245e0c1b8b1de4c9d3f740a21f00c2f54a20a7d5d10cac521c7e332ade4c4d558ed16571b9e13c3323a9701aa7baac14689697146245b963e2edad4b7.9bafc4865927b7642d0443fd9f86e25f",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 18,
+    "username": "عمر تيناوي",
+    "password": "093375",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 20,
+    "username": "كريم ز",
+    "password": "495969",
+    "role": "teacher",
+    "telegram_username": "890245290",
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 21,
+    "username": "عمر ش",
+    "password": "653876",
+    "role": "teacher",
+    "telegram_username": "341654441",
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 22,
+    "username": "أحمد",
+    "password": "315558",
+    "role": "teacher",
+    "telegram_username": "123832192",
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 23,
+    "username": "ياسر ك",
+    "password": "976918",
+    "role": "teacher",
+    "telegram_username": "6152577615",
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 24,
+    "username": "محمد النحلة",
+    "password": "302022",
+    "role": "teacher",
+    "telegram_username": "408081841",
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 26,
+    "username": "محمد عيد",
+    "password": "525599",
+    "role": "teacher",
+    "telegram_username": "660196077",
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 28,
+    "username": "محمد سق",
+    "password": "b5070aae2e2215c6e6bd4fa20221d859f9b14becd26424410a36907f2ec01ed4518dae3fe817be7b9730cda88eb4c3a0b709a2b5eaa2557b11ea26de82fc0b71.d19f27eb5309c2e1c09a13e0af4307d6",
+    "role": "teacher",
+    "telegram_username": "608011365",
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 30,
+    "username": "عمر شماع",
+    "password": "477886",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 31,
+    "username": " خالد دا",
+    "password": "1654a8dd896a6b0dd5bb15da9a691349b9c199e8cd7db9b3eb73016ca615462b4af5c7b455fcd0ff02b913727d8e14c9b8b338878cd4c99d3d5795fb8a1cf652.6499bbf5325d43cf83eb0448fe7a9055",
+    "role": "teacher",
+    "telegram_username": "886227760",
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 32,
+    "username": "هيثم",
+    "password": "55555",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 33,
+    "username": "عبد الرحمن جودة",
+    "password": "926777",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 34,
+    "username": "هشام سيوفي",
+    "password": "199628",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 35,
+    "username": "مكي",
+    "password": "105150",
+    "role": "teacher",
+    "telegram_username": "843865406",
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 36,
+    "username": "شعار",
+    "password": "437309",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 37,
+    "username": "بشير",
+    "password": "417307",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 39,
+    "username": "عمر عابدين",
+    "password": "657332",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 40,
+    "username": "همام",
+    "password": "871590",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 41,
+    "username": "حسين",
+    "password": "637329",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 42,
+    "username": "نشواتي",
+    "password": "407306",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 43,
+    "username": "زنبركجي",
+    "password": "357301",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 44,
+    "username": "عاصم",
+    "password": "964677",
+    "role": "teacher",
+    "telegram_username": "817420927",
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 46,
+    "username": "خالد ق",
+    "password": "627330",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 48,
+    "username": "بسام",
+    "password": "427308",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 49,
+    "username": "حسن",
+    "password": "982934",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 50,
+    "username": "موفق",
+    "password": "527319",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 51,
+    "username": "عمر جودة",
+    "password": "387304",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 52,
+    "username": "عماد ج",
+    "password": "561666",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 53,
+    "username": "فاروق",
+    "password": "367302",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 54,
+    "username": "عمر دالاتي",
+    "password": "894515",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 55,
+    "username": "سامي",
+    "password": "647331",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 56,
+    "username": "امين",
+    "password": "617328",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 57,
+    "username": "عبد الرحمن خوام",
+    "password": "367218",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 58,
+    "username": "زيد ش",
+    "password": "537320",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 60,
+    "username": "عبادة",
+    "password": "507317",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 64,
+    "username": "فؤاد",
+    "password": "596816",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 66,
+    "username": "تميم",
+    "password": "229588",
+    "role": "manager",
+    "telegram_username": "778969069",
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 67,
+    "username": "ذهبي",
+    "password": "189080",
+    "role": "teacher",
+    "telegram_username": "716185516",
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 68,
+    "username": "وليد",
+    "password": "275224",
+    "role": "teacher",
+    "telegram_username": "770558928",
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 70,
+    "username": "هشام",
+    "password": "017677",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 71,
+    "username": "بلال",
+    "password": "073803",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 72,
+    "username": "أبي",
+    "password": "880880",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 74,
+    "username": "بلال",
+    "password": "073803",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 75,
+    "username": "محمد عج",
+    "password": "de8e41a0919e74d474b4a295464ec291676a2b56eae19d00384fdbd6fb38e66a59565c3facec676d111555e6920266511b06fd482e856105c8182cdaf5e7e106.be460af5c45609edf9bf20cc8ab429a4",
+    "role": "teacher",
+    "telegram_username": "6319541786",
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 76,
+    "username": "معاذ ش",
+    "password": "066322",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 77,
+    "username": "براء ح",
+    "password": "735548",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 78,
+    "username": "محمد خير",
+    "password": "077525",
+    "role": "teacher",
+    "telegram_username": "808253073",
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 79,
+    "username": "عمر ع",
+    "password": "434668",
+    "role": "teacher",
+    "telegram_username": "801274422",
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 81,
+    "username": "MERO",
+    "password": "243696",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 82,
+    "username": "ابي",
+    "password": "173641",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 84,
+    "username": "سارية🏔️",
+    "password": "249056",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 85,
+    "username": "هاشم",
+    "password": "333082",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 87,
+    "username": "براء ش",
+    "password": "378890",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 88,
+    "username": "غيث",
+    "password": "486684",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 89,
+    "username": "دقر",
+    "password": "523296",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 90,
+    "username": "هاشم سيوفي",
+    "password": "102355",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 91,
+    "username": "سمهوري",
+    "password": "543134",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 92,
+    "username": "زيد شماع",
+    "password": "941851",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 93,
+    "username": "زياد",
+    "password": "100502",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 94,
+    "username": "اياد",
+    "password": "576704",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 95,
+    "username": "رضوان",
+    "password": "159005",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 96,
+    "username": "حمزة قنواتي",
+    "password": "548901",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 97,
+    "username": " أسامة ش",
+    "password": "99497aa3f51cf669c310126d64eb668041a884414afb43f5082cb939b99e41bda5e0a945adec06e7eba71ca80125c15f592f0c3e15e22a56255b20057f1db398.1a918fafb4f78cf307b1a3a4e5f8e950",
+    "role": "teacher",
+    "telegram_username": "820176268",
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 98,
+    "username": "حمزة ش",
+    "password": "550202",
+    "role": "teacher",
+    "telegram_username": "1019824156",
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 99,
+    "username": " أنس ش",
+    "password": "13027c47cd08e082bd1af23d9abdc62f3ac68b6afb34d962e33fbfe5ab8e813e43c67a03adb1ffa5c3d61abf2dfcc7866c8fec3991b419c0dc27f867972b7f72.5bf9f97388df6f03952a01b7195aabae",
+    "role": "teacher",
+    "telegram_username": "735222968",
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 100,
+    "username": "بدر🌕",
+    "password": "564565",
+    "role": "teacher",
+    "telegram_username": "903115447",
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 101,
+    "username": "ممدوح",
+    "password": "76598",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 103,
+    "username": "محمد ق",
+    "password": "58609",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 105,
+    "username": "عمر س",
+    "password": "1001",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 106,
+    "username": "عمرو ن",
+    "password": "2350a9afbde3221c21aec5d5abebd93f1f1487763e4e6a571877b95842117205c2b2dade3bd1d0e45a087bbb131af721bae0868e0a0c79711f57c734fda91992.67dbd0291bfb222e4955c9394b02773a",
+    "role": "teacher",
+    "telegram_username": "7224207320",
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 107,
+    "username": "جاد",
+    "password": "537786",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 108,
+    "username": "زيد قباني",
+    "password": "624894",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 109,
+    "username": "كريم",
+    "password": "241930",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 110,
+    "username": "بشر // معطل",
+    "password": "1004",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 111,
+    "username": "زيدان",
+    "password": "909461",
+    "role": "teacher",
+    "telegram_username": "1066772774",
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 116,
+    "username": "عبد عابدين",
+    "password": "654982",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 117,
+    "username": "محمد رز",
+    "password": "518425",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 118,
+    "username": "محمود",
+    "password": "985632",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 119,
+    "username": "ابراهيم س",
+    "password": "553030",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 120,
+    "username": "توفيق",
+    "password": "365910",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 122,
+    "username": "مطاع",
+    "password": "541230",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 123,
+    "username": "عمر مس",
+    "password": "528520",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 124,
+    "username": "عبادة نج",
+    "password": "569993",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 125,
+    "username": "عمر شع",
+    "password": "115587",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 126,
+    "username": "عبد دالاتي",
+    "password": "677338",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 128,
+    "username": "محمد نور",
+    "password": "960390",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 130,
+    "username": "عبد حمامي",
+    "password": "481429",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 131,
+    "username": "زيد قنو",
+    "password": "803636",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 132,
+    "username": "عمر عيد",
+    "password": "449971",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 134,
+    "username": "اويس",
+    "password": "559867",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 135,
+    "username": "محمد شماع",
+    "password": "027435",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 136,
+    "username": "مأمون",
+    "password": "763747",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 137,
+    "username": "زيد أيو",
+    "password": "473625",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 138,
+    "username": "عبادة غو",
+    "password": "908353",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 139,
+    "username": "عمرو غو",
+    "password": "348567",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 143,
+    "username": "علي",
+    "password": "828623",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 144,
+    "username": "غيث",
+    "password": "486684",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 145,
+    "username": "يحيى",
+    "password": "336659",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 146,
+    "username": "معاذ م",
+    "password": "512003",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 147,
+    "username": "فؤاد",
+    "password": "596816",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 148,
+    "username": "امير",
+    "password": "296854",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 150,
+    "username": "عبد الله",
+    "password": "456189",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 151,
+    "username": "عمر حسنين",
+    "password": "987876",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 152,
+    "username": "حمزة س",
+    "password": "876765",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 153,
+    "username": "محمد خلي //  معطل",
+    "password": "765654",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 154,
+    "username": "ابراهيم",
+    "password": "654543",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 155,
+    "username": "طارق",
+    "password": "345344",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 156,
+    "username": "عمر مزيك",
+    "password": "432321",
+    "role": "teacher",
+    "telegram_username": "5458097208",
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 157,
+    "username": "مؤمن",
+    "password": "321210",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 158,
+    "username": "عمر قب",
+    "password": "555432",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 159,
+    "username": "سوار",
+    "password": "779882",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 160,
+    "username": "غيث رمض",
+    "password": "225268",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 161,
+    "username": "همام",
+    "password": "871590",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 162,
+    "username": "مأمون",
+    "password": "763747",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 163,
+    "username": "عبادة الزين",
+    "password": "263261",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 164,
+    "username": "عبادة خولي",
+    "password": "543647",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 165,
+    "username": "عبادة سكر",
+    "password": "767231",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 166,
+    "username": "عمر موات",
+    "password": "124581",
+    "role": "teacher",
+    "telegram_username": "679271406",
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 167,
+    "username": "عرفان",
+    "password": "106275",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 169,
+    "username": " أسامة ن",
+    "password": "7aa81f920aecb01096dc61b29cd6c9d52359684c94b5b642aa066e19f207525fb16d625ccd35ef4541d1eb6089b286968e3250815b654ab464e1d1a4c005bec6.0b9394f14de93181ed878a672d1cfa6f",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 170,
+    "username": "صبحي",
+    "password": "517032",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 171,
+    "username": "ياسر س",
+    "password": "113645",
+    "role": "teacher",
+    "telegram_username": "229006339",
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 172,
+    "username": "يزن",
+    "password": "956116",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 173,
+    "username": "عبادة الحافي",
+    "password": "679914",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 174,
+    "username": "ربيع",
+    "password": "686630",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 175,
+    "username": "غيث سيروان",
+    "password": "515468",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 176,
+    "username": "كريم ض",
+    "password": "23e5744ec1ad33a5def00e05bcee3c7e8d70269e9c10477e7b468cb3ecaffa58eff86164efad197ccdec43932974cb8cda5ffb50b9138fe82fa0ddeae52514b6.bb2d39e209307aee3d7f2550330ce759",
+    "role": "manager",
+    "telegram_username": "661765388",
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 177,
+    "username": "أويس زا",
+    "password": "9fc91784d88b442f70d76c18d621e3adc4288386475da2f741084ae77af7c4af6d618bc938ff84518463adb5526040a8146ad75b984cfbb1399f06d19f21c8f6.45aba28c86fa99b41d481bc7e872ca16",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 178,
+    "username": "عمر صم",
+    "password": "268354",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 180,
+    "username": "عبدالرحمن سكر",
+    "password": "778899",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 181,
+    "username": "اسامة ش",
+    "password": "550606",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 182,
+    "username": "محمود س",
+    "password": "551414",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 183,
+    "username": "يمان سل",
+    "password": "550909",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 184,
+    "username": "ابراهيم س",
+    "password": "553030",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 185,
+    "username": "يمان سم",
+    "password": "551818",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 186,
+    "username": "محمد الل",
+    "password": "552121",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 187,
+    "username": "اواب شح",
+    "password": "551212",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 188,
+    "username": "انس الر",
+    "password": "550303",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 189,
+    "username": "عبد الكريم",
+    "password": "552626",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 190,
+    "username": "كريم ش",
+    "password": "551919",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 191,
+    "username": "حمزة ش",
+    "password": "550202",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 192,
+    "username": "بدر م",
+    "password": "551010",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 193,
+    "username": "ياسين",
+    "password": "851995",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 194,
+    "username": "محمد الع",
+    "password": "551616",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 195,
+    "username": "مهند الع",
+    "password": "552424",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 197,
+    "username": "خالد ص",
+    "password": "551717",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 198,
+    "username": "كمال ع",
+    "password": "550707",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 199,
+    "username": "ابراهيم بر",
+    "password": "552323",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 200,
+    "username": "عامر ع",
+    "password": "123456",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 201,
+    "username": "عبد الرحمن سق",
+    "password": "551515",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 202,
+    "username": "عبد الرحمن دق",
+    "password": "552020",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 203,
+    "username": "هيثم سبي",
+    "password": "551111",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 204,
+    "username": "كرم نش",
+    "password": "552222",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 205,
+    "username": "زيد حم",
+    "password": "550101",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 206,
+    "username": "زيد وت",
+    "password": "553535",
+    "role": "student",
+    "telegram_username": null,
+    "section": "other",
+    "telegram_id": null
+  },
+  {
+    "id": 207,
+    "username": "زيد نائ",
+    "password": "550505",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 208,
+    "username": "حذيفة",
+    "password": "457312",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 209,
+    "username": "نور",
+    "password": "2410",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 210,
+    "username": "حمزة",
+    "password": "477314",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 211,
+    "username": "أنس ب",
+    "password": "467313",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 212,
+    "username": "اسامة",
+    "password": "577324",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 213,
+    "username": "خالد داوود",
+    "password": "03a50ba6bbf6c78eb31c1d819b3db09099ae30207c80ceb455046b508aebbe8df58b58a3071844820fb33dd720368e5e4abe669fd6a9141621e4198fa1cd54a4.b9c31c2e5dd43ef6070030086f45343a",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 214,
+    "username": "أنس حسنين",
+    "password": "497316",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 215,
+    "username": "معتز",
+    "password": "567323",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 216,
+    "username": "وحيد",
+    "password": "587325",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 217,
+    "username": "انس ش",
+    "password": "607327",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 220,
+    "username": "نائل",
+    "password": "012211",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 221,
+    "username": "منير",
+    "password": "012212",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 222,
+    "username": "راتب",
+    "password": "443088",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 230,
+    "username": "أنس مو",
+    "password": "947344",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 232,
+    "username": "عبدالغني",
+    "password": "553434",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 234,
+    "username": "محمد يو",
+    "password": "397305",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 237,
+    "username": "ياسر غب",
+    "password": "622311",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 239,
+    "username": "احمد ط",
+    "password": "552727",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 240,
+    "username": "خالد طر",
+    "password": "557322",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 241,
+    "username": "خالد حكيم",
+    "password": "192643",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 242,
+    "username": "عمر الحكيم",
+    "password": "868291",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 243,
+    "username": "عبادة حا",
+    "password": "944753",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 244,
+    "username": "طالب",
+    "password": "935518",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 245,
+    "username": "اويس",
+    "password": "559867",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 246,
+    "username": "أحمد صبح // معطل",
+    "password": "123654",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 247,
+    "username": "زيد",
+    "password": "987687",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "obada",
+    "telegram_id": null
+  },
+  {
+    "id": 249,
+    "username": "كريم مش",
+    "password": "444563",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 250,
+    "username": "هشام مشنوق // معطل",
+    "password": "112349",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 251,
+    "username": "قاسم // معطل",
+    "password": "113296",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 252,
+    "username": "عبدالكريم",
+    "password": "445632",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 264,
+    "username": "براء جباري",
+    "password": "996654",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 265,
+    "username": "خالد الص",
+    "password": "3347",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 266,
+    "username": "ربيع س",
+    "password": "635",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 269,
+    "username": "إدريس",
+    "password": "56465",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 271,
+    "username": "عبادة مولوي",
+    "password": "111111",
+    "role": "teacher",
+    "telegram_username": "338748299",
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 272,
+    "username": "عبد القادر",
+    "password": "168315",
+    "role": "manager",
+    "telegram_username": "6324135469",
+    "section": "kibar",
+    "telegram_id": null
+  },
+  {
+    "id": 273,
+    "username": "عبد ح",
+    "password": "123456",
+    "role": "teacher",
+    "telegram_username": "1093861111",
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 274,
+    "username": "عمرو",
+    "password": "244839",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 275,
+    "username": "زاهر",
+    "password": "123456",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 276,
+    "username": "Abd M",
+    "password": "123456",
+    "role": "student",
+    "telegram_username": null,
+    "section": "other",
+    "telegram_id": null
+  },
+  {
+    "id": 278,
+    "username": "زيد س",
+    "password": "336353",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 279,
+    "username": "عبدو عابدين",
+    "password": "499389",
+    "role": "manager",
+    "telegram_username": "802589526",
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 280,
+    "username": "أويس م",
+    "password": "556777",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 281,
+    "username": "أحمد عا",
+    "password": "a4c5aa1da2fdce04cc8da66a1d7a362cfdce71f4ddad6f59c2a8abab30f2f01214481cf76926e82c2779c7de5f0058979d6b43826bb11237e74547c174d7eb80.61e69a06763ae06743981a356c6288c7",
+    "role": "teacher",
+    "telegram_username": "251589107",
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 282,
+    "username": "ياسر غم",
+    "password": "564298",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 283,
+    "username": "بشر ص",
+    "password": "798273",
+    "role": "teacher",
+    "telegram_username": "798273",
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 284,
+    "username": "معاذ أو",
+    "password": "4e3ec82d3481dbe3b13d57d1ca053f6ad6eb5307629c7973798d9d20b742b70ece4965277e195dd4c82c42888a3299715e10f2908499c8326688f103fa8f52c7.a3f3a634dbc46c5228446c70bf684744",
+    "role": "teacher",
+    "telegram_username": "871142068",
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 285,
+    "username": " زهير ك",
+    "password": "7bd83fc8aa907f2cfa02f9d36d21321fdf3c43f24994113105727de63d117c28e85fa7ab4791cecf7a6c470ab63a31eaf6a53adf5115125c29237ac3a66a31ac.ea9e2ad6ca590801cef8e2e159495163",
+    "role": "teacher",
+    "telegram_username": "864441792",
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 286,
+    "username": "ياسر خ",
+    "password": "131955",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 287,
+    "username": "أزهر",
+    "password": "668892",
+    "role": "teacher",
+    "telegram_username": "657866280",
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 288,
+    "username": "حسام",
+    "password": "825428",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 289,
+    "username": "أنس ع",
+    "password": "835775",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 290,
+    "username": "أنس ح",
+    "password": "692790",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 291,
+    "username": "محمد ف",
+    "password": "870948",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 292,
+    "username": "رضوان",
+    "password": "159005",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 293,
+    "username": "أحمد ع",
+    "password": "978456",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 294,
+    "username": "داني 1",
+    "password": "746945",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "kibar",
+    "telegram_id": null
+  },
+  {
+    "id": 295,
+    "username": "طارق",
+    "password": "345344",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "kibar",
+    "telegram_id": null
+  },
+  {
+    "id": 296,
+    "username": "عمر",
+    "password": "984456",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "kibar",
+    "telegram_id": null
+  },
+  {
+    "id": 297,
+    "username": "بشر",
+    "password": "625485",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "kibar",
+    "telegram_id": null
+  },
+  {
+    "id": 298,
+    "username": "أمير",
+    "password": "654321",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 299,
+    "username": "أواب",
+    "password": "801801",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 300,
+    "username": "كنان",
+    "password": "308102",
+    "role": "student",
+    "telegram_username": null,
+    "section": "other",
+    "telegram_id": null
+  },
+  {
+    "id": 301,
+    "username": "أحمد قصار",
+    "password": "255653",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 302,
+    "username": "ياسردياب",
+    "password": "801864",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 303,
+    "username": "ياسين",
+    "password": "851995",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 304,
+    "username": "يوسف",
+    "password": "63634",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 305,
+    "username": "زيد ح",
+    "password": "238459",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 306,
+    "username": "زيد اد",
+    "password": "239575",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 307,
+    "username": "قيس",
+    "password": "49674",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 308,
+    "username": "أحمد عقاد",
+    "password": "58689",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 309,
+    "username": "مصطفى",
+    "password": "205868",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 310,
+    "username": "رؤوف",
+    "password": "298975",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 311,
+    "username": "مؤمن عناية",
+    "password": "415400",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 312,
+    "username": "غيث س",
+    "password": "234567",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 313,
+    "username": "عمر س",
+    "password": "1001",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 314,
+    "username": "عمر ن",
+    "password": "1002",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 316,
+    "username": "عبادة قب",
+    "password": "1122",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 317,
+    "username": "بشر // معطل_317",
+    "password": "027201d4233f07ed7f4f0336085d224a500b6f0e4bcb0ac66f152eee8f4f2b85b786bb76f0fb7f16eea7013df3296cc56caec2304f2ff7c47b73c3dc98c9c491.fcbb5ed4554afb4c4566f458e184432c",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 318,
+    "username": "حسام",
+    "password": "825428",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 319,
+    "username": "عمرو عقاد ش",
+    "password": "335330",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 320,
+    "username": "مامون",
+    "password": "456438",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 321,
+    "username": "وسيم",
+    "password": "65380",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 322,
+    "username": "أسامة الكسم",
+    "password": "909065",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 323,
+    "username": "عبد جيرودية",
+    "password": "116585",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 324,
+    "username": "عبد الله سراج",
+    "password": "232669",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "khaled",
+    "telegram_id": null
+  },
+  {
+    "id": 325,
+    "username": "اسامة الدقر",
+    "password": "423920",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 326,
+    "username": "يحيى ت",
+    "password": "202020",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 327,
+    "username": "محمد حجازي",
+    "password": "236987",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 329,
+    "username": "محمد جاجة",
+    "password": "434393",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 330,
+    "username": "حمزة سراج",
+    "password": "694411",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 331,
+    "username": "أحمد ر",
+    "password": "47658",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 332,
+    "username": "محمد ق",
+    "password": "58609",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 334,
+    "username": "عبادة ح",
+    "password": "43890",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 335,
+    "username": "مظهر",
+    "password": "53707",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 336,
+    "username": "عبد الرحمن شرف",
+    "password": "28249",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 337,
+    "username": "صالح",
+    "password": "2323",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 338,
+    "username": "عمار ف",
+    "password": "9898",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 339,
+    "username": "عبد الرحمن حافظ",
+    "password": "963236",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 340,
+    "username": "علاء",
+    "password": "9009",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 341,
+    "username": "يحيى",
+    "password": "336659",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 343,
+    "username": "سعيد",
+    "password": "808525",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 344,
+    "username": "غيث",
+    "password": "486684",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 345,
+    "username": "زيد ص",
+    "password": "456380",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 346,
+    "username": "مجد",
+    "password": "559812",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 347,
+    "username": "كريم ف",
+    "password": "552178",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 348,
+    "username": "كريم د",
+    "password": "59713",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 349,
+    "username": "عبادة ر",
+    "password": "598384",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 350,
+    "username": "حمزة م",
+    "password": "59841",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 351,
+    "username": "ملاذ",
+    "password": "57946",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 352,
+    "username": "احمد ق",
+    "password": "234875",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 353,
+    "username": "براء ق",
+    "password": "57933",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 354,
+    "username": "عبدالحليم",
+    "password": "577991",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 355,
+    "username": "مصعب",
+    "password": "58266",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 356,
+    "username": "عمرو ق",
+    "password": "554455",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 357,
+    "username": "عمر سب",
+    "password": "569741",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 358,
+    "username": "عمر سي",
+    "password": "597843",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 359,
+    "username": "غياث س",
+    "password": "514789",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 360,
+    "username": "بشر م",
+    "password": "553694",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 361,
+    "username": "عمر ه",
+    "password": "513972",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 362,
+    "username": "كنان",
+    "password": "308102",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 363,
+    "username": "بلال حباب",
+    "password": "443623",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 364,
+    "username": "عثمان",
+    "password": "551849",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 365,
+    "username": "طه نو",
+    "password": "648658",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 366,
+    "username": "نور ق",
+    "password": "963365",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 367,
+    "username": "محمد خط",
+    "password": "326159",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 369,
+    "username": "هيثم ز",
+    "password": "553333",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 370,
+    "username": "هشام مش",
+    "password": "2003",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 371,
+    "username": "بشر حا",
+    "password": "123456",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 372,
+    "username": "يمان أ",
+    "password": "559991",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 373,
+    "username": "عبد الرحمن ح",
+    "password": "332145",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 374,
+    "username": "رياض",
+    "password": "58493",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 375,
+    "username": "كريم قب",
+    "password": "357895",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 376,
+    "username": "فرزت",
+    "password": "373442",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 377,
+    "username": "محمد مك",
+    "password": "951846",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 379,
+    "username": "ادم فقير",
+    "password": "101111",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 380,
+    "username": "احمد خطيب",
+    "password": "101222",
+    "role": "student",
+    "telegram_username": null,
+    "section": "omar",
+    "telegram_id": null
+  },
+  {
+    "id": 381,
+    "username": "هشام س",
+    "password": "554896",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 382,
+    "username": "يحيى ق",
+    "password": "76321",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 383,
+    "username": "ضياء ظب",
+    "password": "1289",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 384,
+    "username": "تميم",
+    "password": "229588",
+    "role": "teacher",
+    "telegram_username": "778969069",
+    "section": "mmdoh",
+    "telegram_id": null
+  },
+  {
+    "id": 385,
+    "username": "محمد الزين",
+    "password": "353575",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 386,
+    "username": "جاد عقاد",
+    "password": "657389",
+    "role": "student",
+    "telegram_username": null,
+    "section": "jaddubai",
+    "telegram_id": null
+  },
+  {
+    "id": 387,
+    "username": "عمر كسم",
+    "password": "57498",
+    "role": "student",
+    "telegram_username": null,
+    "section": "jaddubai",
+    "telegram_id": null
+  },
+  {
+    "id": 388,
+    "username": "وسيم",
+    "password": "65380",
+    "role": "student",
+    "telegram_username": null,
+    "section": "jaddubai",
+    "telegram_id": null
+  },
+  {
+    "id": 389,
+    "username": "زيد أ",
+    "password": "436096",
+    "role": "student",
+    "telegram_username": null,
+    "section": "jaddubai",
+    "telegram_id": null
+  },
+  {
+    "id": 390,
+    "username": "فراس",
+    "password": "986542",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 391,
+    "username": "خالد قبيطري",
+    "password": "774565",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 392,
+    "username": "سامر",
+    "password": "98320",
+    "role": "student",
+    "telegram_username": null,
+    "section": "jaddubai",
+    "telegram_id": null
+  },
+  {
+    "id": 393,
+    "username": "اسامة ق",
+    "password": "123456",
+    "role": "student",
+    "telegram_username": null,
+    "section": "bader",
+    "telegram_id": null
+  },
+  {
+    "id": 394,
+    "username": "احمد ق",
+    "password": "234875",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 395,
+    "username": "غيث سبيعي 2",
+    "password": "852654",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 396,
+    "username": "ممدوح",
+    "password": "76598",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 397,
+    "username": "نصر",
+    "password": "111222",
+    "role": "student",
+    "telegram_username": null,
+    "section": "jaddubai",
+    "telegram_id": null
+  },
+  {
+    "id": 398,
+    "username": "بدر طرابيشي",
+    "password": "985432",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 399,
+    "username": "عبد ورع",
+    "password": "98765",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 400,
+    "username": "كنان ح",
+    "password": "555515",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 401,
+    "username": "زيد اك",
+    "password": "554514",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 402,
+    "username": "مروان س",
+    "password": "653575",
+    "role": "teacher",
+    "telegram_username": "852627740",
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 403,
+    "username": "جود",
+    "password": "546798",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 404,
+    "username": "مالك ح",
+    "password": "571135",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 405,
+    "username": "زيد ادل",
+    "password": "74309",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 406,
+    "username": "يوسف",
+    "password": "63634",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 407,
+    "username": "كريم خ",
+    "password": "559787",
+    "role": "student",
+    "telegram_username": null,
+    "section": "mahmoud",
+    "telegram_id": null
+  },
+  {
+    "id": 408,
+    "username": "سعيد",
+    "password": "808525",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 409,
+    "username": "يوسف_409",
+    "password": "dc9889cd89deff4e6a0e9356c98422ecb15be72275955423a654471aa2bd30928e23ff4c2deb66aae425793ba0015f9d8664dbf23b4d72b59b630fdb2cfe93eb.6359f1058a39fe9449ac8ba03ed01aae",
+    "role": "student",
+    "telegram_username": null,
+    "section": "aasem",
+    "telegram_id": null
+  },
+  {
+    "id": 410,
+    "username": "اواب قواص",
+    "password": "254586",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 411,
+    "username": "محمد قني",
+    "password": "389134",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "awab",
+    "telegram_id": null
+  },
+  {
+    "id": 412,
+    "username": "طارق قني",
+    "password": "929263",
+    "role": "student",
+    "telegram_username": null,
+    "section": "motaa",
+    "telegram_id": null
+  },
+  {
+    "id": 413,
+    "username": "خالد سلطان",
+    "password": "741145",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "zuhair",
+    "telegram_id": null
+  },
+  {
+    "id": 414,
+    "username": "معاذ",
+    "password": "430587",
+    "role": "student",
+    "telegram_username": null,
+    "section": "jaddubai",
+    "telegram_id": null
+  },
+  {
+    "id": 415,
+    "username": "فواز ح",
+    "password": "94598",
+    "role": "student",
+    "telegram_username": null,
+    "section": "dubai-omar",
+    "telegram_id": null
+  },
+  {
+    "id": 416,
+    "username": "نور",
+    "password": "2410",
+    "role": "student",
+    "telegram_username": null,
+    "section": "jaddubai",
+    "telegram_id": null
+  },
+  {
+    "id": 417,
+    "username": "عمرو عقاد س",
+    "password": "336974",
+    "role": "teacher",
+    "telegram_username": null,
+    "section": "yahia",
+    "telegram_id": null
+  },
+  {
+    "id": 418,
+    "username": "جواد ح",
+    "password": "2323",
+    "role": "student",
+    "telegram_username": null,
+    "section": "jaddubai",
+    "telegram_id": null
+  }
+]
