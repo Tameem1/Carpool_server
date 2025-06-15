@@ -44,7 +44,7 @@ export async function verifyPassword(plainPassword: string, hashedPassword: stri
 // Get unique sections from user data
 export function getUniqueSections(users: any[]): string[] {
   const sections = users.map(user => user.section).filter(Boolean);
-  return [...new Set(sections)].sort();
+  return Array.from(new Set(sections)).sort();
 }
 
 // Get users by section

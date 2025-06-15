@@ -256,21 +256,28 @@ const requireRole = (roles: string[]) => {
 import session from 'express-session';
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Simple auth setup
-  
+  const server = createServer(app);
+
+  // Setup session middleware
   app.use(session({
-    secret: 'demo-secret-key',
+    store: new PgSession({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: true
+    }),
+    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 86400000 }
+    cookie: { 
+      secure: false, // Set to true in production with HTTPS
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
   }));
 
-  // Demo users
-  const demoUsers = [
-    { id: "admin-1", email: "admin@demo.com", firstName: "Admin", lastName: "User", phoneNumber: "+1-555-0001", role: "admin" as const, profileImageUrl: null },
-    { id: "user-1", email: "john@demo.com", firstName: "John", lastName: "Smith", phoneNumber: "+1-555-0002", role: "user" as const, profileImageUrl: null },
-    { id: "user-2", email: "jane@demo.com", firstName: "Jane", lastName: "Doe", phoneNumber: "+1-555-0003", role: "user" as const, profileImageUrl: null },
-  ];
+  // Setup authentication
+  await setupAuth(app);
+
+  // Setup WebSocket
+  setupWebSocket(server);
 
   // Login routes
   app.get("/api/login", (req, res) => {

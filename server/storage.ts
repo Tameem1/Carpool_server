@@ -162,8 +162,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUniqueSections(): Promise<string[]> {
-    const result = await db.selectDistinct({ section: users.section }).from(users);
-    return result.map(r => r.section).sort();
+    const result = await db.select({ section: users.section }).from(users);
+    const uniqueSections = Array.from(new Set(result.map(r => r.section))).sort();
+    return uniqueSections;
   }
 
   async upsertUser(userData: InsertUser): Promise<User> {
