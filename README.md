@@ -164,6 +164,53 @@ DB_PROVIDER=local  # Options: 'local' or 'neon' or 'cloud'
 - The default PostgreSQL port is 5432
 - If you're using a different port, update the DATABASE_URL accordingly
 
+### Switching from Neon to Local PostgreSQL
+
+The project currently uses Neon's serverless PostgreSQL by default. To switch to a local PostgreSQL database:
+
+**Option 1: Use the Local Database Configuration File**
+
+1. Install the standard PostgreSQL driver:
+   ```bash
+   npm install pg @types/pg
+   ```
+
+2. Replace the database import in your server files:
+   ```bash
+   # In all server files that import from './db', change:
+   # import { db, pool } from './db';
+   # to:
+   # import { db, pool } from './db-local';
+   ```
+
+3. Or rename the files:
+   ```bash
+   mv server/db.ts server/db-neon.ts
+   mv server/db-local.ts server/db.ts
+   ```
+
+**Option 2: Modify db.ts Directly**
+
+Replace the contents of `server/db.ts` with:
+```typescript
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from "@shared/schema";
+
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?",
+  );
+}
+
+export const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  ssl: false // Disabled for local development
+});
+
+export const db = drizzle({ client: pool, schema });
+```
+
 ### 5. Database Migration
 
 Push the database schema:
