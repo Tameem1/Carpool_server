@@ -52,6 +52,19 @@ export async function setupAuth(app: Express) {
 
       console.log('Authentication successful for user:', user.username);
 
+      // Auto-migrate plain text passwords to hashed versions
+      const { needsPasswordMigration, hashPassword } = await import('./auth-utils');
+      if (needsPasswordMigration(user.password)) {
+        try {
+          const hashedPassword = await hashPassword(password);
+          await storage.updateUser(user.id, { password: hashedPassword });
+          console.log('Migrated plain text password to hash for user:', user.username);
+        } catch (error) {
+          console.log('Failed to migrate password for user:', user.username, error);
+          // Continue with login even if migration fails
+        }
+      }
+
       return done(null, {
         id: user.id,
         username: user.username,

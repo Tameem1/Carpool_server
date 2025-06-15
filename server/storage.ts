@@ -28,6 +28,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsernameAndSection(username: string, section: string): Promise<User | undefined>;
   upsertUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, updates: Partial<InsertUser>): Promise<User>;
   updateUserRole(id: string, role: UserRole): Promise<User>;
   getAllUsers(): Promise<User[]>;
   getAdminUsers(): Promise<User[]>;
