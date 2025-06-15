@@ -297,6 +297,50 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               )}
             />
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <FormField
+                control={form.control}
+                name="totalSeats"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">إجمالي المقاعد</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="6"
+                        className="touch-friendly"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 6)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="availableSeats"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">المقاعد المتاحة</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="6"
+                        className="touch-friendly"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 6)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             
 
             {isAdmin && (
