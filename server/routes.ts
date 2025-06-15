@@ -917,16 +917,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add rider to trip (admin only)
-  app.post('/api/trips/:id/riders', requireRole(['admin']), async (req: any, res) => {
+  // Add rider to trip (admin or driver)
+  app.post('/api/trips/:id/riders', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { userId } = req.body;
       const tripId = parseInt(id);
+      const currentUserId = req.session?.userId;
       
       const trip = await storage.getTrip(tripId);
       if (!trip) {
         return res.status(404).json({ message: "Trip not found" });
+      }
+
+      const currentUser = await storage.getUser(currentUserId);
+      
+      // Check if user is admin or the driver of this trip
+      if (currentUser?.role !== 'admin' && trip.driverId !== currentUserId) {
+        return res.status(403).json({ message: "Only admins or the trip driver can add riders" });
       }
 
       const currentRiders = trip.riders || [];
@@ -944,6 +952,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         availableSeats: trip.totalSeats - updatedRiders.length
       });
       
+      // Broadcast trip update to all connected clients
+      broadcastToAll({
+        type: 'trip_updated',
+        data: updatedTrip
+      });
+      
       res.json(updatedTrip);
     } catch (error) {
       console.error("Error adding rider to trip:", error);
@@ -951,15 +965,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Remove rider from trip (admin only)
-  app.delete('/api/trips/:id/riders/:userId', requireRole(['admin']), async (req: any, res) => {
+  // Remove rider from trip (admin or driver)
+  app.delete('/api/trips/:id/riders/:userId', isAuthenticated, async (req: any, res) => {
     try {
       const { id, userId } = req.params;
       const tripId = parseInt(id);
+      const currentUserId = req.session?.userId;
       
       const trip = await storage.getTrip(tripId);
       if (!trip) {
         return res.status(404).json({ message: "Trip not found" });
+      }
+
+      const currentUser = await storage.getUser(currentUserId);
+      
+      // Check if user is admin or the driver of this trip
+      if (currentUser?.role !== 'admin' && trip.driverId !== currentUserId) {
+        return res.status(403).json({ message: "Only admins or the trip driver can remove riders" });
       }
 
       const currentRiders = trip.riders || [];
@@ -971,6 +993,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedTrip = await storage.updateTrip(tripId, { 
         riders: updatedRiders,
         availableSeats: trip.totalSeats - updatedRiders.length
+      });
+      
+      // Broadcast trip update to all connected clients
+      broadcastToAll({
+        type: 'trip_updated',
+        data: updatedTrip
       });
       
       res.json(updatedTrip);
