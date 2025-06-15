@@ -12,33 +12,37 @@ export async function hashPassword(password: string): Promise<string> {
   return await bcrypt.hash(password, salt);
 }
 
-// Verify password against hash - handles both bcrypt and custom format
+// Verify password against hash - handles bcrypt, custom format, and plain text
 export async function verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
-  // If the stored password is already in the custom hash format (contains a dot)
-  if (isAlreadyHashed(hashedPassword)) {
-    // For existing hashed passwords, we need to handle the custom format
-    // The format appears to be: hash.salt
-    try {
-      return await bcrypt.compare(plainPassword, hashedPassword);
-    } catch {
-      // If bcrypt fails, try the custom format verification
-      const [hash, salt] = hashedPassword.split('.');
-      if (hash && salt) {
-        const testHash = crypto.pbkdf2Sync(plainPassword, Buffer.from(salt, 'hex'), 100000, 64, 'sha512');
-        return testHash.toString('hex') === hash;
-      }
-      return false;
-    }
+  // For bcrypt hashed passwords (most secure format)
+  if (hashedPassword.startsWith('$2b$') || hashedPassword.startsWith('$2a$') || hashedPassword.startsWith('$2y$')) {
+    return await bcrypt.compare(plainPassword, hashedPassword);
   }
   
-  // For plain text passwords (numeric), compare directly
-  // This handles the migration case where some passwords are still plain text
-  if (/^\d+$/.test(hashedPassword)) {
+  // For plain text passwords (numeric), compare directly during migration period
+  if (/^\d+$/.test(hashedPassword) && hashedPassword.length < 20) {
     return plainPassword === hashedPassword;
   }
   
-  // Standard bcrypt comparison
-  return await bcrypt.compare(plainPassword, hashedPassword);
+  // For custom hash format (legacy format with dot separator)
+  if (hashedPassword.includes('.') && hashedPassword.length > 100) {
+    const [hash, salt] = hashedPassword.split('.');
+    if (hash && salt) {
+      try {
+        const testHash = crypto.pbkdf2Sync(plainPassword, Buffer.from(salt, 'hex'), 100000, 64, 'sha512');
+        return testHash.toString('hex') === hash;
+      } catch {
+        return false;
+      }
+    }
+  }
+  
+  // Fallback: try bcrypt in case format detection fails
+  try {
+    return await bcrypt.compare(plainPassword, hashedPassword);
+  } catch {
+    return false;
+  }
 }
 
 // Check if a password needs to be migrated from plain text to hashed
