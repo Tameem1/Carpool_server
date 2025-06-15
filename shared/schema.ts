@@ -4,7 +4,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // User roles enum - expanded to include teacher, student, manager
-export const userRoles = ["teacher", "student", "manager", "admin"] as const;
+export const userRoles = ["user", "admin"] as const;
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
