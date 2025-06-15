@@ -1,5 +1,6 @@
-const bcrypt = require('bcryptjs');
-const { Pool } = require('pg');
+import bcrypt from 'bcryptjs';
+import pg from 'pg';
+const { Pool } = pg;
 
 async function completePasswordStandardization() {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
