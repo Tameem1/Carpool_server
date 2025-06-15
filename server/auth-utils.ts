@@ -14,8 +14,11 @@ export async function hashPassword(password: string): Promise<string> {
 
 // Verify password against hash - handles both bcrypt and custom format
 export async function verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+  console.log('Password verification attempt:', { plainPassword, hashedPassword, hashedLength: hashedPassword.length });
+  
   // If the stored password is already in the custom hash format (contains a dot)
   if (isAlreadyHashed(hashedPassword)) {
+    console.log('Using custom hash format verification');
     // For existing hashed passwords, we need to handle the custom format
     // The format appears to be: hash.salt
     try {
@@ -34,10 +37,14 @@ export async function verifyPassword(plainPassword: string, hashedPassword: stri
   // For plain text passwords (numeric), hash them first and then compare
   // This handles the migration case where some passwords are still plain text
   if (/^\d+$/.test(hashedPassword)) {
-    return plainPassword === hashedPassword;
+    console.log('Using plain text numeric password verification');
+    const result = plainPassword === hashedPassword;
+    console.log('Plain text comparison result:', result);
+    return result;
   }
   
   // Standard bcrypt comparison
+  console.log('Using standard bcrypt verification');
   return await bcrypt.compare(plainPassword, hashedPassword);
 }
 
