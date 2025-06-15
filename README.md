@@ -48,29 +48,102 @@ npm install
 
 ### 3. Database Setup
 
-#### Option A: Local PostgreSQL
-1. Install PostgreSQL on your system
-2. Create a new database:
-   ```sql
-   CREATE DATABASE carpool_db;
-   ```
-3. Create a database user (optional):
-   ```sql
-   CREATE USER carpool_user WITH PASSWORD 'your_password';
-   GRANT ALL PRIVILEGES ON DATABASE carpool_db TO carpool_user;
-   ```
+The application supports both local PostgreSQL and cloud-hosted databases. Choose the option that best fits your needs.
 
-#### Option B: Cloud Database (Neon, Supabase, etc.)
-1. Create a PostgreSQL database instance
-2. Note the connection string provided
+#### Option A: Local PostgreSQL Setup
+
+**Step 1: Install PostgreSQL**
+
+- **Windows**: Download from [postgresql.org](https://www.postgresql.org/download/windows/)
+- **macOS**: 
+  ```bash
+  # Using Homebrew
+  brew install postgresql
+  brew services start postgresql
+  ```
+- **Linux (Ubuntu/Debian)**:
+  ```bash
+  sudo apt update
+  sudo apt install postgresql postgresql-contrib
+  sudo systemctl start postgresql
+  sudo systemctl enable postgresql
+  ```
+
+**Step 2: Create Database and User**
+
+```bash
+# Switch to postgres user (Linux/macOS)
+sudo -u postgres psql
+
+# Or connect directly (Windows/macOS with Homebrew)
+psql postgres
+```
+
+Then run these SQL commands:
+
+```sql
+-- Create a new database
+CREATE DATABASE carpool_db;
+
+-- Create a dedicated user (recommended for security)
+CREATE USER carpool_user WITH PASSWORD 'your_secure_password_here';
+
+-- Grant all privileges on the database
+GRANT ALL PRIVILEGES ON DATABASE carpool_db TO carpool_user;
+
+-- Grant schema permissions (required for Drizzle ORM)
+\c carpool_db
+GRANT ALL ON SCHEMA public TO carpool_user;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO carpool_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO carpool_user;
+
+-- Exit psql
+\q
+```
+
+**Step 3: Test the Connection**
+
+```bash
+# Test connection with the new user
+psql -h localhost -U carpool_user -d carpool_db
+# Enter your password when prompted
+```
+
+#### Option B: Cloud Database (Neon, Supabase, Railway, etc.)
+
+**Neon (Recommended for serverless)**:
+1. Visit [neon.tech](https://neon.tech) and create an account
+2. Create a new project
+3. Copy the connection string from the dashboard
+
+**Supabase**:
+1. Visit [supabase.com](https://supabase.com) and create an account
+2. Create a new project
+3. Go to Settings → Database and copy the connection string
+
+**Railway**:
+1. Visit [railway.app](https://railway.app) and create an account
+2. Create a new PostgreSQL database
+3. Copy the connection string from the variables tab
 
 ### 4. Environment Variables
 
 Create a `.env` file in the project root with the following variables:
 
 ```env
-# Database Configuration
-DATABASE_URL=postgresql://username:password@localhost:5432/carpool_db
+# Database Configuration - Choose ONE of these formats:
+
+# For Local PostgreSQL:
+DATABASE_URL=postgresql://carpool_user:your_secure_password_here@localhost:5432/carpool_db
+
+# For Neon (Serverless):
+DATABASE_URL=postgresql://username:password@ep-example-123456.us-east-2.aws.neon.tech/dbname?sslmode=require
+
+# For Supabase:
+DATABASE_URL=postgresql://postgres:password@db.project.supabase.co:5432/postgres
+
+# For Railway:
+DATABASE_URL=postgresql://postgres:password@containers-us-west-1.railway.app:5432/railway
 
 # Session Secret (generate a random string)
 SESSION_SECRET=your-super-secret-session-key-here
@@ -80,7 +153,16 @@ TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
 
 # Application Environment
 NODE_ENV=development
+
+# Database Provider (affects db.ts configuration)
+DB_PROVIDER=local  # Options: 'local' or 'neon' or 'cloud'
 ```
+
+**Important Notes for Local Setup**:
+- Replace `your_secure_password_here` with your actual password
+- Ensure PostgreSQL is running before starting the application
+- The default PostgreSQL port is 5432
+- If you're using a different port, update the DATABASE_URL accordingly
 
 ### 5. Database Migration
 
@@ -91,6 +173,14 @@ npm run db:push
 ```
 
 This command will create all necessary tables in your PostgreSQL database.
+
+**Note**: If you see an error about missing packages when using local PostgreSQL, you may need to install the standard PostgreSQL driver:
+
+```bash
+npm install pg @types/pg
+```
+
+The project automatically detects your database provider and uses the appropriate driver.
 
 ### 6. Start the Application
 
@@ -227,28 +317,206 @@ The application uses the following main entities:
 
 ## Troubleshooting
 
-### Common Issues
+### Database Setup Issues
 
-1. **Database Connection Error**:
-   - Verify PostgreSQL is running
-   - Check DATABASE_URL in .env file
-   - Ensure database exists and is accessible
+#### 1. **PostgreSQL Connection Errors**
 
-2. **Build Errors**:
-   - Clear node_modules: `rm -rf node_modules && npm install`
-   - Check Node.js version (18+ required)
+**Error**: `error: password authentication failed for user`
+```bash
+# Solution: Check your credentials and recreate the user
+sudo -u postgres psql
+DROP USER IF EXISTS carpool_user;
+CREATE USER carpool_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE carpool_db TO carpool_user;
+```
 
-3. **Port Already in Use**:
-   - Change port in package.json dev script
-   - Kill existing processes: `lsof -ti:5000 | xargs kill`
+**Error**: `FATAL: database "carpool_db" does not exist`
+```bash
+# Solution: Create the database
+sudo -u postgres psql
+CREATE DATABASE carpool_db;
+```
 
-4. **WebSocket Connection Issues**:
-   - Ensure port 5001 is available
-   - Check firewall settings
+**Error**: `ECONNREFUSED` or `connection refused`
+```bash
+# Solution: Start PostgreSQL service
+# Linux/Ubuntu:
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
 
-### Logs
+# macOS (Homebrew):
+brew services start postgresql
 
-Application logs are displayed in the terminal when running `npm run dev`. Check these for detailed error information.
+# Windows: Start PostgreSQL service from Services app
+```
+
+#### 2. **Database Provider Detection Issues**
+
+**Error**: Cannot find module '@neondatabase/serverless'
+```bash
+# Solution: The app is trying to use Neon driver for local database
+# Set DB_PROVIDER in your .env file:
+echo "DB_PROVIDER=local" >> .env
+
+# Or install missing packages if using Neon:
+npm install @neondatabase/serverless ws
+```
+
+**Error**: Cannot find module 'pg'
+```bash
+# Solution: Install PostgreSQL driver for local database
+npm install pg @types/pg
+```
+
+#### 3. **Schema Migration Issues**
+
+**Error**: `permission denied for schema public`
+```sql
+-- Solution: Grant schema permissions
+\c carpool_db
+GRANT ALL ON SCHEMA public TO carpool_user;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO carpool_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO carpool_user;
+-- For future tables:
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO carpool_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO carpool_user;
+```
+
+**Error**: `relation "users" does not exist`
+```bash
+# Solution: Run database migration
+npm run db:push
+```
+
+#### 4. **SSL Connection Issues**
+
+**Error**: `no pg_hba.conf entry for host` or SSL errors
+```bash
+# For local development, edit pg_hba.conf (usually in /etc/postgresql/*/main/):
+# Add this line for local connections:
+local   all             all                                     md5
+host    all             all             127.0.0.1/32            md5
+
+# Then restart PostgreSQL:
+sudo systemctl restart postgresql
+```
+
+### General Issues
+
+#### 1. **Build Errors**
+```bash
+# Clear cache and reinstall
+rm -rf node_modules package-lock.json
+npm install
+
+# Check Node.js version (18+ required)
+node --version
+```
+
+#### 2. **Port Already in Use**
+```bash
+# Kill processes on port 5000
+lsof -ti:5000 | xargs kill
+
+# Or use different port by modifying package.json dev script
+```
+
+#### 3. **WebSocket Connection Issues**
+```bash
+# Ensure port 5001 is available
+lsof -ti:5001 | xargs kill
+
+# Check firewall settings (Linux)
+sudo ufw allow 5001
+```
+
+### Environment Variable Validation
+
+Create this test script to validate your setup:
+
+```bash
+# Create test-db.js
+cat > test-db.js << 'EOF'
+require('dotenv').config();
+const { Pool } = require('pg');
+
+async function testConnection() {
+  const pool = new Pool({ 
+    connectionString: process.env.DATABASE_URL,
+    ssl: false 
+  });
+  
+  try {
+    const client = await pool.connect();
+    console.log('✅ Database connection successful!');
+    
+    const result = await client.query('SELECT version()');
+    console.log('📊 PostgreSQL version:', result.rows[0].version);
+    
+    client.release();
+  } catch (err) {
+    console.error('❌ Database connection failed:', err.message);
+  } finally {
+    await pool.end();
+  }
+}
+
+testConnection();
+EOF
+
+# Run the test
+node test-db.js
+
+# Clean up
+rm test-db.js
+```
+
+### Logs and Debugging
+
+**Application logs** are displayed in the terminal when running `npm run dev`. For database-specific issues:
+
+```bash
+# Enable detailed PostgreSQL logging
+export DEBUG=pg:*
+npm run dev
+
+# Check PostgreSQL logs (Linux)
+sudo tail -f /var/log/postgresql/postgresql-*.log
+
+# Check PostgreSQL logs (macOS Homebrew)
+tail -f /usr/local/var/log/postgres.log
+```
+
+### Quick Reset (Nuclear Option)
+
+If all else fails, completely reset your local database:
+
+```bash
+# Stop the application
+# Kill PostgreSQL connections to your database
+sudo -u postgres psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'carpool_db';"
+
+# Drop and recreate database
+sudo -u postgres psql << EOF
+DROP DATABASE IF EXISTS carpool_db;
+DROP USER IF EXISTS carpool_user;
+CREATE USER carpool_user WITH PASSWORD 'your_password';
+CREATE DATABASE carpool_db;
+GRANT ALL PRIVILEGES ON DATABASE carpool_db TO carpool_user;
+\c carpool_db
+GRANT ALL ON SCHEMA public TO carpool_user;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO carpool_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO carpool_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO carpool_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO carpool_user;
+EOF
+
+# Recreate schema
+npm run db:push
+
+# Start application
+npm run dev
+```
 
 ## Production Deployment
 
