@@ -1,8 +1,22 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Car, Users, Shield, Clock } from "lucide-react";
+import { LoginForm } from "@/components/LoginForm";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Landing() {
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const { login } = useAuth();
+
+  const handleLogin = async (user: any) => {
+    // User is already logged in via the LoginForm
+    window.location.reload();
+  };
+
+  if (showLoginForm) {
+    return <LoginForm onLogin={handleLogin} />;
+  }
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -22,7 +36,7 @@ export default function Landing() {
             <Button 
               size="lg" 
               className="bg-primary hover:bg-primary/90 text-white px-6 py-3 sm:px-8 touch-friendly"
-              onClick={() => window.location.href = "/api/login"}
+              onClick={() => setShowLoginForm(true)}
             >
               ابدأ الآن
             </Button>
@@ -108,7 +122,7 @@ export default function Landing() {
               size="lg" 
               variant="secondary" 
               className="bg-white text-primary hover:bg-gray-100 touch-friendly px-6 py-3 sm:px-8"
-              onClick={() => window.location.href = "/api/login"}
+              onClick={() => setShowLoginForm(true)}
             >
               سجل الدخول للمتابعة
             </Button>
