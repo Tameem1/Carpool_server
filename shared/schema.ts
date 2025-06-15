@@ -3,7 +3,7 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User roles enum
+// User roles enum - simplified to only admin and user (no distinction between driver/rider)
 export const userRoles = ["admin", "user"] as const;
 
 export const users = pgTable("users", {

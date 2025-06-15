@@ -103,7 +103,7 @@ export function TripCard({
   const queryClient = useQueryClient();
 
   // Fetch all users for the dropdown (admin or driver of this trip)
-  const { data: users } = useQuery({
+  const { data: users } = useQuery<any[]>({
     queryKey: ["/api/users"],
     enabled: userRole === "admin" || trip.driverId === currentUserId,
   });
@@ -335,7 +335,7 @@ export function TripCard({
           </div>
         )}
 
-        {(userRole === "admin" || trip.driverId === currentUserId) && users && Array.isArray(users) && (
+        {(userRole === "admin" || trip.driverId === currentUserId) && users && Array.isArray(users) ? (
           <div className="mb-3 sm:mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
             <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">أضف راكب للرحلة</p>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
@@ -365,7 +365,7 @@ export function TripCard({
               </Button>
             </div>
           </div>
-        )}
+        ) : null}
 
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div className="flex items-center">
@@ -379,24 +379,8 @@ export function TripCard({
 
           {showActions && (
             <div className="flex flex-wrap gap-2">
-              {/* Join Trip button - for riders to directly join */}
-              {userRole === "rider" &&
-                trip.availableSeats > 0 &&
-                currentUserId !== trip.driver?.id &&
-                !trip.riders?.includes(currentUserId || "") && (
-                  <Button
-                    onClick={() => joinTripMutation.mutate()}
-                    className="bg-[#16b7a4] hover:bg-[#14a085] text-white touch-friendly"
-                    size="sm"
-                    disabled={joinTripMutation.isPending}
-                  >
-                    {joinTripMutation.isPending ? "جاري الانضمام..." : "انضم للرحلة"}
-                  </Button>
-                )}
-
-              {/* Request to Join button - for users to request joining trips */}
+              {/* Join Trip button - for any user to directly join */}
               {!hideJoinRequest &&
-                (userRole === "user" || !userRole) &&
                 trip.availableSeats > 0 &&
                 currentUserId !== trip.driver?.id &&
                 !trip.riders?.includes(currentUserId || "") && (
@@ -411,8 +395,7 @@ export function TripCard({
                 )}
 
               {/* Request Seat button - fallback option */}
-              {userRole === "rider" &&
-                onRequestSeat &&
+              {onRequestSeat &&
                 trip.availableSeats > 0 &&
                 currentUserId !== trip.driver?.id &&
                 !trip.riders?.includes(currentUserId || "") && (
@@ -438,8 +421,8 @@ export function TripCard({
                 </Button>
               )}
 
-              {/* Edit and Cancel buttons for driver/admin */}
-              {(userRole === "driver" || userRole === "admin") && onEdit && (
+              {/* Edit and Cancel buttons for trip driver or admin */}
+              {(trip.driverId === currentUserId || userRole === "admin") && onEdit && (
                 <Button 
                   variant="outline" 
                   onClick={() => onEdit(trip.id)}
@@ -449,7 +432,7 @@ export function TripCard({
                   تعديل
                 </Button>
               )}
-              {(userRole === "driver" || userRole === "admin") && onCancel && (
+              {(trip.driverId === currentUserId || userRole === "admin") && onCancel && (
                 <Button 
                   variant="outline" 
                   onClick={() => onCancel(trip.id)}
