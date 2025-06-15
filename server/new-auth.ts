@@ -25,23 +25,32 @@ export async function setupAuth(app: Express) {
     passReqToCallback: true
   }, async (req: Request, username: string, password: string, done) => {
     try {
+      console.log('Authentication attempt:', { username, section: req.body.section });
+      
       const section = req.body.section;
       
       if (!section) {
+        console.log('Authentication failed: No section provided');
         return done(null, false, { message: 'Section is required' });
       }
 
       const user = await storage.getUserByUsernameAndSection(username, section);
       
       if (!user) {
+        console.log('Authentication failed: User not found', { username, section });
         return done(null, false, { message: 'Invalid credentials' });
       }
+
+      console.log('User found:', { id: user.id, username: user.username, section: user.section });
 
       const isValidPassword = await verifyPassword(password, user.password);
       
       if (!isValidPassword) {
+        console.log('Authentication failed: Invalid password');
         return done(null, false, { message: 'Invalid credentials' });
       }
+
+      console.log('Authentication successful for user:', user.username);
 
       return done(null, {
         id: user.id,
