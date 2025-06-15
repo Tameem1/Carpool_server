@@ -150,6 +150,22 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async getUserByUsernameAndSection(username: string, section: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(
+      and(eq(users.username, username), eq(users.section, section))
+    );
+    return user || undefined;
+  }
+
+  async getUsersBySection(section: string): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.section, section));
+  }
+
+  async getUniqueSections(): Promise<string[]> {
+    const result = await db.selectDistinct({ section: users.section }).from(users);
+    return result.map(r => r.section).sort();
+  }
+
   async upsertUser(userData: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
