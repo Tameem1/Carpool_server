@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,21 @@ export default function Dashboard() {
   const [showRideRequestForm, setShowRideRequestForm] = useState(false);
 
   const [sortBy, setSortBy] = useState("departure_time");
+  const [activeTab, setActiveTab] = useState("all-trips");
+
+  // Effect to refresh data when switching tabs
+  useEffect(() => {
+    // Force refresh of queries when switching tabs to ensure fresh data
+    const timeoutId = setTimeout(() => {
+      if (activeTab === "all-trips") {
+        queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
+      } else if (activeTab === "my-trips") {
+        queryClient.invalidateQueries({ queryKey: ["/api/trips/my"] });
+      }
+    }, 100); // Small delay to ensure tab switch is complete
+    
+    return () => clearTimeout(timeoutId);
+  }, [activeTab, queryClient]);
 
   // Function to get today's trip range (5 AM today to 4 AM tomorrow)
   const getTodayTripRange = () => {
@@ -84,6 +99,8 @@ export default function Dashboard() {
     queryKey: ["/api/trips"],
     queryFn: () =>
       fetch(`/api/trips`).then((res) => res.json()),
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always consider data stale
   });
 
   // Filter trips to show only today's trips (5 AM to 4 AM next day)
@@ -96,6 +113,8 @@ export default function Dashboard() {
   const { data: myTrips = [], isLoading: myTripsLoading } = useQuery({
     queryKey: ["/api/trips/my"],
     enabled: user?.role !== "admin", // Don't fetch my trips for admin users
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always consider data stale
   });
 
   const { data: stats } = useQuery({
@@ -396,7 +415,7 @@ export default function Dashboard() {
         </Card>
       )}
 
-      <Tabs defaultValue="all-trips" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className={`grid w-full ${user?.role === "admin" ? "grid-cols-1" : "grid-cols-2"} h-auto`}>
           <TabsTrigger value="all-trips" className="touch-friendly text-sm">جميع الرحلات</TabsTrigger>
           {user?.role !== "admin" && <TabsTrigger value="my-trips" className="touch-friendly text-sm">رحلاتي</TabsTrigger>}
