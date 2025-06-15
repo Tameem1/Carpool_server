@@ -336,7 +336,7 @@ export function TripCard({
         )}
 
         {(userRole === "admin" || trip.driverId === currentUserId) && users && Array.isArray(users) ? (
-          <div className="mb-3 sm:mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+          <div className="mb-3 sm:mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border" data-add-rider-section>
             <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">أضف راكب للرحلة</p>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <SearchableUserSelect
