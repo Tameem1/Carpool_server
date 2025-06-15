@@ -123,8 +123,8 @@ export function LoginForm({ onLogin }: LoginFormProps) {
         const errorData = await response.json();
         toast({
           variant: "destructive",
-          title: "Login Failed",
-          description: errorData.message || "Invalid credentials"
+          title: "فشل تسجيل الدخول",
+          description: "يرجى التحقق من اسم المستخدم وكلمة المرور"
         });
       }
     } catch (error) {
