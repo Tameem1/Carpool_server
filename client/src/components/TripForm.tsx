@@ -41,7 +41,6 @@ const tripFormSchema = z.object({
   toLocation: z.string().min(1, "الوجهة مطلوبة"),
   departureTime: z.string().min(1, "الوقت مطلوب"),
   availableSeats: z.number().min(1, "مقعد واحد على الأقل مطلوب").max(6, "6 مقاعد كحد أقصى"),
-  totalSeats: z.number().min(1, "مقعد واحد على الأقل مطلوب").max(6, "6 مقاعد كحد أقصى"),
   isRecurring: z.boolean().default(false),
   recurringDays: z.array(z.string()).optional(),
   driverId: z.string().optional(),
@@ -91,7 +90,6 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       toLocation: trip?.toLocation || "النادي",
       departureTime: trip?.departureTime ? extractTimeFromTimestamp(trip.departureTime) : "",
       availableSeats: trip?.availableSeats || 1,
-      totalSeats: trip?.totalSeats || trip?.availableSeats || 1,
       isRecurring: trip?.isRecurring || false,
       recurringDays: trip?.recurringDays || [],
       driverId: trip?.driverId || "",
@@ -107,7 +105,6 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
         toLocation: trip.toLocation || "النادي",
         departureTime: trip.departureTime ? extractTimeFromTimestamp(trip.departureTime) : "",
         availableSeats: trip.availableSeats || 6,
-        totalSeats: trip.totalSeats || trip.availableSeats || 6,
         isRecurring: trip.isRecurring || false,
         recurringDays: trip.recurringDays || [],
         driverId: trip.driverId || "",
@@ -119,7 +116,6 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
         toLocation: "النادي",
         departureTime: "",
         availableSeats: 6,
-        totalSeats: 6,
         isRecurring: false,
         recurringDays: [],
         driverId: "",
@@ -172,6 +168,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
     mutationFn: async (data: TripFormData) => {
       const payload = {
         ...data,
+        totalSeats: data.availableSeats, // Automatically set totalSeats to match availableSeats
         participantIds: selectedParticipants,
         departureTime: timeToTodayTimestamp(data.departureTime),
         riders: trip?.id ? undefined : selectedParticipants, // Only set riders for new trips
@@ -297,49 +294,26 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               )}
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <FormField
-                control={form.control}
-                name="totalSeats"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm">إجمالي المقاعد</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="6"
-                        className="touch-friendly"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 6)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="availableSeats"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm">المقاعد المتاحة</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        max="6"
-                        className="touch-friendly"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 6)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="availableSeats"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm">عدد المقاعد المتاحة</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="6"
+                      className="touch-friendly"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             
 
@@ -366,7 +340,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               />
             )}
 
-            {isAdmin && trip?.id && (
+            {(isAdmin || (trip?.driverId === user?.id)) && trip?.id && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">إدارة الركاب الحاليين</CardTitle>

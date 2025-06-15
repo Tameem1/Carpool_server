@@ -102,10 +102,10 @@ export function TripCard({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch all users for the dropdown (admin only)
+  // Fetch all users for the dropdown (admin or driver of this trip)
   const { data: users } = useQuery({
     queryKey: ["/api/users"],
-    enabled: userRole === "admin",
+    enabled: userRole === "admin" || trip.driverId === currentUserId,
   });
 
   // Add rider mutation

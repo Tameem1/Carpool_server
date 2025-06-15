@@ -142,27 +142,6 @@ export function TripJoinRequestForm({ open, onClose, tripId, trip }: TripJoinReq
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="seatsRequested"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-right block">عدد المقاعد المطلوبة</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="1"
-                        max={trip.availableSeats}
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                        className="text-right"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="message"
                 render={({ field }) => (
                   <FormItem>
