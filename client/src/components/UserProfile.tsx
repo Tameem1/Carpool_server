@@ -91,29 +91,29 @@ export function UserProfile() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="firstName">First Name</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="firstName"
-                  value={user?.firstName || ""}
+                  id="username"
+                  value={user?.username || ""}
                   readOnly
                   disabled
                   className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  First name cannot be changed
+                  Username cannot be changed
                 </p>
               </div>
               <div>
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="section">Section</Label>
                 <Input
-                  id="lastName"
-                  value={user?.lastName || ""}
+                  id="section"
+                  value={user?.section || ""}
                   readOnly
                   disabled
                   className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Last name cannot be changed
+                  Section cannot be changed
                 </p>
               </div>
             </div>

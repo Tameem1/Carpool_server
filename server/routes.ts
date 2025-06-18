@@ -218,7 +218,7 @@ ${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ""}
     const trip = await storage.getTrip(tripId);
     if (!trip) return;
 
-    const dashboardUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "http://localhost:3000"}/dashboard`;
+    const dashboardUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "http://localhost:5000"}/dashboard`;
 
     await this.sendNotification(
       userId,

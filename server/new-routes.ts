@@ -7,10 +7,19 @@ import passport from "passport";
 import session from "express-session";
 import ConnectPgSimple from "connect-pg-simple";
 const PgSession = ConnectPgSimple(session);
-import { insertTripSchema, insertRideRequestSchema, insertTripParticipantSchema, insertTripJoinRequestSchema } from "@shared/schema";
+import {
+  insertTripSchema,
+  insertRideRequestSchema,
+  insertTripParticipantSchema,
+  insertTripJoinRequestSchema,
+} from "@shared/schema";
 import { z } from "zod";
 import TelegramBot from "node-telegram-bot-api";
-import { formatGMTPlus3, formatGMTPlus3TimeOnly, formatDateForInput } from "@shared/timezone";
+import {
+  formatGMTPlus3,
+  formatGMTPlus3TimeOnly,
+  formatDateForInput,
+} from "@shared/timezone";
 
 // WebSocket connection management
 const connectedClients = new Set();
@@ -18,58 +27,64 @@ const connectedClients = new Set();
 function broadcastToAll(data: any) {
   const message = JSON.stringify(data);
   connectedClients.forEach((ws: any) => {
-    if (ws.readyState === 1) { // WebSocket.OPEN
+    if (ws.readyState === 1) {
+      // WebSocket.OPEN
       ws.send(message);
     }
   });
 }
 
 function setupWebSocket(server: Server) {
-  const wss = new WebSocketServer({ 
+  const wss = new WebSocketServer({
     port: 5001,
-    host: '0.0.0.0'
+    host: "0.0.0.0",
   });
-  
-  wss.on('connection', (ws) => {
-    console.log('Client connected to real-time WebSocket');
+
+  wss.on("connection", (ws) => {
+    console.log("Client connected to real-time WebSocket");
     connectedClients.add(ws);
-    
-    ws.on('close', () => {
-      console.log('Client disconnected from real-time WebSocket');
+
+    ws.on("close", () => {
+      console.log("Client disconnected from real-time WebSocket");
       connectedClients.delete(ws);
     });
-    
-    ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
+
+    ws.on("error", (error) => {
+      console.error("WebSocket error:", error);
       connectedClients.delete(ws);
     });
   });
-  
-  console.log('Real-time WebSocket server running on port 5001');
+
+  console.log("Real-time WebSocket server running on port 5001");
   return wss;
 }
 
 // Telegram notification service
 class TelegramNotificationService {
   private bot: any;
-  
+
   constructor() {
     const token = process.env.TELEGRAM_BOT_TOKEN;
     if (token) {
       try {
         this.bot = new TelegramBot(token, { polling: false });
-        console.log('[TELEGRAM] Bot initialized successfully');
+        console.log("[TELEGRAM] Bot initialized successfully");
       } catch (error) {
-        console.error('[TELEGRAM] Error initializing bot:', error);
+        console.error("[TELEGRAM] Error initializing bot:", error);
         this.bot = null;
       }
     } else {
-      console.log('[TELEGRAM] No bot token provided');
+      console.log("[TELEGRAM] No bot token provided");
       this.bot = null;
     }
   }
 
-  async sendNotification(userId: string, title: string, message: string, type: string) {
+  async sendNotification(
+    userId: string,
+    title: string,
+    message: string,
+    type: string,
+  ) {
     try {
       const user = await storage.getUser(userId);
       if (!user || !user.telegramId) {
@@ -78,33 +93,36 @@ class TelegramNotificationService {
       }
 
       if (!this.bot) {
-        console.log('[TELEGRAM] Bot not available');
+        console.log("[TELEGRAM] Bot not available");
         return;
       }
 
       const telegramMessage = `*${title}*\n\n${message}`;
-      
+
       await this.bot.sendMessage(user.telegramId, telegramMessage, {
-        parse_mode: 'Markdown',
-        disable_web_page_preview: true
+        parse_mode: "Markdown",
+        disable_web_page_preview: true,
       });
-      
+
       console.log(`[TELEGRAM] Notification sent to user ${userId}`);
     } catch (error) {
-      console.error(`[TELEGRAM] Error sending notification to user ${userId}:`, error);
+      console.error(
+        `[TELEGRAM] Error sending notification to user ${userId}:`,
+        error,
+      );
     }
   }
 
   async notifyAdminsRideRequestCreated(requestId: number, riderId: string) {
     try {
       const admins = await storage.getAdminUsers();
-      
+
       for (const admin of admins) {
         await this.sendNotification(
           admin.id,
           "New Ride Request",
           `A new ride request has been submitted by user ${riderId}.`,
-          "ride_request_created"
+          "ride_request_created",
         );
       }
     } catch (error) {
@@ -118,7 +136,7 @@ class TelegramNotificationService {
         driverId,
         "Trip Created",
         `Your trip has been successfully created with ID ${tripId}.`,
-        "trip_created"
+        "trip_created",
       );
     } catch (error) {
       console.error("Error notifying trip creation:", error);
@@ -133,7 +151,7 @@ class TelegramNotificationService {
       driverId,
       "New Ride Request",
       `You have a new ride request from ${request.fromLocation} to ${request.toLocation}.`,
-      "request_received"
+      "request_received",
     );
   }
 
@@ -145,7 +163,7 @@ class TelegramNotificationService {
       riderId,
       "Ride Request Accepted",
       `Your ride request has been accepted for the trip from ${trip.fromLocation} to ${trip.toLocation}.`,
-      "request_accepted"
+      "request_accepted",
     );
   }
 
@@ -154,7 +172,7 @@ class TelegramNotificationService {
       riderId,
       "Ride Request Declined",
       "Your ride request has been declined. Please try another trip.",
-      "request_declined"
+      "request_declined",
     );
   }
 
@@ -162,13 +180,13 @@ class TelegramNotificationService {
     const trip = await storage.getTrip(tripId);
     if (!trip) return;
 
-    const dashboardUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:3000'}/dashboard`;
+    const dashboardUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "http://localhost:5000"}/dashboard`;
 
     await this.sendNotification(
       userId,
       "New Trip Available",
       `A new trip matching your request is available from ${trip.fromLocation} to ${trip.toLocation} departing at ${new Date(trip.departureTime).toLocaleString()}. Click here to join: ${dashboardUrl}`,
-      "trip_match_found"
+      "trip_match_found",
     );
   }
 }
@@ -178,28 +196,40 @@ const telegramService = new TelegramNotificationService();
 async function notifyMatchingRideRequesters(trip: any) {
   try {
     const requests = await storage.getPendingRideRequests();
-    
-    const matchingRequests = requests.filter(request => {
-      const fromMatch = request.fromLocation.toLowerCase().includes(trip.fromLocation.toLowerCase()) ||
-                       trip.fromLocation.toLowerCase().includes(request.fromLocation.toLowerCase());
-      const toMatch = request.toLocation.toLowerCase().includes(trip.toLocation.toLowerCase()) ||
-                     trip.toLocation.toLowerCase().includes(request.toLocation.toLowerCase());
-      
+
+    const matchingRequests = requests.filter((request) => {
+      const fromMatch =
+        request.fromLocation
+          .toLowerCase()
+          .includes(trip.fromLocation.toLowerCase()) ||
+        trip.fromLocation
+          .toLowerCase()
+          .includes(request.fromLocation.toLowerCase());
+      const toMatch =
+        request.toLocation
+          .toLowerCase()
+          .includes(trip.toLocation.toLowerCase()) ||
+        trip.toLocation
+          .toLowerCase()
+          .includes(request.toLocation.toLowerCase());
+
       const requestTime = new Date(request.departureTime).getTime();
       const tripTime = new Date(trip.departureTime).getTime();
       const timeDiff = Math.abs(requestTime - tripTime);
       const twoHours = 2 * 60 * 60 * 1000;
-      
+
       const hasSeats = trip.availableSeats >= (request.passengerCount || 1);
-      
+
       return fromMatch && toMatch && timeDiff <= twoHours && hasSeats;
     });
-    
+
     for (const request of matchingRequests) {
       await telegramService.notifyTripMatchesRequest(request.riderId, trip.id);
     }
-    
-    console.log(`Notified ${matchingRequests.length} users about the new trip matching their requests`);
+
+    console.log(
+      `Notified ${matchingRequests.length} users about the new trip matching their requests`,
+    );
   } catch (error) {
     console.error("Error notifying matching ride requesters:", error);
   }
@@ -209,19 +239,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
 
   // Setup session middleware
-  app.use(session({
-    store: new PgSession({
-      conString: process.env.DATABASE_URL,
-      createTableIfMissing: true
+  app.use(
+    session({
+      store: new PgSession({
+        conString: process.env.DATABASE_URL,
+        createTableIfMissing: true,
+      }),
+      secret: process.env.SESSION_SECRET || "fallback-secret-key",
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: false, // Set to true in production with HTTPS
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      },
     }),
-    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { 
-      secure: false, // Set to true in production with HTTPS
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
-  }));
+  );
 
   // Setup authentication
   await setupAuth(app);
@@ -230,7 +262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupWebSocket(server);
 
   // Authentication routes
-  app.get('/api/auth/sections', async (req, res) => {
+  app.get("/api/auth/sections", async (req, res) => {
     try {
       const sections = await storage.getUniqueSections();
       res.json(sections);
@@ -240,14 +272,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/auth/users/:section', async (req, res) => {
+  app.get("/api/auth/users/:section", async (req, res) => {
     try {
       const { section } = req.params;
       const users = await storage.getUsersBySection(section);
-      const usernames = users.map(user => ({
-        id: user.id,
-        username: user.username
-      })).sort((a, b) => a.username.localeCompare(b.username));
+      const usernames = users
+        .map((user) => ({
+          id: user.id,
+          username: user.username,
+        }))
+        .sort((a, b) => a.username.localeCompare(b.username));
       res.json(usernames);
     } catch (error) {
       console.error("Error fetching users by section:", error);
@@ -255,14 +289,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/auth/login', passport.authenticate('local'), (req, res) => {
-    res.json({ 
-      success: true, 
-      user: req.user 
+  app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
+    res.json({
+      success: true,
+      user: req.user,
     });
   });
 
-  app.post('/api/auth/logout', (req, res) => {
+  app.post("/api/auth/logout", (req, res) => {
     req.logout((err) => {
       if (err) {
         console.error("Logout error:", err);
@@ -279,7 +313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Fallback logout endpoint for compatibility
-  app.get('/api/logout', (req, res) => {
+  app.get("/api/logout", (req, res) => {
     req.logout((err) => {
       if (err) {
         console.error("Logout error:", err);
@@ -295,7 +329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.get('/api/auth/user', (req, res) => {
+  app.get("/api/auth/user", (req, res) => {
     if (req.isAuthenticated()) {
       res.json(req.user);
     } else {
@@ -304,38 +338,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Trips routes
-  app.get('/api/trips', async (req, res) => {
+  app.get("/api/trips", async (req, res) => {
     try {
       const trips = await storage.getAllTrips();
-      
-      const tripsWithDetails = await Promise.all(trips.map(async (trip) => {
-        const participants = await storage.getTripParticipants(trip.id);
-        const riderDetails = await Promise.all(
-          participants.map(async (p) => {
-            const user = await storage.getUser(p.userId);
-            return user ? {
-              id: user.id,
-              username: user.username,
-              section: user.section,
-              role: user.role
-            } : null;
-          })
-        );
 
-        const driver = await storage.getUser(trip.driverId);
-        
-        return {
-          ...trip,
-          participantCount: participants.length,
-          riderDetails: riderDetails.filter(Boolean),
-          driver: driver ? {
-            id: driver.id,
-            username: driver.username,
-            section: driver.section,
-            role: driver.role
-          } : null
-        };
-      }));
+      const tripsWithDetails = await Promise.all(
+        trips.map(async (trip) => {
+          const participants = await storage.getTripParticipants(trip.id);
+          const riderDetails = await Promise.all(
+            participants.map(async (p) => {
+              const user = await storage.getUser(p.userId);
+              return user
+                ? {
+                    id: user.id,
+                    username: user.username,
+                    section: user.section,
+                    role: user.role,
+                  }
+                : null;
+            }),
+          );
+
+          const driver = await storage.getUser(trip.driverId);
+
+          return {
+            ...trip,
+            participantCount: participants.length,
+            riderDetails: riderDetails.filter(Boolean),
+            driver: driver
+              ? {
+                  id: driver.id,
+                  username: driver.username,
+                  section: driver.section,
+                  role: driver.role,
+                }
+              : null,
+          };
+        }),
+      );
 
       res.json(tripsWithDetails);
     } catch (error) {
@@ -344,39 +384,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/trips/my', isAuthenticated, async (req: any, res) => {
+  app.get("/api/trips/my", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const trips = await storage.getUserTrips(userId);
-      
-      const tripsWithDetails = await Promise.all(trips.map(async (trip) => {
-        const participants = await storage.getTripParticipants(trip.id);
-        const riderDetails = await Promise.all(
-          participants.map(async (p) => {
-            const user = await storage.getUser(p.userId);
-            return user ? {
-              id: user.id,
-              username: user.username,
-              section: user.section,
-              role: user.role
-            } : null;
-          })
-        );
 
-        const driver = await storage.getUser(trip.driverId);
-        
-        return {
-          ...trip,
-          participantCount: participants.length,
-          riderDetails: riderDetails.filter(Boolean),
-          driver: driver ? {
-            id: driver.id,
-            username: driver.username,
-            section: driver.section,
-            role: driver.role
-          } : null
-        };
-      }));
+      const tripsWithDetails = await Promise.all(
+        trips.map(async (trip) => {
+          const participants = await storage.getTripParticipants(trip.id);
+          const riderDetails = await Promise.all(
+            participants.map(async (p) => {
+              const user = await storage.getUser(p.userId);
+              return user
+                ? {
+                    id: user.id,
+                    username: user.username,
+                    section: user.section,
+                    role: user.role,
+                  }
+                : null;
+            }),
+          );
+
+          const driver = await storage.getUser(trip.driverId);
+
+          return {
+            ...trip,
+            participantCount: participants.length,
+            riderDetails: riderDetails.filter(Boolean),
+            driver: driver
+              ? {
+                  id: driver.id,
+                  username: driver.username,
+                  section: driver.section,
+                  role: driver.role,
+                }
+              : null,
+          };
+        }),
+      );
 
       res.json(tripsWithDetails);
     } catch (error) {
@@ -385,12 +431,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/trips', isAuthenticated, async (req: any, res) => {
+  app.post("/api/trips", isAuthenticated, async (req: any, res) => {
     try {
       const tripData = insertTripSchema.parse(req.body);
-      
-      console.log('Trip creation payload:', req.body);
-      
+
+      console.log("Trip creation payload:", req.body);
+
       const parsedTripData = {
         driverId: req.user.id,
         riders: tripData.riders || [],
@@ -401,27 +447,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalSeats: tripData.totalSeats || tripData.availableSeats,
         isRecurring: tripData.isRecurring || false,
         recurringDays: JSON.stringify(tripData.recurringDays || []),
-        participantIds: tripData.participantIds || []
+        participantIds: tripData.participantIds || [],
       };
-      
-      console.log('Parsed trip data:', parsedTripData);
-      
+
+      console.log("Parsed trip data:", parsedTripData);
+
       const trip = await storage.createTrip(parsedTripData);
-      
+
       await telegramService.notifyTripCreated(trip.id, trip.driverId);
       await notifyMatchingRideRequesters(trip);
-      
+
       broadcastToAll({
-        type: 'trip_created',
-        trip: trip
+        type: "trip_created",
+        trip: trip,
       });
-      
+
       res.status(201).json(trip);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Invalid trip data", 
-          errors: error.errors 
+        return res.status(400).json({
+          message: "Invalid trip data",
+          errors: error.errors,
         });
       }
       console.error("Error creating trip:", error);
@@ -430,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Continue with remaining routes...
-  app.get('/api/users', isAuthenticated, async (req, res) => {
+  app.get("/api/users", isAuthenticated, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       res.json(users);
@@ -440,7 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
+  app.get("/api/notifications", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const notifications = await storage.getUserNotifications(userId);

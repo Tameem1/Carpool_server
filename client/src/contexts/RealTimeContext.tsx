@@ -79,7 +79,7 @@ export function RealTimeProvider({ children }: RealTimeProviderProps) {
         if (!reconnectTimeoutRef.current) {
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
-          }, 3000);
+          }, 5000);
         }
       };
 
