@@ -32,12 +32,12 @@ export function Navigation() {
         credentials: "include",
       });
 
-      // Force redirect to login page
-      window.location.href = "/api/login";
+      // Redirect to home page (which will show login form for unauthenticated users)
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
       // Force redirect even if there's an error
-      window.location.href = "/api/login";
+      window.location.href = "/";
     }
   };
 
