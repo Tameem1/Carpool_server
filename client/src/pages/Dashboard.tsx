@@ -226,7 +226,7 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 gap-4">
         <div className="flex-1">
           <h1 className="responsive-text-2xl font-bold text-gray-900 dark:text-white">
-            مرحباً بعودتك، {user?.firstName}!
+            مرحباً بعودتك، {user?.username}!
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1 sm:mt-2 text-sm sm:text-base">
             {user?.role === "admin"
@@ -292,12 +292,12 @@ export default function Dashboard() {
                           <Avatar className="h-10 w-10">
                             <AvatarImage src={request.rider?.profileImageUrl || ""} />
                             <AvatarFallback>
-                              {request.rider?.firstName?.[0]}{request.rider?.lastName?.[0]}
+                              {request.rider?.username?.[0]}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <h4 className="font-semibold text-gray-900">
-                              {request.rider?.firstName} {request.rider?.lastName}
+                              {request.rider?.username}
                             </h4>
                             <div className="flex items-center space-x-4 text-sm text-gray-600">
                               <div className={`flex items-center ${(isArabicText(request.fromLocation) || isArabicText(request.toLocation)) ? 'text-right' : 'text-left'}`}>

@@ -247,12 +247,12 @@ export default function DriverDashboard() {
                         <Avatar className="h-10 w-10 mr-3">
                           <AvatarImage src={request.rider?.profileImageUrl || ""} />
                           <AvatarFallback>
-                            {request.rider?.firstName?.[0]}{request.rider?.lastName?.[0]}
+                            {request.rider?.username?.[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <h4 className="font-semibold text-gray-900">
-                            {request.rider?.firstName} {request.rider?.lastName}
+                            {request.rider?.username}
                           </h4>
                           <p className="text-sm text-gray-600">
                             Requested ride for {format(new Date(request.preferredTime), "h:mm a")}

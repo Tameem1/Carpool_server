@@ -269,11 +269,11 @@ export default function AdminDashboard() {
                               <Avatar className="h-8 w-8 mr-3">
                                 <AvatarImage src={trip.driver.profileImageUrl || ""} />
                                 <AvatarFallback>
-                                  {trip.driver.firstName?.[0]}{trip.driver.lastName?.[0]}
+                                  {trip.driver.username?.[0]}
                                 </AvatarFallback>
                               </Avatar>
                               <span className="text-sm font-medium">
-                                {trip.driver.firstName} {trip.driver.lastName}
+                                {trip.driver.username}
                               </span>
                             </div>
                           ) : (

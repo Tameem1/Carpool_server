@@ -424,7 +424,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                         const user = getSelectedUser(userId);
                         return (
                           <Badge key={userId} variant="secondary" className="flex items-center gap-1">
-                            {user?.firstName} {user?.lastName}
+                            {user?.username}
                             <X
                               className="h-3 w-3 cursor-pointer"
                               onClick={() => handleParticipantRemove(userId)}

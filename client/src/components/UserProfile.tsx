@@ -71,12 +71,12 @@ export function UserProfile() {
             <Avatar className="h-16 w-16">
               <AvatarImage src={user.profileImageUrl || ""} />
               <AvatarFallback className="text-lg">
-                {user.firstName?.[0]}{user.lastName?.[0]}
+                {user.username?.[0]}
               </AvatarFallback>
             </Avatar>
             <div>
               <h3 className="text-lg font-semibold">
-                {user.firstName} {user.lastName}
+                {user.username}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
                 <Mail className="h-4 w-4" />

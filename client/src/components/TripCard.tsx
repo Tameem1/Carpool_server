@@ -302,18 +302,7 @@ export function TripCard({
                   </div>
                   
                   <div className="flex items-center space-x-1 sm:space-x-2">
-                    {/* Phone number button for driver */}
-                    {(trip.driverId === currentUserId && rider.phoneNumber) && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-6 w-6 sm:h-8 sm:w-8 p-0 border-green-300 text-green-600 hover:bg-green-50 dark:hover:bg-green-900"
-                        onClick={() => window.open(`tel:${rider.phoneNumber}`, '_self')}
-                        title={`Call ${rider.firstName}: ${rider.phoneNumber}`}
-                      >
-                        <Phone className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                    )}
+
                     
                     {/* Remove rider button for admin or driver */}
                     {(userRole === "admin" || trip.driverId === currentUserId) && (
@@ -323,7 +312,7 @@ export function TripCard({
                         className="h-6 w-6 sm:h-8 sm:w-8 p-0 rounded-full bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 touch-friendly"
                         onClick={() => removeRiderMutation.mutate(rider.id)}
                         disabled={removeRiderMutation.isPending}
-                        title={`Remove ${rider.firstName}`}
+                        title={`Remove ${rider.username}`}
                       >
                         <UserMinus className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                       </Button>
