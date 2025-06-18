@@ -27,8 +27,8 @@ export function Navigation() {
       queryClient.clear();
 
       // Call logout endpoint
-      await fetch("/api/logout", {
-        method: "GET",
+      await fetch("/api/auth/logout", {
+        method: "POST",
         credentials: "include",
       });
 

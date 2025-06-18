@@ -268,7 +268,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Logout error:", err);
         return res.status(500).json({ message: "Logout failed" });
       }
-      res.json({ success: true });
+      // Also destroy the session to ensure complete logout
+      req.session.destroy((sessionErr) => {
+        if (sessionErr) {
+          console.error("Session destroy error:", sessionErr);
+        }
+        res.json({ success: true });
+      });
+    });
+  });
+
+  // Fallback logout endpoint for compatibility
+  app.get('/api/logout', (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      // Also destroy the session to ensure complete logout
+      req.session.destroy((sessionErr) => {
+        if (sessionErr) {
+          console.error("Session destroy error:", sessionErr);
+        }
+        res.json({ success: true });
+      });
     });
   });
 
