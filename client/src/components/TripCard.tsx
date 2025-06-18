@@ -42,16 +42,17 @@ interface TripCardProps {
     riders?: string[];
     riderDetails?: {
       id: string;
-      firstName: string;
-      lastName: string;
-      phoneNumber?: string;
+      username: string;
+      section: string;
+      role?: string;
       profileImageUrl?: string;
     }[];
 
     driver?: {
       id: string;
-      firstName: string;
-      lastName: string;
+      username: string;
+      section: string;
+      role?: string;
       profileImageUrl?: string;
     };
     participantCount?: number;
@@ -252,13 +253,12 @@ export function TripCard({
                 alt="Driver"
               />
               <AvatarFallback className="text-xs sm:text-sm">
-                {trip.driver.firstName[0]}
-                {trip.driver.lastName[0]}
+                {trip.driver.username[0]}
               </AvatarFallback>
             </Avatar>
             <div>
               <p className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
-                {trip.driver.firstName} {trip.driver.lastName}
+                {trip.driver.username}
               </p>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Driver</p>
             </div>
@@ -293,11 +293,11 @@ export function TripCard({
                     <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
                       <AvatarImage src={rider.profileImageUrl || ""} />
                       <AvatarFallback className="text-xs">
-                        {rider.firstName?.[0]}{rider.lastName?.[0]}
+                        {rider.username?.[0]}
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-xs sm:text-sm font-medium">
-                      {rider.firstName} {rider.lastName}
+                      {rider.username}
                     </span>
                   </div>
                   

@@ -357,12 +357,12 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                                 <Avatar className="h-8 w-8">
                                   <AvatarImage src={rider.profileImageUrl || ""} />
                                   <AvatarFallback>
-                                    {rider.firstName?.[0]}{rider.lastName?.[0]}
+                                    {rider.username?.[0]}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <div className="font-medium">{rider.firstName} {rider.lastName}</div>
-                                  <div className="text-sm text-gray-500">{rider.email}</div>
+                                  <div className="font-medium">{rider.username}</div>
+                                  <div className="text-sm text-gray-500">{rider.section}</div>
                                 </div>
                               </div>
                               <Button

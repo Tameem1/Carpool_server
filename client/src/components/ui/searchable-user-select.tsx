@@ -18,9 +18,8 @@ import {
 
 interface User {
   id: string
-  firstName: string
-  lastName: string
-  email: string
+  username: string
+  section: string
   role?: string
 }
 
@@ -67,9 +66,9 @@ export function SearchableUserSelect({
       // Search filter
       if (searchValue) {
         const searchLower = searchValue.toLowerCase()
-        const fullName = `${user.firstName} ${user.lastName}`.toLowerCase()
-        const email = user.email.toLowerCase()
-        return fullName.includes(searchLower) || email.includes(searchLower)
+        const username = user.username.toLowerCase()
+        const section = user.section.toLowerCase()
+        return username.includes(searchLower) || section.includes(searchLower)
       }
       
       return true
@@ -85,10 +84,9 @@ export function SearchableUserSelect({
   const displayValue = React.useMemo(() => {
     if (value === selfValue && allowSelf) return selfLabel
     if (selectedUser) {
-      const name = `${selectedUser.firstName} ${selectedUser.lastName}`
+      const name = selectedUser.username
       if (showRole && selectedUser.role) {
-        const roleLabel = selectedUser.role === 'admin' ? 'مدير' : 
-                         selectedUser.role === 'driver' ? 'سائق' : 'راكب'
+        const roleLabel = selectedUser.role === 'admin' ? 'مدير' : 'مستخدم'
         return `${name} (${roleLabel})`
       }
       return name
@@ -145,14 +143,14 @@ export function SearchableUserSelect({
                 </CommandItem>
               )}
               {filteredUsers.map((user) => {
-                const displayName = `${user.firstName} ${user.lastName}`
+                const displayName = user.username
                 const roleLabel = showRole && user.role ? 
-                  ` (${user.role === 'admin' ? 'مدير' : user.role === 'driver' ? 'سائق' : 'راكب'})` : ''
+                  ` (${user.role === 'admin' ? 'مدير' : 'مستخدم'})` : ''
                 
                 return (
                   <CommandItem
                     key={user.id}
-                    value={`${user.id}-${displayName}-${user.email}`}
+                    value={`${user.id}-${displayName}-${user.section}`}
                     onSelect={() => handleSelect(user.id)}
                   >
                     <Check
@@ -163,7 +161,7 @@ export function SearchableUserSelect({
                     />
                     <div className="flex flex-col items-start">
                       <span>{displayName}{roleLabel}</span>
-                      <span className="text-xs text-muted-foreground">{user.email}</span>
+                      <span className="text-xs text-muted-foreground">{user.section}</span>
                     </div>
                   </CommandItem>
                 )
