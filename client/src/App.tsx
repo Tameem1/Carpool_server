@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigation } from "@/components/Navigation";
 import { RealTimeProvider } from "@/contexts/RealTimeContext";
-import Landing from "@/pages/Landing";
+import { LoginForm } from "@/components/LoginForm";
 import Dashboard from "@/pages/Dashboard";
 
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -30,7 +30,13 @@ function Router() {
   return (
     <Switch>
       {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <Route path="/">
+          {() => (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+              <LoginForm onLogin={() => window.location.reload()} />
+            </div>
+          )}
+        </Route>
       ) : (
         <>
           <Route path="/">
