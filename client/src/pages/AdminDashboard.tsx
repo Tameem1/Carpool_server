@@ -110,11 +110,23 @@ export default function AdminDashboard() {
 
   const assignRideMutation = useMutation({
     mutationFn: async ({ requestId, tripId }: { requestId: number; tripId: number }) => {
-      const response = await apiRequest("PATCH", `/api/ride-requests/${requestId}/assign-to-trip`, { tripId });
-      return response;
+      const response = await fetch(`/api/ride-requests/${requestId}/assign-to-trip`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ tripId }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok && !data.success) {
+        throw new Error(data.message || "Assignment failed");
+      }
+      
+      return data;
     },
     onSuccess: (data) => {
-      console.log("Assignment response:", data);
+      console.log("Assignment success:", data);
       toast({
         title: "تم تعيين الرحلة",
         description: "تم تعيين طلب الرحلة للرحلة بنجاح.",
@@ -133,17 +145,6 @@ export default function AdminDashboard() {
         setTimeout(() => {
           window.location.href = "/api/login";
         }, 500);
-        return;
-      }
-      
-      // Check if this is actually a successful response being treated as error
-      if (error?.response?.data?.success === true) {
-        toast({
-          title: "تم تعيين الرحلة",
-          description: "تم تعيين طلب الرحلة للرحلة بنجاح.",
-        });
-        queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/ride-requests/all"] });
         return;
       }
       
