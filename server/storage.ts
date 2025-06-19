@@ -395,6 +395,10 @@ export class DatabaseStorage implements IStorage {
     try {
       const { start, end } = this.getCustomDayRange();
       
+      console.log("Date range for today's requests:");
+      console.log("Start UTC:", start.toISOString());
+      console.log("End UTC:", end.toISOString());
+      
       const results = await db.select()
         .from(rideRequests)
         .where(
@@ -409,6 +413,17 @@ export class DatabaseStorage implements IStorage {
       console.log(`Found today's pending ride requests: ${results.length}`);
       if (results.length > 0) {
         console.log("Sample request:", results[0]);
+      }
+      
+      // Also log all pending requests to see what's there
+      const allPending = await db.select()
+        .from(rideRequests)
+        .where(eq(rideRequests.status, "pending"))
+        .orderBy(rideRequests.preferredTime);
+      
+      console.log(`Total pending requests in database: ${allPending.length}`);
+      if (allPending.length > 0) {
+        console.log("Latest pending request:", allPending[allPending.length - 1]);
       }
       
       return results;
