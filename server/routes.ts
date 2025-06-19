@@ -1602,7 +1602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.patch("/api/ride-requests/:id/assign-to-trip", async (req: any, res) => {
+  app.patch("/api/ride-requests/:id/assign-to-trip", isAuthenticated, async (req: any, res) => {
     try {
       console.log("=== ASSIGNMENT START ===");
       const requestId = parseInt(req.params.id);
