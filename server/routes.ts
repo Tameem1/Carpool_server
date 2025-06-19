@@ -1686,13 +1686,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         console.log("Assignment completed successfully!");
-        res.json({ 
+        res.status(200).json({ 
           message: "Ride request assigned successfully",
           success: true,
           data: {
             requestId,
             tripId,
-            riderId: request.riderId
+            riderId: request.riderId,
+            updatedRequest,
+            updatedTrip
           }
         });
       } catch (error) {
