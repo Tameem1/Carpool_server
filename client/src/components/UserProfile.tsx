@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,9 +16,19 @@ export function UserProfile() {
   const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState({
-    phoneNumber: user?.phoneNumber || "",
-    telegramId: user?.telegramId || "",
+    phoneNumber: "",
+    telegramId: "",
   });
+
+  // Update form data when user data loads
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        phoneNumber: user.phoneNumber || "",
+        telegramId: user.telegramId || "",
+      });
+    }
+  }, [user]);
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
