@@ -156,20 +156,25 @@ export default function Dashboard() {
 
   const assignRideMutation = useMutation({
     mutationFn: async ({ requestId, tripId }: { requestId: number; tripId: number }) => {
-      await apiRequest("PATCH", `/api/ride-requests/${requestId}/assign-to-trip`, { tripId });
+      console.log(`Assigning request ${requestId} to trip ${tripId}`);
+      const response = await apiRequest("PATCH", `/api/ride-requests/${requestId}/assign-to-trip`, { tripId });
+      console.log("Assignment response:", response);
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Assignment successful:", data);
       toast({
-        title: "تم تعيين الرحلة",
-        description: "تم تعيين طلب الرحلة للرحلة بنجاح.",
+        title: "تم تعيين الرحلة بنجاح",
+        description: "تم تعيين طلب الرحلة للرحلة وإزالته من القائمة.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
       queryClient.invalidateQueries({ queryKey: ["/api/ride-requests/all"] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Assignment failed:", error);
       toast({
-        title: "خطأ",
-        description: error.message || "فشل في تعيين الرحلة",
+        title: "فشل في التعيين",
+        description: error.message || "حدث خطأ أثناء تعيين الرحلة. تحقق من توفر المقاعد.",
         variant: "destructive",
       });
     },

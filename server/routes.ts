@@ -1636,29 +1636,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .json({ message: "Not enough available seats in the trip" });
         }
 
+        console.log("Starting assignment process...");
+        
         // Accept the request and assign to trip
-        await storage.updateRideRequestStatus(requestId, "accepted", tripId);
+        console.log("Updating ride request status...");
+        const updatedRequest = await storage.updateRideRequestStatus(requestId, "accepted", tripId);
+        console.log("Updated request:", updatedRequest);
 
         // Add rider as participant
-        await storage.addTripParticipant({
+        console.log("Adding trip participant...");
+        const participant = await storage.addTripParticipant({
           tripId,
           userId: request.riderId,
           seatsBooked: request.passengerCount,
           status: "confirmed",
         });
+        console.log("Added participant:", participant);
 
         // Update trip: add rider to riders array and update available seats
+        console.log("Updating trip riders array...");
         const currentRiders = trip.riders || [];
         const updatedRiders = [...currentRiders, request.riderId];
-        await storage.updateTrip(tripId, {
+        const updatedTrip = await storage.updateTrip(tripId, {
           riders: updatedRiders,
           availableSeats: trip.availableSeats - request.passengerCount,
         });
+        console.log("Updated trip:", updatedTrip);
 
         // Send notification
-        await telegramService.notifyRequestAccepted(request.riderId, tripId);
+        console.log("Sending notification...");
+        try {
+          await telegramService.notifyRequestAccepted(request.riderId, tripId);
+          console.log("Notification sent successfully");
+        } catch (notifError) {
+          console.error("Notification failed:", notifError);
+          // Don't fail the assignment if notification fails
+        }
 
         // Broadcast updates to all connected clients
+        console.log("Broadcasting updates...");
         broadcastToAll({
           type: "ride_request_updated",
           data: { id: requestId, status: "accepted", tripId },
@@ -1669,7 +1685,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           data: { tripId, riderId: request.riderId },
         });
 
-        res.json({ message: "Ride request assigned successfully" });
+        console.log("Assignment completed successfully!");
+        res.json({ 
+          message: "Ride request assigned successfully",
+          success: true,
+          data: {
+            requestId,
+            tripId,
+            riderId: request.riderId
+          }
+        });
       } catch (error) {
         console.error("Error assigning ride request:", error);
         res.status(500).json({ message: "Failed to assign ride request" });
