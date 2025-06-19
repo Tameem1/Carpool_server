@@ -348,12 +348,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   private getCustomDayRange(date?: Date): { start: Date; end: Date } {
-    // Use GMT+3 time for all calculations
-    const now = date ? toGMTPlus3(date) : nowGMTPlus3();
-    const currentHour = now.getHours();
+    // Get current time in UTC
+    const now = date || new Date();
+    
+    // Convert to GMT+3 by adding 3 hours
+    const nowGMT3 = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+    const currentHour = nowGMT3.getHours();
     
     // If it's before 5 AM GMT+3, we're in the previous day (started at 5 AM yesterday GMT+3)
-    const dayStart = new Date(now);
+    const dayStart = new Date(nowGMT3);
     if (currentHour < 5) {
       dayStart.setDate(dayStart.getDate() - 1);
     }
@@ -364,7 +367,7 @@ export class DatabaseStorage implements IStorage {
     dayEnd.setDate(dayEnd.getDate() + 1);
     dayEnd.setHours(4, 0, 0, 0);
     
-    // Convert back to UTC for database queries
+    // Convert back to UTC for database queries (subtract 3 hours)
     const startUTC = new Date(dayStart.getTime() - 3 * 60 * 60 * 1000);
     const endUTC = new Date(dayEnd.getTime() - 3 * 60 * 60 * 1000);
     
@@ -372,21 +375,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTodayRideRequests(): Promise<RideRequest[]> {
-    const { start, end } = this.getCustomDayRange();
-    console.log("Getting today's ride requests between:", start, "and", end);
+    // For now, let's return all pending requests to debug the issue
+    console.log("Getting all pending ride requests for debugging...");
     
     const results = await db.select()
       .from(rideRequests)
-      .where(
-        and(
-          eq(rideRequests.status, "pending"),
-          gte(rideRequests.preferredTime, start),
-          lt(rideRequests.preferredTime, end)
-        )
-      )
+      .where(eq(rideRequests.status, "pending"))
       .orderBy(rideRequests.preferredTime);
     
-    console.log("Found ride requests in storage:", results.length);
+    console.log("Found pending ride requests in storage:", results.length);
+    console.log("Sample request:", results[0]);
     return results;
   }
 

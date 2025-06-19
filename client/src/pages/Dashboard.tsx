@@ -128,6 +128,23 @@ export default function Dashboard() {
     retry: false,
     refetchOnWindowFocus: true,
     staleTime: 0,
+    queryFn: async () => {
+      const response = await fetch('/api/ride-requests/all', {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('API response data:', data);
+      return data;
+    },
   });
 
   // Debug logging
@@ -135,6 +152,11 @@ export default function Dashboard() {
   console.log('Debug - user role:', user?.role);
   console.log('Debug - requestsLoading:', requestsLoading);
   console.log('Debug - requestsError:', requestsError);
+  
+  // More detailed error logging
+  if (requestsError) {
+    console.log('Full error object:', JSON.stringify(requestsError, null, 2));
+  }
 
   // Sorting function
   const sortTrips = (trips: any[], sortBy: string) => {
@@ -285,7 +307,15 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            {!Array.isArray(allRequests) || allRequests.length === 0 ? (
+            {requestsLoading ? (
+              <div className="text-center py-8 text-gray-500">
+                جاري تحميل طلبات الرحلات...
+              </div>
+            ) : requestsError ? (
+              <div className="text-center py-8 text-red-500">
+                خطأ في تحميل طلبات الرحلات: {requestsError.message || 'خطأ غير معروف'}
+              </div>
+            ) : !Array.isArray(allRequests) || allRequests.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 لا توجد طلبات رحلات معلقة للتعيين.
               </div>
