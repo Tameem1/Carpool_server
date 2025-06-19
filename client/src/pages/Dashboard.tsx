@@ -128,6 +128,27 @@ export default function Dashboard() {
     retry: false,
     refetchOnWindowFocus: true,
     staleTime: 0,
+    queryFn: async () => {
+      const response = await fetch('/api/ride-requests/all', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server returned non-JSON response');
+      }
+      
+      return await response.json();
+    },
   });
 
 

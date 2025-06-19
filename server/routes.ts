@@ -1317,11 +1317,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       console.log("Sending", enrichedRequests.length, "enriched requests");
-      res.setHeader('Content-Type', 'application/json');
-      res.json(enrichedRequests);
+      console.log("Response headers set for JSON");
+      
+      // Force proper JSON response with explicit headers
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      res.end(JSON.stringify(enrichedRequests));
     } catch (error: any) {
       console.error("Error fetching all ride requests:", error);
-      res.status(500).json({ message: "Failed to fetch ride requests" });
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ message: "Failed to fetch ride requests" }));
     }
   });
 
