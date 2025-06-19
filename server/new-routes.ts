@@ -640,15 +640,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Ride request routes
   // Get all ride requests (accessible to all authenticated users)
-  app.get("/api/ride-requests/all", isAuthenticated, async (req: any, res) => {
+  app.get("/api/ride-requests/all", async (req: any, res) => {
     console.log("=== RIDE REQUESTS API ROUTE HIT ===");
-    console.log("Method:", req.method);
-    console.log("URL:", req.url);
-    console.log("Headers Accept:", req.headers.accept);
+    console.log("Session:", req.session);
+    console.log("User:", req.user);
+    console.log("IsAuthenticated:", req.isAuthenticated?.());
+    
+    // Check authentication manually
+    if (!req.isAuthenticated?.() && !req.session?.userId) {
+      console.log("Authentication failed");
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     
     try {
       const requests = await storage.getTodayRideRequests();
-      console.log("User authenticated:", req.session?.userId);
+      console.log("User authenticated:", req.session?.userId || req.user?.id);
       console.log("Found requests:", requests.length);
 
       // Enrich with rider info
