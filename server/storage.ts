@@ -444,18 +444,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateRideRequestStatus(id: number, status: RideRequest["status"], tripId?: number): Promise<RideRequest> {
-    console.log(`Updating ride request ${id} to status ${status} with tripId ${tripId}`);
+    const updateData: any = { 
+      status, 
+      updatedAt: nowGMTPlus3() 
+    };
+    
+    if (tripId !== undefined) {
+      updateData.tripId = tripId;
+    }
+
     const [request] = await db
       .update(rideRequests)
-      .set({ 
-        status, 
-        tripId: tripId || null,
-        updatedAt: nowGMTPlus3() 
-      })
+      .set(updateData)
       .where(eq(rideRequests.id, id))
       .returning();
+    
     if (!request) throw new Error("Ride request not found");
-    console.log(`Updated ride request:`, request);
     return request;
   }
 
