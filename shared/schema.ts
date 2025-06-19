@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   username: varchar("username").notNull(),
   section: varchar("section").notNull(),
+  phoneNumber: varchar("phone_number"),
   telegramUsername: varchar("telegram_username"),
   password: varchar("password").notNull(),
   telegramId: varchar("telegram_id"),

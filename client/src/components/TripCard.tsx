@@ -46,6 +46,7 @@ interface TripCardProps {
       section: string;
       role?: string;
       profileImageUrl?: string;
+      phoneNumber?: string;
     }[];
 
     driver?: {
@@ -54,6 +55,7 @@ interface TripCardProps {
       section: string;
       role?: string;
       profileImageUrl?: string;
+      phoneNumber?: string;
     };
     participantCount?: number;
   };
@@ -261,6 +263,12 @@ export function TripCard({
                 {trip.driver.username}
               </p>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Driver</p>
+              {trip.driver.phoneNumber && (
+                <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                  <Phone className="h-3 w-3" />
+                  <span>{trip.driver.phoneNumber}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -296,9 +304,17 @@ export function TripCard({
                         {rider.username?.[0]}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-xs sm:text-sm font-medium">
-                      {rider.username}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-xs sm:text-sm font-medium">
+                        {rider.username}
+                      </span>
+                      {rider.phoneNumber && (
+                        <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                          <Phone className="h-3 w-3" />
+                          <span>{rider.phoneNumber}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="flex items-center space-x-1 sm:space-x-2">
