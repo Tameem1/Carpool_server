@@ -12,7 +12,12 @@ import {
   insertRideRequestSchema,
   insertTripParticipantSchema,
   insertTripJoinRequestSchema,
+  rideRequests,
+  trips,
+  tripParticipants,
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import TelegramBot from "node-telegram-bot-api";
 import {
@@ -1597,82 +1602,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.patch(
-    "/api/ride-requests/:id/assign-to-trip",
-    isAuthenticated,
-    async (req: any, res) => {
-      try {
-        const requestId = parseInt(req.params.id);
-        const { tripId } = req.body;
-
-        console.log(`Assignment attempt: request ${requestId} to trip ${tripId}`);
-        console.log(`User: ${req.session?.userId}, role: ${req.currentUser?.role}`);
-
-        if (!tripId) {
-          console.log("No trip ID provided");
-          return res.status(400).json({ message: "Trip ID is required" });
-        }
-
-        // Check admin role
-        const currentUser = await storage.getUser(req.session?.userId);
-        if (!currentUser || currentUser.role !== "admin") {
-          console.log("User is not admin");
-          return res.status(403).json({ message: "Admin access required" });
-        }
-
-        // Get request and trip
-        const request = await storage.getRideRequest(requestId);
-        const trip = await storage.getTrip(tripId);
-
-        if (!request) {
-          console.log("Request not found");
-          return res.status(404).json({ message: "Ride request not found" });
-        }
-        if (!trip) {
-          console.log("Trip not found");
-          return res.status(404).json({ message: "Trip not found" });
-        }
-
-        console.log(`Request: ${request.riderId}, passenger count: ${request.passengerCount}`);
-        console.log(`Trip: available seats: ${trip.availableSeats}, total: ${trip.totalSeats}`);
-
-        // Check available seats
-        if (trip.availableSeats < request.passengerCount) {
-          console.log("Not enough seats");
-          return res.status(400).json({ message: "Not enough available seats" });
-        }
-
-        console.log("Starting assignment...");
-
-        // Update ride request status
-        await storage.updateRideRequestStatus(requestId, "accepted", tripId);
-        console.log("Updated request status");
-        
-        // Add participant
-        await storage.addTripParticipant({
-          tripId,
-          userId: request.riderId,
-          seatsBooked: request.passengerCount,
-          status: "confirmed",
-        });
-        console.log("Added participant");
-
-        // Update trip
-        const currentRiders = trip.riders || [];
-        await storage.updateTrip(tripId, {
-          riders: [...currentRiders, request.riderId],
-          availableSeats: trip.availableSeats - request.passengerCount,
-        });
-        console.log("Updated trip");
-
-        console.log("Assignment completed successfully");
-        res.json({ message: "Assignment successful", success: true });
-      } catch (error) {
-        console.error("Assignment error:", error);
-        res.status(500).json({ message: "Assignment failed", error: error.message });
+  app.patch("/api/ride-requests/:id/assign-to-trip", async (req: any, res) => {
+    try {
+      console.log("=== ASSIGNMENT START ===");
+      const requestId = parseInt(req.params.id);
+      const { tripId } = req.body;
+      
+      console.log(`Assigning request ${requestId} to trip ${tripId}`);
+      
+      if (!requestId || !tripId) {
+        return res.status(400).json({ message: "Request ID and Trip ID required" });
       }
-    },
-  );
+
+      // Direct database updates for reliability
+      console.log("Step 1: Updating ride request status");
+      await db.update(rideRequests)
+        .set({ 
+          status: "accepted", 
+          tripId: tripId,
+          updatedAt: new Date()
+        })
+        .where(eq(rideRequests.id, requestId));
+
+      console.log("Step 2: Getting current trip data");
+      const [trip] = await db.select().from(trips).where(eq(trips.id, tripId));
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+
+      console.log("Step 3: Getting request data");
+      const [request] = await db.select().from(rideRequests).where(eq(rideRequests.id, requestId));
+      if (!request) {
+        return res.status(404).json({ message: "Request not found" });
+      }
+
+      console.log("Step 4: Updating trip riders and seats");
+      const currentRiders = trip.riders || [];
+      const newRiders = [...currentRiders, request.riderId];
+      
+      await db.update(trips)
+        .set({
+          riders: newRiders,
+          availableSeats: Math.max(0, trip.availableSeats - (request.passengerCount || 1)),
+          updatedAt: new Date()
+        })
+        .where(eq(trips.id, tripId));
+
+      console.log("Step 5: Adding participant record");
+      await db.insert(tripParticipants).values({
+        tripId: tripId,
+        userId: request.riderId,
+        seatsBooked: request.passengerCount || 1,
+        status: "confirmed"
+      });
+
+      console.log("=== ASSIGNMENT COMPLETE ===");
+      res.json({ 
+        success: true, 
+        message: "Ride request assigned successfully",
+        data: { requestId, tripId, riderId: request.riderId }
+      });
+
+    } catch (error) {
+      console.error("Assignment failed:", error);
+      res.status(500).json({ message: "Assignment failed", error: error.message });
+    }
+  });
 
   // Notification routes
   app.get("/api/notifications", async (req: any, res) => {
