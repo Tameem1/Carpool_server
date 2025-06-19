@@ -1292,7 +1292,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const requests = await storage.getTodayRideRequests();
       console.log("=== RIDE REQUESTS API ===");
+      console.log("User authenticated:", req.session?.userId);
       console.log("Found requests:", requests.length);
+      console.log("Requests data:", requests.map(r => ({ id: r.id, riderId: r.riderId, status: r.status })));
 
       // Enrich with rider info
       const enrichedRequests = await Promise.all(
