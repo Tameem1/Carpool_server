@@ -74,3 +74,13 @@ export function formatDateForInput(date: Date): string {
 export function nowGMTPlus3(): Date {
   return new Date();
 }
+
+/**
+ * Get start and end of today in GMT+3
+ */
+export function getTodayRange(): { start: Date; end: Date } {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  return { start, end };
+}

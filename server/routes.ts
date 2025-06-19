@@ -1344,7 +1344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // For drivers, filter requests that match their trips (±2 hours)
         let filteredRequests = requests;
         if (req.currentUser.role === "driver") {
-          const driverTrips = await storage.getUserTrips(req.currentUser.id);
+  
 
           filteredRequests = requests.filter((request) => {
             return driverTrips.some((trip) => {

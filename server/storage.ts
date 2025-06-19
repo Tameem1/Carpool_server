@@ -40,6 +40,7 @@ export interface IStorage {
   getTrip(id: number): Promise<Trip | undefined>;
   getUserTrips(userId: string): Promise<Trip[]>;
   getTodayUserTrips(userId: string): Promise<Trip[]>;
+  getTodayTrips(): Promise<Trip[]>;
   getAllTrips(): Promise<Trip[]>;
   updateTrip(id: number, updates: Partial<InsertTrip>): Promise<Trip>;
   deleteTrip(id: number): Promise<void>;
