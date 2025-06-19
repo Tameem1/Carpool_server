@@ -778,5 +778,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Trip join request routes
+  // Create a join request for a specific trip (auto-approved)
+  app.post(
+    "/api/trips/:id/join-requests",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+        const tripId = parseInt(id);
+        const { seatsRequested, message } = req.body;
+        const riderId = req.user.id;
+
+        const trip = await storage.getTrip(tripId);
+        if (!trip) {
+          return res.status(404).json({ message: "Trip not found" });
+        }
+
+        // Check if user is the driver
+        if (trip.driverId === riderId) {
+          return res
+            .status(400)
+            .json({ message: "You cannot request to join your own trip" });
+        }
+
+        // Check if user is already a rider
+        const currentRiders = trip.riders || [];
+        if (currentRiders.includes(riderId)) {
+          return res
+            .status(400)
+            .json({ message: "You are already a rider on this trip" });
+        }
+
+        // Check if user has already requested to join
+        const existingRequests = await storage.getTripJoinRequests(tripId);
+        const userHasRequest = existingRequests.some(
+          (req) => req.riderId === riderId,
+        );
+        if (userHasRequest) {
+          return res
+            .status(400)
+            .json({ message: "You have already requested to join this trip" });
+        }
+
+        // Check if trip has available seats
+        const requestedSeats = seatsRequested || 1;
+        if (trip.availableSeats < requestedSeats) {
+          return res
+            .status(400)
+            .json({ message: "Not enough available seats" });
+        }
+
+        // Create join request with approved status
+        const joinRequestData = insertTripJoinRequestSchema.parse({
+          tripId,
+          riderId,
+          seatsRequested: requestedSeats,
+          message,
+          status: "approved",
+        });
+
+        const joinRequest =
+          await storage.createTripJoinRequest(joinRequestData);
+
+        // Automatically add rider to trip
+        const updatedRiders = [...currentRiders, riderId];
+        const updatedTrip = await storage.updateTrip(tripId, {
+          riders: updatedRiders,
+          availableSeats: trip.totalSeats - updatedRiders.length,
+        });
+
+        // Add trip participant record
+        await storage.addTripParticipant({
+          tripId,
+          userId: riderId,
+          seatsBooked: requestedSeats,
+        });
+
+        // Notify driver about the new rider
+        const driver = await storage.getUser(trip.driverId);
+        const requester = await storage.getUser(riderId);
+
+        if (driver && requester) {
+          await storage.createNotification({
+            userId: driver.id,
+            title: "راكب جديد انضم للرحلة",
+            message: `${requester.username} انضم إلى رحلتك من ${trip.fromLocation} إلى ${trip.toLocation}`,
+            type: "rider_joined",
+          });
+
+          // Notify rider about successful join
+          await storage.createNotification({
+            userId: riderId,
+            title: "تم الانضمام للرحلة بنجاح",
+            message: `تم قبولك في الرحلة من ${trip.fromLocation} إلى ${trip.toLocation}`,
+            type: "join_approved",
+          });
+
+          // Send Telegram notifications if available
+          try {
+            await telegramService.notifyRequestAccepted(riderId, tripId);
+          } catch (notificationError) {
+            console.error("Error sending Telegram notification:", notificationError);
+          }
+
+          // Broadcast notification
+          broadcastToAll({
+            type: "rider_joined",
+            data: { joinRequest, trip: updatedTrip, rider: requester },
+          });
+        }
+
+        res.json({
+          ...joinRequest,
+          trip: updatedTrip,
+        });
+      } catch (error) {
+        console.error("Error creating trip join request:", error);
+        
+        if (error instanceof z.ZodError) {
+          return res
+            .status(400)
+            .json({ message: "Invalid input", errors: error.errors });
+        }
+        
+        res.status(500).json({ message: "Failed to create join request" });
+      }
+    },
+  );
+
   return server;
 }

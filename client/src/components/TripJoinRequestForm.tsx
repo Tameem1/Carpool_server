@@ -70,8 +70,15 @@ export function TripJoinRequestForm({ open, onClose, tripId, trip }: TripJoinReq
       });
       
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to send join request");
+        let errorMessage = "Failed to send join request";
+        try {
+          const error = await response.json();
+          errorMessage = error.message || errorMessage;
+        } catch (parseError) {
+          // If response is not JSON (e.g., HTML error page), use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
       
       return response.json();
