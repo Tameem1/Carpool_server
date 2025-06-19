@@ -378,10 +378,11 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(rideRequests.status, "pending"),
-          gte(rideRequests.createdAt, start),
-          lt(rideRequests.createdAt, end)
+          gte(rideRequests.preferredTime, start),
+          lt(rideRequests.preferredTime, end)
         )
-      );
+      )
+      .orderBy(rideRequests.preferredTime);
   }
 
   async updateRideRequestStatus(id: number, status: RideRequest["status"], tripId?: number): Promise<RideRequest> {
