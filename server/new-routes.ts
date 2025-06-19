@@ -627,5 +627,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Register API routes before any middleware that might interfere
+  app.all("/api/ride-requests/all", (req, res, next) => {
+    // Bypass any middleware for this specific route
+    if (req.method === 'GET') {
+      console.log("Intercepted ride requests API call");
+      next();
+    } else {
+      next();
+    }
+  });
+
+  // Ride request routes
+  // Get all ride requests (accessible to all authenticated users)
+  app.get("/api/ride-requests/all", isAuthenticated, async (req: any, res) => {
+    console.log("=== RIDE REQUESTS API ROUTE HIT ===");
+    console.log("Method:", req.method);
+    console.log("URL:", req.url);
+    console.log("Headers Accept:", req.headers.accept);
+    
+    try {
+      const requests = await storage.getTodayRideRequests();
+      console.log("User authenticated:", req.session?.userId);
+      console.log("Found requests:", requests.length);
+
+      // Enrich with rider info
+      const enrichedRequests = await Promise.all(
+        requests.map(async (request) => {
+          const rider = await storage.getUser(request.riderId);
+          return {
+            ...request,
+            rider: rider
+              ? {
+                  id: rider.id,
+                  username: rider.username,
+                  section: rider.section,
+                  role: rider.role,
+                  phoneNumber: rider.phoneNumber,
+                  profileImageUrl: rider.profileImageUrl,
+                }
+              : null,
+          };
+        }),
+      );
+
+      console.log("Returning", enrichedRequests.length, "enriched requests");
+      
+      // Ensure response is not cached and is proper JSON
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      return res.status(200).json(enrichedRequests);
+    } catch (error: any) {
+      console.error("Error fetching all ride requests:", error);
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      return res.status(500).json({ message: "Failed to fetch ride requests" });
+    }
+  });
+
   return server;
 }
