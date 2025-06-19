@@ -114,16 +114,7 @@ export function TripCard({
   // Add rider mutation
   const addRiderMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const response = await fetch(`/api/trips/${trip.id}/riders`, {
-        method: "POST",
-        body: JSON.stringify({ userId }),
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to add rider");
-      }
-      return response.json();
+      return await apiRequest("POST", `/api/trips/${trip.id}/riders`, { userId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
@@ -145,14 +136,7 @@ export function TripCard({
   // Remove rider mutation
   const removeRiderMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const response = await fetch(`/api/trips/${trip.id}/riders/${userId}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to remove rider");
-      }
-      return response.json();
+      return await apiRequest("DELETE", `/api/trips/${trip.id}/riders/${userId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });

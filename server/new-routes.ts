@@ -520,5 +520,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add rider to trip (admin or driver)
+  app.post("/api/trips/:id/riders", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { userId } = req.body;
+      const tripId = parseInt(id);
+      const currentUserId = req.user.id;
+
+      const trip = await storage.getTrip(tripId);
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+
+      const currentUser = await storage.getUser(currentUserId);
+
+      // Check if user is admin or the driver of this trip
+      if (currentUser?.role !== "admin" && trip.driverId !== currentUserId) {
+        return res
+          .status(403)
+          .json({ message: "Only admins or the trip driver can add riders" });
+      }
+
+      const currentRiders = trip.riders || [];
+      if (currentRiders.includes(userId)) {
+        return res
+          .status(400)
+          .json({ message: "User is already a rider on this trip" });
+      }
+
+      if (currentRiders.length >= trip.totalSeats) {
+        return res.status(400).json({ message: "Trip is full" });
+      }
+
+      const updatedRiders = [...currentRiders, userId];
+      const updatedTrip = await storage.updateTrip(tripId, {
+        riders: updatedRiders,
+        availableSeats: trip.totalSeats - updatedRiders.length,
+      });
+
+      // Broadcast trip update to all connected clients
+      broadcastToAll({
+        type: "trip_updated",
+        trip: updatedTrip,
+      });
+
+      res.json({ message: "Rider added successfully", trip: updatedTrip });
+    } catch (error) {
+      console.error("Error adding rider to trip:", error);
+      res.status(500).json({ message: "Failed to add rider to trip" });
+    }
+  });
+
+  // Remove rider from trip (admin or driver)
+  app.delete("/api/trips/:id/riders/:userId", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id, userId } = req.params;
+      const tripId = parseInt(id);
+      const currentUserId = req.user.id;
+
+      const trip = await storage.getTrip(tripId);
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+
+      const currentUser = await storage.getUser(currentUserId);
+
+      // Check if user is admin or the driver of this trip
+      if (currentUser?.role !== "admin" && trip.driverId !== currentUserId) {
+        return res
+          .status(403)
+          .json({ message: "Only admins or the trip driver can remove riders" });
+      }
+
+      const currentRiders = trip.riders || [];
+      if (!currentRiders.includes(userId)) {
+        return res
+          .status(400)
+          .json({ message: "User is not a rider on this trip" });
+      }
+
+      const updatedRiders = currentRiders.filter(id => id !== userId);
+      const updatedTrip = await storage.updateTrip(tripId, {
+        riders: updatedRiders,
+        availableSeats: trip.totalSeats - updatedRiders.length,
+      });
+
+      // Broadcast trip update to all connected clients
+      broadcastToAll({
+        type: "trip_updated",
+        trip: updatedTrip,
+      });
+
+      res.json({ message: "Rider removed successfully", trip: updatedTrip });
+    } catch (error) {
+      console.error("Error removing rider from trip:", error);
+      res.status(500).json({ message: "Failed to remove rider from trip" });
+    }
+  });
+
   return server;
 }
