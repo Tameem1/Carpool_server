@@ -667,8 +667,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isAdmin = user?.role === "admin";
       }
 
-      // Get all trips
-      let trips = await storage.getAllTrips();
+      // Get today's trips only
+      let trips = await storage.getTodayTrips();
 
       // Apply additional filters if provided
       if (from || to || date) {
@@ -1344,7 +1344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // For drivers, filter requests that match their trips (±2 hours)
         let filteredRequests = requests;
         if (req.currentUser.role === "driver") {
-  
+          const driverTrips = await storage.getTodayUserTrips(req.currentUser.id);
 
           filteredRequests = requests.filter((request) => {
             return driverTrips.some((trip) => {

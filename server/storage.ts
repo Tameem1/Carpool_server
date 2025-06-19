@@ -262,8 +262,22 @@ export class DatabaseStorage implements IStorage {
       );
   }
 
+  async getTodayTrips(): Promise<Trip[]> {
+    const { start, end } = this.getCustomDayRange();
+    
+    return await db.select()
+      .from(trips)
+      .where(
+        and(
+          gte(trips.departureTime, start),
+          lt(trips.departureTime, end)
+        )
+      )
+      .orderBy(trips.departureTime);
+  }
+
   async getAllTrips(): Promise<Trip[]> {
-    return await db.select().from(trips);
+    return await db.select().from(trips).orderBy(trips.departureTime);
   }
 
   async updateTrip(id: number, updates: Partial<InsertTrip>): Promise<Trip> {
@@ -376,16 +390,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTodayRideRequests(): Promise<RideRequest[]> {
-    console.log("Getting all pending ride requests...");
+    console.log("Getting today's pending ride requests...");
     
     try {
-      // For now, return all pending requests to ensure they display
+      const { start, end } = this.getCustomDayRange();
+      
       const results = await db.select()
         .from(rideRequests)
-        .where(eq(rideRequests.status, "pending"))
+        .where(
+          and(
+            eq(rideRequests.status, "pending"),
+            gte(rideRequests.preferredTime, start),
+            lt(rideRequests.preferredTime, end)
+          )
+        )
         .orderBy(rideRequests.preferredTime);
       
-      console.log("Found pending ride requests:", results.length);
+      console.log(`Found today's pending ride requests: ${results.length}`);
       if (results.length > 0) {
         console.log("Sample request:", results[0]);
       }
