@@ -778,6 +778,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete trip endpoint
+  app.delete("/api/trips/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const tripId = parseInt(id);
+      const userId = req.user.id;
+
+      const trip = await storage.getTrip(tripId);
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+
+      // Check if user is the trip owner or admin
+      const user = await storage.getUser(userId);
+      if (trip.driverId !== userId && user?.role !== "admin") {
+        return res.status(403).json({ message: "You can only delete your own trips" });
+      }
+
+      await storage.deleteTrip(tripId);
+
+      // Broadcast trip deletion to all connected clients
+      broadcastToAll({
+        type: "trip_deleted",
+        tripId: tripId,
+      });
+
+      res.status(200).json({ message: "Trip deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting trip:", error);
+      res.status(500).json({ message: "Failed to delete trip" });
+    }
+  });
+
   // Trip join request routes
   // Create a join request for a specific trip (auto-approved)
   app.post(

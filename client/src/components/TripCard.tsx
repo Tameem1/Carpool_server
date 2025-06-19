@@ -202,9 +202,10 @@ export function TripCard({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/trips/my"] });
       toast({
-        title: "Success",
-        description: "Trip deleted successfully",
+        title: "نجح الحذف",
+        description: "تم حذف الرحلة بنجاح",
       });
     },
     onError: (error: any) => {
@@ -468,8 +469,8 @@ export function TripCard({
                 </Button>
               )}
               
-              {/* Delete button for admin */}
-              {userRole === "admin" && (
+              {/* Delete button for trip owner or admin */}
+              {(trip.driverId === currentUserId || userRole === "admin") && (
                 <Button
                   variant="outline"
                   size="sm"
