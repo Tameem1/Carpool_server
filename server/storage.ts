@@ -320,6 +320,12 @@ export class DatabaseStorage implements IStorage {
 
   // Ride request operations
   async createRideRequest(requestData: InsertRideRequest): Promise<RideRequest> {
+    console.log("=== CREATING RIDE REQUEST ===");
+    console.log("Input data:", requestData);
+    console.log("Preferred time type:", typeof requestData.preferredTime);
+    console.log("Preferred time value:", requestData.preferredTime);
+    console.log("Preferred time ISO:", requestData.preferredTime instanceof Date ? requestData.preferredTime.toISOString() : 'Not a Date object');
+    
     const [request] = await db
       .insert(rideRequests)
       .values({
@@ -333,6 +339,10 @@ export class DatabaseStorage implements IStorage {
         tripId: null,
       })
       .returning();
+    
+    console.log("=== RIDE REQUEST CREATED ===");
+    console.log("Created request:", request);
+    console.log("Created preferred time:", request.preferredTime);
     return request;
   }
 
