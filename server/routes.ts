@@ -1541,13 +1541,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: "confirmed",
         });
 
-        // Update trip available seats
+        // Update trip: add rider to riders array and update available seats
+        const currentRiders = trip.riders || [];
+        const updatedRiders = [...currentRiders, request.riderId];
         await storage.updateTrip(tripId, {
+          riders: updatedRiders,
           availableSeats: trip.availableSeats - request.passengerCount,
         });
 
         // Send notification
         await telegramService.notifyRequestAccepted(request.riderId, tripId);
+
+        // Broadcast updates to all connected clients
+        broadcastToAll({
+          type: "ride_request_updated",
+          data: { id: requestId, status: "accepted", tripId },
+        });
+        
+        broadcastToAll({
+          type: "trip_updated",
+          data: { tripId, riderId: request.riderId },
+        });
 
         res.json({ message: "Request accepted successfully" });
       } catch (error) {
@@ -1624,18 +1638,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: "confirmed",
         });
 
-        // Update trip available seats
+        // Update trip: add rider to riders array and update available seats
+        const currentRiders = trip.riders || [];
+        const updatedRiders = [...currentRiders, request.riderId];
         await storage.updateTrip(tripId, {
+          riders: updatedRiders,
           availableSeats: trip.availableSeats - request.passengerCount,
         });
 
         // Send notification
         await telegramService.notifyRequestAccepted(request.riderId, tripId);
 
-        // Broadcast ride request update to all connected clients
+        // Broadcast updates to all connected clients
         broadcastToAll({
           type: "ride_request_updated",
           data: { id: requestId, status: "accepted", tripId },
+        });
+        
+        broadcastToAll({
+          type: "trip_updated",
+          data: { tripId, riderId: request.riderId },
         });
 
         res.json({ message: "Ride request assigned successfully" });
