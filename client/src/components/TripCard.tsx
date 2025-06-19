@@ -251,11 +251,26 @@ export function TripCard({
                 {trip.driver.username}
               </p>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Driver</p>
-              {trip.driver.phoneNumber && (
-                <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
-                  <Phone className="h-3 w-3" />
-                  <span>{trip.driver.phoneNumber}</span>
+              {trip.driver.phoneNumber ? (
+                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-1">
+                    <Phone className="h-3 w-3" />
+                    <span>{trip.driver.phoneNumber}</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0 rounded-full bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800"
+                    onClick={() => window.open(`tel:${trip.driver.phoneNumber}`, '_self')}
+                    title={`Call ${trip.driver.username}`}
+                  >
+                    <Phone className="h-3 w-3 text-green-600" />
+                  </Button>
                 </div>
+              ) : (
+                <span className="text-xs text-gray-500 dark:text-gray-400 italic">
+                  لا يوجد رقم هاتف
+                </span>
               )}
             </div>
           </div>
@@ -296,11 +311,26 @@ export function TripCard({
                       <span className="text-xs sm:text-sm font-medium">
                         {rider.username}
                       </span>
-                      {rider.phoneNumber && (
-                        <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
-                          <Phone className="h-3 w-3" />
-                          <span>{rider.phoneNumber}</span>
+                      {rider.phoneNumber ? (
+                        <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            <span>{rider.phoneNumber}</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 rounded-full bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800"
+                            onClick={() => window.open(`tel:${rider.phoneNumber}`, '_self')}
+                            title={`Call ${rider.username}`}
+                          >
+                            <Phone className="h-3 w-3 text-green-600" />
+                          </Button>
                         </div>
+                      ) : (
+                        <span className="text-xs text-gray-500 dark:text-gray-400 italic">
+                          لا يوجد رقم هاتف
+                        </span>
                       )}
                     </div>
                   </div>
