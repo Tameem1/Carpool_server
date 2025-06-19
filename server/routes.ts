@@ -1606,22 +1606,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { tripId } = req.body;
         const requestId = parseInt(id);
 
+        console.log(`=== ASSIGNMENT REQUEST ===`);
+        console.log(`Request ID: ${requestId}, Trip ID: ${tripId}`);
+
         if (!tripId) {
           return res.status(400).json({ message: "Trip ID is required" });
         }
 
         const request = await storage.getRideRequest(requestId);
         if (!request) {
+          console.log("Request not found");
           return res.status(404).json({ message: "Ride request not found" });
         }
 
         const trip = await storage.getTrip(tripId);
         if (!trip) {
+          console.log("Trip not found");
           return res.status(404).json({ message: "Trip not found" });
         }
 
+        console.log(`Request details:`, { riderId: request.riderId, passengerCount: request.passengerCount });
+        console.log(`Trip details:`, { availableSeats: trip.availableSeats, totalSeats: trip.totalSeats, riders: trip.riders });
+
         // Check if trip has enough available seats
         if (trip.availableSeats < request.passengerCount) {
+          console.log(`Not enough seats: available=${trip.availableSeats}, required=${request.passengerCount}`);
           return res
             .status(400)
             .json({ message: "Not enough available seats in the trip" });
