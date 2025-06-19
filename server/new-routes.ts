@@ -367,16 +367,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const tripsWithDetails = await Promise.all(
         trips.map(async (trip) => {
-          const participants = await storage.getTripParticipants(trip.id);
+          // Get rider details from the riders array in the trip
           const riderDetails = await Promise.all(
-            participants.map(async (p) => {
-              const user = await storage.getUser(p.userId);
+            (trip.riders || []).map(async (riderId) => {
+              const user = await storage.getUser(riderId);
               return user
                 ? {
                     id: user.id,
                     username: user.username,
                     section: user.section,
                     role: user.role,
+                    phoneNumber: user.phoneNumber,
+                    profileImageUrl: user.profileImageUrl,
                   }
                 : null;
             }),
@@ -386,7 +388,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           return {
             ...trip,
-            participantCount: participants.length,
+            participantCount: trip.riders?.length || 0,
             riderDetails: riderDetails.filter(Boolean),
             driver: driver
               ? {
@@ -394,6 +396,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   username: driver.username,
                   section: driver.section,
                   role: driver.role,
+                  phoneNumber: driver.phoneNumber,
+                  profileImageUrl: driver.profileImageUrl,
                 }
               : null,
           };
@@ -414,16 +418,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const tripsWithDetails = await Promise.all(
         trips.map(async (trip) => {
-          const participants = await storage.getTripParticipants(trip.id);
+          // Get rider details from the riders array in the trip
           const riderDetails = await Promise.all(
-            participants.map(async (p) => {
-              const user = await storage.getUser(p.userId);
+            (trip.riders || []).map(async (riderId) => {
+              const user = await storage.getUser(riderId);
               return user
                 ? {
                     id: user.id,
                     username: user.username,
                     section: user.section,
                     role: user.role,
+                    phoneNumber: user.phoneNumber,
+                    profileImageUrl: user.profileImageUrl,
                   }
                 : null;
             }),
@@ -433,7 +439,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           return {
             ...trip,
-            participantCount: participants.length,
+            participantCount: trip.riders?.length || 0,
             riderDetails: riderDetails.filter(Boolean),
             driver: driver
               ? {
@@ -441,6 +447,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   username: driver.username,
                   section: driver.section,
                   role: driver.role,
+                  phoneNumber: driver.phoneNumber,
+                  profileImageUrl: driver.profileImageUrl,
                 }
               : null,
           };
