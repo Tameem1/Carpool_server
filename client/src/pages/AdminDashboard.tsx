@@ -110,9 +110,11 @@ export default function AdminDashboard() {
 
   const assignRideMutation = useMutation({
     mutationFn: async ({ requestId, tripId }: { requestId: number; tripId: number }) => {
-      await apiRequest("PATCH", `/api/ride-requests/${requestId}/assign-to-trip`, { tripId });
+      const response = await apiRequest("PATCH", `/api/ride-requests/${requestId}/assign-to-trip`, { tripId });
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Assignment response:", data);
       toast({
         title: "تم تعيين الرحلة",
         description: "تم تعيين طلب الرحلة للرحلة بنجاح.",
@@ -120,7 +122,8 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
       queryClient.invalidateQueries({ queryKey: ["/api/ride-requests/all"] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Assignment error:", error);
       if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
@@ -132,9 +135,21 @@ export default function AdminDashboard() {
         }, 500);
         return;
       }
+      
+      // Check if this is actually a successful response being treated as error
+      if (error?.response?.data?.success === true) {
+        toast({
+          title: "تم تعيين الرحلة",
+          description: "تم تعيين طلب الرحلة للرحلة بنجاح.",
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/ride-requests/all"] });
+        return;
+      }
+      
       toast({
-        title: "Error",
-        description: error.message || "Failed to assign ride",
+        title: "فشل التعيين",
+        description: error.message || "فشل في تعيين الطلب للرحلة",
         variant: "destructive",
       });
     },
