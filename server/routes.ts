@@ -1602,70 +1602,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.patch("/api/ride-requests/:id/assign-to-trip", isAuthenticated, async (req: any, res) => {
+  // Assignment route - simple and direct
+  app.patch("/api/ride-requests/:id/assign-to-trip", async (req: any, res) => {
+    console.log("=== ASSIGNMENT API HIT ===");
+    console.log("Request params:", req.params);
+    console.log("Request body:", req.body);
+    console.log("Session user:", req.session?.userId);
+    
     try {
-      console.log("=== ASSIGNMENT START ===");
       const requestId = parseInt(req.params.id);
       const { tripId } = req.body;
       
-      console.log(`Assigning request ${requestId} to trip ${tripId}`);
-      
       if (!requestId || !tripId) {
+        console.log("Missing data - requestId:", requestId, "tripId:", tripId);
         return res.status(400).json({ message: "Request ID and Trip ID required" });
       }
 
-      // Direct database updates for reliability
-      console.log("Step 1: Updating ride request status");
-      await db.update(rideRequests)
-        .set({ 
-          status: "accepted", 
-          tripId: tripId,
-          updatedAt: new Date()
-        })
-        .where(eq(rideRequests.id, requestId));
-
-      console.log("Step 2: Getting current trip data");
-      const [trip] = await db.select().from(trips).where(eq(trips.id, tripId));
-      if (!trip) {
-        return res.status(404).json({ message: "Trip not found" });
-      }
-
-      console.log("Step 3: Getting request data");
-      const [request] = await db.select().from(rideRequests).where(eq(rideRequests.id, requestId));
-      if (!request) {
-        return res.status(404).json({ message: "Request not found" });
-      }
-
-      console.log("Step 4: Updating trip riders and seats");
-      const currentRiders = trip.riders || [];
-      const newRiders = [...currentRiders, request.riderId];
+      console.log("Executing assignment...");
       
+      // Update ride request
+      await db.update(rideRequests)
+        .set({ status: "accepted", tripId: tripId })
+        .where(eq(rideRequests.id, requestId));
+      
+      console.log("Updated ride request status");
+
+      // Get trip and request data
+      const [trip] = await db.select().from(trips).where(eq(trips.id, tripId));
+      const [request] = await db.select().from(rideRequests).where(eq(rideRequests.id, requestId));
+      
+      if (!trip || !request) {
+        return res.status(404).json({ message: "Trip or request not found" });
+      }
+
+      console.log("Updating trip riders...");
+      
+      // Update trip riders
+      const currentRiders = trip.riders || [];
       await db.update(trips)
         .set({
-          riders: newRiders,
-          availableSeats: Math.max(0, trip.availableSeats - (request.passengerCount || 1)),
-          updatedAt: new Date()
+          riders: [...currentRiders, request.riderId],
+          availableSeats: Math.max(0, trip.availableSeats - 1)
         })
         .where(eq(trips.id, tripId));
 
-      console.log("Step 5: Adding participant record");
-      await db.insert(tripParticipants).values({
-        tripId: tripId,
-        userId: request.riderId,
-        seatsBooked: request.passengerCount || 1,
-        status: "confirmed"
-      });
-
-      console.log("=== ASSIGNMENT COMPLETE ===");
+      console.log("Assignment completed successfully!");
+      
       res.json({ 
         success: true, 
-        message: "Ride request assigned successfully",
-        data: { requestId, tripId, riderId: request.riderId }
+        message: "Assigned successfully" 
       });
 
     } catch (error) {
-      console.error("Assignment failed:", error);
-      res.status(500).json({ message: "Assignment failed", error: error.message });
+      console.error("Assignment error:", error);
+      res.status(500).json({ message: "Assignment failed" });
     }
   });
 
