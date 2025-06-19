@@ -23,11 +23,15 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { TripJoinRequestForm } from "./TripJoinRequestForm";
 
-// Helper function to extract and format time from timestamp
+// Helper function to extract and format time from timestamp with AM/PM
 function formatTimeOnly(timestamp: string): string {
   if (!timestamp) return "";
   const date = new Date(timestamp);
-  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours % 12 || 12; // Convert to 12-hour format, 0 becomes 12
+  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
 }
 
 interface TripCardProps {
