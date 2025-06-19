@@ -375,17 +375,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTodayRideRequests(): Promise<RideRequest[]> {
-    // For now, let's return all pending requests to debug the issue
     console.log("Getting all pending ride requests for debugging...");
     
-    const results = await db.select()
-      .from(rideRequests)
-      .where(eq(rideRequests.status, "pending"))
-      .orderBy(rideRequests.preferredTime);
-    
-    console.log("Found pending ride requests in storage:", results.length);
-    console.log("Sample request:", results[0]);
-    return results;
+    try {
+      const results = await db.select()
+        .from(rideRequests)
+        .where(eq(rideRequests.status, "pending"))
+        .orderBy(rideRequests.preferredTime);
+      
+      console.log("Found pending ride requests in storage:", results.length);
+      if (results.length > 0) {
+        console.log("Sample request:", JSON.stringify(results[0], null, 2));
+      }
+      return results;
+    } catch (error) {
+      console.error("Error in getTodayRideRequests:", error);
+      throw error;
+    }
   }
 
   async updateRideRequestStatus(id: number, status: RideRequest["status"], tripId?: number): Promise<RideRequest> {
