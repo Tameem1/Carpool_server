@@ -693,5 +693,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POST route for creating ride requests
+  app.post("/api/ride-requests", isAuthenticated, async (req: any, res) => {
+    try {
+      console.log("=== RIDE REQUEST CREATION ===");
+      console.log("Request body:", req.body);
+      console.log("Current user:", req.user);
+      console.log("Session:", req.session);
+
+      const userId = req.user.id;
+
+      // For admins, allow specifying a different rider
+      const riderId =
+        req.user.role === "admin" && req.body.riderId
+          ? req.body.riderId
+          : userId;
+
+      console.log("Using rider ID:", riderId);
+
+      // Use the datetime as-is (already processed by client if needed)
+      const requestData = insertRideRequestSchema.parse({
+        ...req.body,
+        riderId: riderId,
+      });
+
+      console.log("Parsed request data:", requestData);
+
+      const request = await storage.createRideRequest(requestData);
+      console.log("Created ride request:", request);
+
+      // Find potential drivers and notify them
+      const allTrips = await storage.getAllTrips();
+      const matchingTrips = allTrips.filter((trip) => {
+        const tripTime = new Date(trip.departureTime).getTime();
+        const requestTime = new Date(request.preferredTime).getTime();
+        const timeDiff = Math.abs(tripTime - requestTime);
+        const twoHours = 2 * 60 * 60 * 1000;
+
+        return (
+          timeDiff <= twoHours && trip.availableSeats >= request.passengerCount
+        );
+      });
+
+      console.log("Found matching trips:", matchingTrips.length);
+
+      // Notify drivers
+      for (const trip of matchingTrips) {
+        try {
+          await telegramService.notifyRideRequestReceived(
+            trip.driverId,
+            request.id,
+          );
+        } catch (notificationError) {
+          console.error("Error sending notification:", notificationError);
+        }
+      }
+
+      // Notify all admin users about the new ride request
+      try {
+        await telegramService.notifyAdminsRideRequestCreated(request.id, riderId);
+      } catch (notificationError) {
+        console.error("Error sending admin notification:", notificationError);
+      }
+
+      // Broadcast ride request creation to all connected clients
+      broadcastToAll({
+        type: "ride_request_created",
+        data: request,
+      });
+
+      res.status(201).json(request);
+    } catch (error) {
+      console.error("=== RIDE REQUEST CREATION ERROR ===");
+      console.error("Error details:", error);
+      
+      if (error instanceof z.ZodError) {
+        console.error("Zod validation errors:", error.errors);
+        return res
+          .status(400)
+          .json({ message: "Invalid input", errors: error.errors });
+      }
+      
+      res.status(500).json({ message: "Failed to create ride request" });
+    }
+  });
+
   return server;
 }
