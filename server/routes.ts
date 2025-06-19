@@ -1602,60 +1602,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // Assignment route - simple and direct
-  app.patch("/api/ride-requests/:id/assign-to-trip", async (req: any, res) => {
-    console.log("=== ASSIGNMENT API HIT ===");
-    console.log("Request params:", req.params);
-    console.log("Request body:", req.body);
-    console.log("Session user:", req.session?.userId);
+  app.patch("/api/ride-requests/:id/assign-to-trip", async (req: any, res: any) => {
+    console.log("🚀 ASSIGNMENT ROUTE HIT!");
+    console.log("Params:", req.params);
+    console.log("Body:", req.body);
     
-    try {
-      const requestId = parseInt(req.params.id);
-      const { tripId } = req.body;
-      
-      if (!requestId || !tripId) {
-        console.log("Missing data - requestId:", requestId, "tripId:", tripId);
-        return res.status(400).json({ message: "Request ID and Trip ID required" });
-      }
+    const requestId = parseInt(req.params.id);
+    const { tripId } = req.body;
+    
+    if (!requestId || !tripId) {
+      console.log("❌ Missing data");
+      return res.status(400).json({ success: false, message: "Missing data" });
+    }
 
-      console.log("Executing assignment...");
+    try {
+      console.log(`📝 Assigning request ${requestId} to trip ${tripId}`);
       
-      // Update ride request
+      // Step 1: Update request status
+      console.log("Step 1: Updating request status...");
       await db.update(rideRequests)
         .set({ status: "accepted", tripId: tripId })
         .where(eq(rideRequests.id, requestId));
       
-      console.log("Updated ride request status");
-
-      // Get trip and request data
+      // Step 2: Get trip data  
+      console.log("Step 2: Getting trip data...");
       const [trip] = await db.select().from(trips).where(eq(trips.id, tripId));
       const [request] = await db.select().from(rideRequests).where(eq(rideRequests.id, requestId));
       
       if (!trip || !request) {
-        return res.status(404).json({ message: "Trip or request not found" });
+        console.log("❌ Trip or request not found");
+        return res.status(404).json({ success: false, message: "Not found" });
       }
-
-      console.log("Updating trip riders...");
       
-      // Update trip riders
+      // Step 3: Update trip riders
+      console.log("Step 3: Updating trip riders...");
       const currentRiders = trip.riders || [];
+      const newRiders = [...currentRiders, request.riderId];
+      
       await db.update(trips)
         .set({
-          riders: [...currentRiders, request.riderId],
+          riders: newRiders,
           availableSeats: Math.max(0, trip.availableSeats - 1)
         })
         .where(eq(trips.id, tripId));
-
-      console.log("Assignment completed successfully!");
       
-      res.json({ 
-        success: true, 
-        message: "Assigned successfully" 
-      });
-
+      console.log("✅ Assignment successful!");
+      res.json({ success: true, message: "Assignment successful" });
+      
     } catch (error) {
-      console.error("Assignment error:", error);
-      res.status(500).json({ message: "Assignment failed" });
+      console.error("💥 Assignment failed:", error);
+      res.status(500).json({ success: false, message: "Assignment failed" });
     }
   });
 
