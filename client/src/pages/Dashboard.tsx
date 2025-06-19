@@ -122,11 +122,19 @@ export default function Dashboard() {
     enabled: user?.role === "admin",
   });
 
-  const { data: allRequests = [] } = useQuery({
+  const { data: allRequests = [], isLoading: requestsLoading, error: requestsError } = useQuery({
     queryKey: ["/api/ride-requests/all"],
     enabled: !!user && user.role === 'admin',
     retry: false,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
+
+  // Debug logging
+  console.log('Debug - allRequests:', allRequests);
+  console.log('Debug - user role:', user?.role);
+  console.log('Debug - requestsLoading:', requestsLoading);
+  console.log('Debug - requestsError:', requestsError);
 
   // Sorting function
   const sortTrips = (trips: any[], sortBy: string) => {

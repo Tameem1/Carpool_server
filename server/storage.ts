@@ -373,7 +373,9 @@ export class DatabaseStorage implements IStorage {
 
   async getTodayRideRequests(): Promise<RideRequest[]> {
     const { start, end } = this.getCustomDayRange();
-    return await db.select()
+    console.log("Getting today's ride requests between:", start, "and", end);
+    
+    const results = await db.select()
       .from(rideRequests)
       .where(
         and(
@@ -383,6 +385,9 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(rideRequests.preferredTime);
+    
+    console.log("Found ride requests in storage:", results.length);
+    return results;
   }
 
   async updateRideRequestStatus(id: number, status: RideRequest["status"], tripId?: number): Promise<RideRequest> {
