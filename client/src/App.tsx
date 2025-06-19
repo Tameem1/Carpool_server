@@ -39,52 +39,45 @@ function Router() {
         </Route>
       ) : (
         <>
-          <Route path="/">
-            {() => (
-              <div className="min-h-screen bg-background">
-                <Navigation />
-                <Dashboard />
-              </div>
-            )}
-          </Route>
+          <Route path="/" component={() => (
+            <div className="min-h-screen bg-background">
+              <Navigation />
+              <Dashboard />
+            </div>
+          )} />
 
-          <Route path="/admin">
-            {() => (
-              <div className="min-h-screen bg-background">
-                <Navigation />
-                <AdminDashboard />
-              </div>
-            )}
-          </Route>
-          <Route path="/driver">
-            {() => (
-              <div className="min-h-screen bg-background">
-                <Navigation />
-                <DriverDashboard />
-              </div>
-            )}
-          </Route>
-          <Route path="/rider">
-            {() => (
-              <div className="min-h-screen bg-background">
-                <Navigation />
-                <RiderDashboard />
-              </div>
-            )}
-          </Route>
+          <Route path="/admin" component={() => (
+            <div className="min-h-screen bg-background">
+              <Navigation />
+              <AdminDashboard />
+            </div>
+          )} />
+          
+          <Route path="/driver" component={() => (
+            <div className="min-h-screen bg-background">
+              <Navigation />
+              <DriverDashboard />
+            </div>
+          )} />
+          
+          <Route path="/rider" component={() => (
+            <div className="min-h-screen bg-background">
+              <Navigation />
+              <RiderDashboard />
+            </div>
+          )} />
 
-
-          <Route path="/profile">
-            {() => (
-              <div className="min-h-screen bg-background">
-                <Navigation />
-                <UserProfile />
-              </div>
-            )}
-          </Route>
+          <Route path="/profile" component={() => (
+            <div className="min-h-screen bg-background">
+              <Navigation />
+              <UserProfile />
+            </div>
+          )} />
+          
+          <Route component={NotFound} />
         </>
       )}
-      <Route component={NotFound} />
+      {!isAuthenticated && <Route component={NotFound} />}
     </Switch>
   );
 }
