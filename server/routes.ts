@@ -729,8 +729,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             driver: driver
               ? {
                   id: driver.id,
-                  firstName: driver.firstName,
-                  lastName: driver.lastName,
+                  username: driver.username,
+                  section: driver.section,
+                  role: driver.role,
+                  phoneNumber: driver.phoneNumber,
                   profileImageUrl: driver.profileImageUrl,
                 }
               : null,
