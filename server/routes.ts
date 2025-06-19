@@ -543,20 +543,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Only allow phoneNumber and telegramId to be updated
       const { phoneNumber, telegramId } = req.body;
+      console.log("Profile update request body:", req.body);
+      console.log("User ID:", userId);
 
       const existingUser = await storage.getUser(userId);
       if (!existingUser) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const updatedUser = await storage.upsertUser({
-        ...existingUser,
-        phoneNumber:
-          phoneNumber !== undefined ? phoneNumber : existingUser.phoneNumber,
-        telegramId:
-          telegramId !== undefined ? telegramId : existingUser.telegramId,
+      console.log("Existing user phone:", existingUser.phoneNumber);
+      console.log("New phone number:", phoneNumber);
+
+      const updatedUser = await storage.updateUser(userId, {
+        phoneNumber: phoneNumber || existingUser.phoneNumber,
+        telegramId: telegramId || existingUser.telegramId,
       });
 
+      console.log("Updated user phone:", updatedUser.phoneNumber);
       res.json(updatedUser);
     } catch (error) {
       console.error("Error updating user profile:", error);
