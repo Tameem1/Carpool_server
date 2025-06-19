@@ -979,18 +979,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update the ride request status and assign it to the trip
       await storage.updateRideRequestStatus(requestId, "accepted", tripId);
       
-      console.log("Adding rider to trip...");
-      // Add the rider to the trip
-      await storage.addTripParticipant({
-        tripId: tripId,
-        userId: request.riderId,
-        status: "confirmed"
-      });
+      console.log("Getting updated trip data...");
+      // Get current trip data to update riders array
+      const currentTrip = await storage.getTrip(tripId);
+      if (!currentTrip) {
+        throw new Error("Trip not found after request update");
+      }
       
-      console.log("Updating trip seats...");
-      // Update available seats
+      console.log("Updating trip with new rider...");
+      // Update trip riders array and available seats
+      const currentRiders = currentTrip.riders || [];
+      const newRiders = [...currentRiders, request.riderId];
+      
       await storage.updateTrip(tripId, {
-        availableSeats: trip.availableSeats - 1
+        riders: newRiders,
+        availableSeats: currentTrip.availableSeats - 1
       });
       
       console.log("Assignment completed successfully");
@@ -1015,9 +1018,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
     } catch (error) {
       console.error("Assignment error:", error);
+      console.error("Error details:", error.message);
       res.status(500).json({ 
         success: false, 
-        message: "فشل في تعيين الطلب للرحلة" 
+        message: `فشل في تعيين الطلب للرحلة: ${error.message}` 
       });
     }
   });
