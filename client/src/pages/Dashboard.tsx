@@ -147,16 +147,8 @@ export default function Dashboard() {
     },
   });
 
-  // Debug logging
-  console.log('Debug - allRequests:', allRequests);
-  console.log('Debug - user role:', user?.role);
-  console.log('Debug - requestsLoading:', requestsLoading);
-  console.log('Debug - requestsError:', requestsError);
-  
-  // More detailed error logging
-  if (requestsError) {
-    console.log('Full error object:', JSON.stringify(requestsError, null, 2));
-  }
+
+
 
   // Sorting function
   const sortTrips = (trips: any[], sortBy: string) => {

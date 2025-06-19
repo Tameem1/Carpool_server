@@ -1290,6 +1290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all ride requests (accessible to all authenticated users)
   app.get("/api/ride-requests/all", isAuthenticated, async (req: any, res) => {
     try {
+      console.log("API called - user:", req.session?.userId || req.user?.id);
       console.log("Fetching today's ride requests...");
       const requests = await storage.getTodayRideRequests();
       console.log("Found ride requests:", requests.length);
@@ -1315,6 +1316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       console.log("Enriched requests:", enrichedRequests.length);
+      console.log("Sending response...");
       res.json(enrichedRequests);
     } catch (error: any) {
       console.error("Error fetching all ride requests:", error);

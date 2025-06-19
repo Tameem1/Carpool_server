@@ -375,18 +375,52 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTodayRideRequests(): Promise<RideRequest[]> {
-    console.log("Getting all pending ride requests for debugging...");
+    console.log("Getting today's ride requests with proper filtering...");
     
     try {
+      // Get the date range for today (5 AM to 4 AM next day in GMT+3)
+      const now = new Date();
+      const currentHour = now.getUTCHours() + 3; // Convert to GMT+3
+      
+      let dayStart = new Date(now);
+      if (currentHour < 5) {
+        dayStart.setUTCDate(dayStart.getUTCDate() - 1);
+      }
+      
+      // Set to 5 AM GMT+3 (2 AM UTC)
+      dayStart.setUTCHours(2, 0, 0, 0);
+      
+      // End at 4 AM next day GMT+3 (1 AM UTC next day)
+      const dayEnd = new Date(dayStart);
+      dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+      dayEnd.setUTCHours(1, 0, 0, 0);
+      
+      console.log("Filtering requests between:", dayStart.toISOString(), "and", dayEnd.toISOString());
+      
       const results = await db.select()
         .from(rideRequests)
-        .where(eq(rideRequests.status, "pending"))
+        .where(
+          and(
+            eq(rideRequests.status, "pending"),
+            gte(rideRequests.preferredTime, dayStart),
+            lt(rideRequests.preferredTime, dayEnd)
+          )
+        )
         .orderBy(rideRequests.preferredTime);
       
-      console.log("Found pending ride requests in storage:", results.length);
-      if (results.length > 0) {
-        console.log("Sample request:", JSON.stringify(results[0], null, 2));
+      console.log("Found ride requests in storage:", results.length);
+      
+      // If no results for today, return all pending requests for debugging
+      if (results.length === 0) {
+        console.log("No requests for today, returning all pending requests...");
+        const allPending = await db.select()
+          .from(rideRequests)
+          .where(eq(rideRequests.status, "pending"))
+          .orderBy(rideRequests.preferredTime);
+        console.log("Total pending requests:", allPending.length);
+        return allPending;
       }
+      
       return results;
     } catch (error) {
       console.error("Error in getTodayRideRequests:", error);
