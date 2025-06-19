@@ -1417,6 +1417,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/ride-requests", isAuthenticated, async (req: any, res) => {
     try {
+      console.log("=== RIDE REQUEST CREATION ===");
+      console.log("Request body:", req.body);
+      console.log("Current user:", req.currentUser);
+      console.log("Session:", req.session);
+
       const userId = req.currentUser.id;
 
       // For admins, allow specifying a different rider
@@ -1425,13 +1430,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ? req.body.riderId
           : userId;
 
+      console.log("Using rider ID:", riderId);
+
       // Use the datetime as-is (already processed by client if needed)
       const requestData = insertRideRequestSchema.parse({
         ...req.body,
         riderId: riderId,
       });
 
+      console.log("Parsed request data:", requestData);
+
       const request = await storage.createRideRequest(requestData);
+      console.log("Created ride request:", request);
 
       // Find potential drivers and notify them
       const allTrips = await storage.getAllTrips();
@@ -1446,16 +1456,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       });
 
+      console.log("Found matching trips:", matchingTrips.length);
+
       // Notify drivers
       for (const trip of matchingTrips) {
-        await telegramService.notifyRideRequestReceived(
-          trip.driverId,
-          request.id,
-        );
+        try {
+          await telegramService.notifyRideRequestReceived(
+            trip.driverId,
+            request.id,
+          );
+        } catch (notificationError) {
+          console.error("Error sending notification:", notificationError);
+        }
       }
 
       // Notify all admin users about the new ride request
-      await telegramService.notifyAdminsRideRequestCreated(request.id, riderId);
+      try {
+        await telegramService.notifyAdminsRideRequestCreated(request.id, riderId);
+      } catch (notificationError) {
+        console.error("Error sending admin notification:", notificationError);
+      }
 
       // Broadcast ride request creation to all connected clients
       broadcastToAll({
@@ -1465,12 +1485,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(request);
     } catch (error) {
+      console.error("=== RIDE REQUEST CREATION ERROR ===");
+      console.error("Error details:", error);
+      
       if (error instanceof z.ZodError) {
+        console.error("Zod validation errors:", error.errors);
         return res
           .status(400)
           .json({ message: "Invalid input", errors: error.errors });
       }
-      console.error("Error creating ride request:", error);
+      
       res.status(500).json({ message: "Failed to create ride request" });
     }
   });
