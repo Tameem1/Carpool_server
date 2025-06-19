@@ -1288,14 +1288,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Ride request routes
   // Get all ride requests (accessible to all authenticated users)
-  app.get("/api/ride-requests/all", async (req: any, res) => {
+  app.get("/api/ride-requests/all", isAuthenticated, async (req: any, res) => {
     try {
-      // Check authentication manually to avoid redirect
-      const isAuth = req.session?.userId || req.user?.id;
-      if (!isAuth) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const requests = await storage.getTodayRideRequests();
       console.log("=== RIDE REQUESTS API ===");
       console.log("Found requests:", requests.length);

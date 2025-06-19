@@ -128,30 +128,7 @@ export default function Dashboard() {
     retry: false,
     refetchOnWindowFocus: true,
     staleTime: 0,
-    queryFn: async () => {
-      const response = await fetch('/api/ride-requests/all', {
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-      
-      const text = await response.text();
-      console.log('Raw API response:', text);
-      
-      try {
-        const data = JSON.parse(text);
-        console.log('Parsed API data:', data);
-        return data;
-      } catch (e) {
-        console.error('Failed to parse JSON:', e);
-        console.error('Response text:', text);
-        throw new Error('Invalid JSON response');
-      }
-    },
   });
-
-  console.log('Query result - allRequests:', allRequests, 'loading:', requestsLoading, 'error:', requestsError);
 
 
 
