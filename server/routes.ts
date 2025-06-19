@@ -707,8 +707,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return rider
                 ? {
                     id: rider.id,
-                    firstName: rider.firstName,
-                    lastName: rider.lastName,
+                    username: rider.username,
+                    section: rider.section,
+                    role: rider.role,
                     phoneNumber: rider.phoneNumber,
                     profileImageUrl: rider.profileImageUrl,
                   }
@@ -792,8 +793,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return rider
                 ? {
                     id: rider.id,
-                    firstName: rider.firstName,
-                    lastName: rider.lastName,
+                    username: rider.username,
+                    section: rider.section,
+                    role: rider.role,
                     phoneNumber: rider.phoneNumber,
                     profileImageUrl: rider.profileImageUrl,
                   }
