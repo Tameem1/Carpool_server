@@ -1288,12 +1288,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Ride request routes
   // Get all ride requests (accessible to all authenticated users)
-  app.get("/api/ride-requests/all", isAuthenticated, async (req: any, res) => {
+  app.get("/api/ride-requests/all", async (req: any, res) => {
     try {
-      console.log("API called - user:", req.session?.userId || req.user?.id);
-      console.log("Fetching today's ride requests...");
+      // Check authentication manually to avoid redirect
+      const isAuth = req.session?.userId || req.user?.id;
+      if (!isAuth) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
       const requests = await storage.getTodayRideRequests();
-      console.log("Found ride requests:", requests.length);
+      console.log("=== RIDE REQUESTS API ===");
+      console.log("Found requests:", requests.length);
 
       // Enrich with rider info
       const enrichedRequests = await Promise.all(
@@ -1315,8 +1320,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }),
       );
 
-      console.log("Enriched requests:", enrichedRequests.length);
-      console.log("Sending response...");
+      console.log("Sending", enrichedRequests.length, "enriched requests");
+      res.setHeader('Content-Type', 'application/json');
       res.json(enrichedRequests);
     } catch (error: any) {
       console.error("Error fetching all ride requests:", error);
