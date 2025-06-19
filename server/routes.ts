@@ -1603,54 +1603,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   app.patch("/api/ride-requests/:id/assign-to-trip", async (req: any, res: any) => {
-    console.log("🚀 ASSIGNMENT ROUTE HIT!");
-    console.log("Params:", req.params);
-    console.log("Body:", req.body);
+    console.log("*** ASSIGNMENT ROUTE TRIGGERED ***");
+    console.log("Request params:", req.params);
+    console.log("Request body:", req.body);
     
-    const requestId = parseInt(req.params.id);
-    const { tripId } = req.body;
-    
-    if (!requestId || !tripId) {
-      console.log("❌ Missing data");
-      return res.status(400).json({ success: false, message: "Missing data" });
-    }
-
     try {
-      console.log(`📝 Assigning request ${requestId} to trip ${tripId}`);
+      const requestId = parseInt(req.params.id);
+      const { tripId } = req.body;
       
-      // Step 1: Update request status
-      console.log("Step 1: Updating request status...");
+      console.log(`Processing assignment: request ${requestId} -> trip ${tripId}`);
+      
+      // Update request status
       await db.update(rideRequests)
         .set({ status: "accepted", tripId: tripId })
         .where(eq(rideRequests.id, requestId));
       
-      // Step 2: Get trip data  
-      console.log("Step 2: Getting trip data...");
+      // Get updated data
       const [trip] = await db.select().from(trips).where(eq(trips.id, tripId));
       const [request] = await db.select().from(rideRequests).where(eq(rideRequests.id, requestId));
       
       if (!trip || !request) {
-        console.log("❌ Trip or request not found");
         return res.status(404).json({ success: false, message: "Not found" });
       }
       
-      // Step 3: Update trip riders
-      console.log("Step 3: Updating trip riders...");
-      const currentRiders = trip.riders || [];
-      const newRiders = [...currentRiders, request.riderId];
-      
+      // Update trip with new rider
+      const updatedRiders = [...(trip.riders || []), request.riderId];
       await db.update(trips)
         .set({
-          riders: newRiders,
+          riders: updatedRiders,
           availableSeats: Math.max(0, trip.availableSeats - 1)
         })
         .where(eq(trips.id, tripId));
       
-      console.log("✅ Assignment successful!");
-      res.json({ success: true, message: "Assignment successful" });
+      console.log("*** ASSIGNMENT SUCCESSFUL ***");
+      res.json({ success: true, message: "Assignment completed" });
       
     } catch (error) {
-      console.error("💥 Assignment failed:", error);
+      console.error("*** ASSIGNMENT FAILED ***", error);
       res.status(500).json({ success: false, message: "Assignment failed" });
     }
   });
