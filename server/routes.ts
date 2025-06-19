@@ -1602,45 +1602,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.patch("/api/ride-requests/:id/assign-to-trip", async (req: any, res: any) => {
-    console.log("*** ASSIGNMENT ROUTE TRIGGERED ***");
-    console.log("Request params:", req.params);
-    console.log("Request body:", req.body);
+  // Assignment route - direct database operation
+  app.patch("/api/ride-requests/:id/assign-to-trip", async (req: any, res) => {
+    console.log("ASSIGNMENT ENDPOINT HIT");
+    console.log("Params:", req.params);
+    console.log("Body:", req.body);
+    
+    const requestId = parseInt(req.params.id);
+    const { tripId } = req.body;
     
     try {
-      const requestId = parseInt(req.params.id);
-      const { tripId } = req.body;
-      
-      console.log(`Processing assignment: request ${requestId} -> trip ${tripId}`);
-      
-      // Update request status
+      // Direct database updates
       await db.update(rideRequests)
         .set({ status: "accepted", tripId: tripId })
         .where(eq(rideRequests.id, requestId));
       
-      // Get updated data
       const [trip] = await db.select().from(trips).where(eq(trips.id, tripId));
       const [request] = await db.select().from(rideRequests).where(eq(rideRequests.id, requestId));
       
-      if (!trip || !request) {
-        return res.status(404).json({ success: false, message: "Not found" });
+      if (trip && request) {
+        await db.update(trips)
+          .set({
+            riders: [...(trip.riders || []), request.riderId],
+            availableSeats: Math.max(0, trip.availableSeats - 1)
+          })
+          .where(eq(trips.id, tripId));
       }
       
-      // Update trip with new rider
-      const updatedRiders = [...(trip.riders || []), request.riderId];
-      await db.update(trips)
-        .set({
-          riders: updatedRiders,
-          availableSeats: Math.max(0, trip.availableSeats - 1)
-        })
-        .where(eq(trips.id, tripId));
-      
-      console.log("*** ASSIGNMENT SUCCESSFUL ***");
-      res.json({ success: true, message: "Assignment completed" });
+      console.log("ASSIGNMENT COMPLETED");
+      res.json({ success: true, message: "تم التعيين بنجاح" });
       
     } catch (error) {
-      console.error("*** ASSIGNMENT FAILED ***", error);
-      res.status(500).json({ success: false, message: "Assignment failed" });
+      console.error("ASSIGNMENT ERROR:", error);
+      res.status(500).json({ success: false, message: "فشل التعيين" });
     }
   });
 

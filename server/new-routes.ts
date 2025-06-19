@@ -940,5 +940,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Assignment route for admins to assign ride requests to trips
+  app.patch("/api/ride-requests/:id/assign-to-trip", isAuthenticated, async (req: any, res) => {
+    console.log("ASSIGNMENT API TRIGGERED");
+    console.log("Request ID:", req.params.id);
+    console.log("Body:", req.body);
+    console.log("User:", req.user);
+    
+    try {
+      const requestId = parseInt(req.params.id);
+      const { tripId } = req.body;
+      
+      if (!requestId || !tripId) {
+        return res.status(400).json({ success: false, message: "Missing request ID or trip ID" });
+      }
+      
+      // Get the ride request and trip
+      const request = await storage.getRideRequest(requestId);
+      const trip = await storage.getTrip(tripId);
+      
+      if (!request) {
+        return res.status(404).json({ success: false, message: "Ride request not found" });
+      }
+      
+      if (!trip) {
+        return res.status(404).json({ success: false, message: "Trip not found" });
+      }
+      
+      if (request.status !== "pending") {
+        return res.status(400).json({ success: false, message: "Request is not pending" });
+      }
+      
+      if (trip.availableSeats < 1) {
+        return res.status(400).json({ success: false, message: "No available seats" });
+      }
+      
+      console.log("Updating request status...");
+      // Update the ride request status and assign it to the trip
+      await storage.updateRideRequestStatus(requestId, "accepted", tripId);
+      
+      console.log("Adding rider to trip...");
+      // Add the rider to the trip
+      await storage.addTripParticipant({
+        tripId: tripId,
+        userId: request.riderId,
+        status: "confirmed"
+      });
+      
+      console.log("Updating trip seats...");
+      // Update available seats
+      await storage.updateTrip(tripId, {
+        availableSeats: trip.availableSeats - 1
+      });
+      
+      console.log("Assignment completed successfully");
+      
+      // Send notifications
+      try {
+        await telegramService.notifyRequestAccepted(request.riderId, tripId);
+      } catch (notificationError) {
+        console.error("Error sending notification:", notificationError);
+      }
+      
+      // Broadcast the assignment to all connected clients
+      broadcastToAll({
+        type: "request_assigned",
+        data: { requestId, tripId, riderId: request.riderId }
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "تم تعيين الطلب للرحلة بنجاح" 
+      });
+      
+    } catch (error) {
+      console.error("Assignment error:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "فشل في تعيين الطلب للرحلة" 
+      });
+    }
+  });
+
   return server;
 }
