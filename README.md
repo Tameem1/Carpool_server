@@ -221,21 +221,262 @@ TELEGRAM_BOT_TOKEN=your_bot_token_from_botfather
 
 ## Production Deployment
 
+### Git-Based Server Updates
+
+This application is designed to support seamless updates through git. Follow these workflows for different deployment scenarios:
+
+#### Initial Server Setup
+```bash
+# Clone the repository on your server
+git clone <your-repository-url> carpool-app
+cd carpool-app
+
+# Install dependencies
+npm install
+
+# Set up environment variables (see Environment Setup below)
+cp .env.example .env
+# Edit .env with your production values
+
+# Initialize database schema
+npm run db:push
+
+# Build for production
+npm run build
+
+# Start the application
+npm start
+```
+
+#### Updating Server with Git
+
+##### Method 1: Simple Pull Update (Recommended for minor updates)
+```bash
+# Navigate to application directory
+cd /path/to/your/carpool-app
+
+# Stop the running application
+# (Use your process manager: pm2, systemd, docker, etc.)
+pm2 stop carpool-app  # if using PM2
+# OR
+sudo systemctl stop carpool-app  # if using systemd
+
+# Backup current state (optional but recommended)
+git stash  # saves any local changes
+git tag backup-$(date +%Y%m%d-%H%M%S)  # creates a backup tag
+
+# Pull latest changes
+git pull origin main  # or your default branch
+
+# Install any new dependencies
+npm install
+
+# Update database schema if needed
+npm run db:push
+
+# Rebuild application
+npm run build
+
+# Restart the application
+pm2 start carpool-app  # if using PM2
+# OR
+sudo systemctl start carpool-app  # if using systemd
+```
+
+##### Method 2: Safe Deployment with Rollback Support
+```bash
+# Create deployment script (save as deploy.sh)
+#!/bin/bash
+set -e
+
+APP_DIR="/path/to/your/carpool-app"
+BACKUP_DIR="/path/to/backups"
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+echo "Starting deployment at $TIMESTAMP"
+
+# Stop application
+pm2 stop carpool-app || true
+
+# Create backup
+mkdir -p $BACKUP_DIR
+cp -r $APP_DIR $BACKUP_DIR/carpool-backup-$TIMESTAMP
+
+# Update code
+cd $APP_DIR
+git fetch origin
+git reset --hard origin/main
+
+# Install dependencies and rebuild
+npm install
+npm run build
+
+# Update database schema
+npm run db:push
+
+# Start application
+pm2 start carpool-app
+
+echo "Deployment completed successfully"
+echo "Backup created at: $BACKUP_DIR/carpool-backup-$TIMESTAMP"
+```
+
+##### Method 3: Blue-Green Deployment (Zero Downtime)
+```bash
+# Setup script for blue-green deployment
+#!/bin/bash
+
+CURRENT_DIR="/opt/carpool-current"
+NEW_DIR="/opt/carpool-new"
+BACKUP_DIR="/opt/carpool-backup"
+
+# Clone fresh copy
+git clone <your-repository-url> $NEW_DIR
+cd $NEW_DIR
+
+# Install and build
+npm install
+npm run build
+
+# Copy environment configuration
+cp $CURRENT_DIR/.env $NEW_DIR/.env
+
+# Update database schema
+npm run db:push
+
+# Test the new deployment
+npm run check  # run any health checks
+
+# Backup current version
+mv $CURRENT_DIR $BACKUP_DIR-$(date +%Y%m%d-%H%M%S)
+
+# Switch to new version
+mv $NEW_DIR $CURRENT_DIR
+
+# Restart application
+pm2 restart carpool-app
+```
+
+#### Git Workflow Best Practices
+
+##### Branching Strategy
+```bash
+# Development workflow
+git checkout -b feature/new-feature
+# Make changes
+git add .
+git commit -m "Add new feature: description"
+git push origin feature/new-feature
+
+# Create pull request, review, then merge to main
+
+# Production deployment
+git checkout main
+git pull origin main
+# Follow deployment steps above
+```
+
+##### Rollback Procedures
+```bash
+# Quick rollback to previous commit
+git log --oneline -10  # find the commit to rollback to
+git reset --hard <commit-hash>
+npm install
+npm run build
+pm2 restart carpool-app
+
+# Rollback using backup
+cd /path/to/backups
+cp -r carpool-backup-TIMESTAMP /opt/carpool-current
+cd /opt/carpool-current
+pm2 restart carpool-app
+```
+
+##### Database Migration Safety
+```bash
+# Before major updates, backup database
+pg_dump $DATABASE_URL > backup-$(date +%Y%m%d-%H%M%S).sql
+
+# Test schema changes in staging first
+npm run db:push  # in staging environment
+
+# For production, consider gradual migration
+# 1. Deploy code that supports both old and new schema
+# 2. Run migration
+# 3. Deploy code that uses new schema only
+```
+
 ### Environment Setup
 ```env
 NODE_ENV=production
 SESSION_SECRET=very_secure_production_secret
 DATABASE_URL=your_production_database_url
 PORT=3000
+
+# Git deployment settings
+GIT_BRANCH=main
+DEPLOYMENT_ENV=production
 ```
 
-### Build and Deploy
-```bash
-# Build the application
-npm run build
+### Automated Deployment with GitHub Actions
 
-# Start production server
-npm start
+Create `.github/workflows/deploy.yml`:
+```yaml
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          cd /path/to/carpool-app
+          git pull origin main
+          npm install
+          npm run build
+          npm run db:push
+          pm2 restart carpool-app
+```
+
+### Process Management with PM2
+```bash
+# Install PM2 globally
+npm install -g pm2
+
+# Create PM2 ecosystem file (ecosystem.config.js)
+module.exports = {
+  apps: [{
+    name: 'carpool-app',
+    script: 'server/index.js',
+    instances: 'max',
+    exec_mode: 'cluster',
+    env: {
+      NODE_ENV: 'production',
+      PORT: 3000
+    },
+    error_file: './logs/err.log',
+    out_file: './logs/out.log',
+    log_file: './logs/combined.log',
+    time: true
+  }]
+};
+
+# Start with PM2
+pm2 start ecosystem.config.js
+
+# Save PM2 configuration
+pm2 save
+pm2 startup  # follow the instructions to auto-start on boot
 ```
 
 ### Security Considerations
@@ -244,6 +485,9 @@ npm start
 - Configure firewall rules appropriately
 - Regular database backups
 - Monitor application logs
+- Use SSH keys for git operations on server
+- Implement proper user permissions for deployment scripts
+- Consider using git hooks for automated testing before deployment
 
 ## Troubleshooting
 
