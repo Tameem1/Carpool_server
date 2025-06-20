@@ -155,4 +155,27 @@
   .mobile-grid {
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6;
   }
+
+  /* Mobile button improvements */
+  .mobile-button {
+    @apply touch-friendly px-4 py-2 text-sm sm:text-base;
+  }
+
+  .mobile-button-sm {
+    @apply touch-friendly px-3 py-2 text-xs sm:text-sm;
+  }
+
+  /* Mobile form spacing */
+  .mobile-form-spacing {
+    @apply space-y-3 sm:space-y-4;
+  }
+
+  /* Mobile text responsive */
+  .mobile-text {
+    @apply text-sm sm:text-base;
+  }
+
+  .mobile-heading {
+    @apply text-lg sm:text-xl lg:text-2xl;
+  }
 }
