@@ -642,9 +642,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ message: "User is already a rider on this trip" });
       }
 
-      if (currentRiders.length >= trip.totalSeats) {
-        return res.status(400).json({ message: "Trip is full" });
-      }
+
 
       const updatedRiders = [...currentRiders, userId];
       const updatedTrip = await storage.updateTrip(tripId, {
