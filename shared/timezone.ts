@@ -20,14 +20,16 @@ export function fromGMTPlus3ToUTC(date: Date): Date {
  * Format date for GMT+3 display (treat stored date as GMT+3)
  */
 export function formatGMTPlus3(date: Date, locale: string = 'ar-SA'): string {
-  // Display the date as-is (assume it's already in GMT+3)
-  return date.toLocaleString(locale, {
+  // Convert UTC date to GMT+3 by adding 3 hours
+  const gmt3Date = new Date(date.getTime() + GMT_PLUS_3_OFFSET);
+  return gmt3Date.toLocaleString(locale, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
+    timeZone: 'UTC'
   });
 }
 
@@ -35,11 +37,13 @@ export function formatGMTPlus3(date: Date, locale: string = 'ar-SA'): string {
  * Format time only for GMT+3 display (without date)
  */
 export function formatGMTPlus3TimeOnly(date: Date, locale: string = 'ar-SA'): string {
-  // Display the time as-is (assume it's already in GMT+3)
-  return date.toLocaleTimeString(locale, {
+  // Convert UTC date to GMT+3 by adding 3 hours
+  const gmt3Date = new Date(date.getTime() + GMT_PLUS_3_OFFSET);
+  return gmt3Date.toLocaleTimeString(locale, {
     hour: '2-digit',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
+    timeZone: 'UTC' // Use UTC to prevent browser timezone interference
   });
 }
 
