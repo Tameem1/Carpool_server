@@ -443,6 +443,7 @@ export class DatabaseStorage implements IStorage {
 
   // Trip participant operations
   async addTripParticipant(participantData: InsertTripParticipant): Promise<TripParticipant> {
+    const now = fromGMTPlus3ToUTC(nowGMTPlus3());
     const [participant] = await db
       .insert(tripParticipants)
       .values({
@@ -450,6 +451,8 @@ export class DatabaseStorage implements IStorage {
         userId: participantData.userId,
         seatsBooked: participantData.seatsBooked || 1,
         status: participantData.status || "pending",
+        createdAt: now,
+        updatedAt: now,
       })
       .returning();
     return participant;
@@ -527,6 +530,7 @@ export class DatabaseStorage implements IStorage {
 
   // Notification operations
   async createNotification(notificationData: InsertNotification): Promise<Notification> {
+    const now = fromGMTPlus3ToUTC(nowGMTPlus3());
     const [notification] = await db
       .insert(notifications)
       .values({
@@ -535,6 +539,8 @@ export class DatabaseStorage implements IStorage {
         message: notificationData.message,
         type: notificationData.type,
         isRead: notificationData.isRead || false,
+        createdAt: now,
+        updatedAt: now,
       })
       .returning();
     return notification;
