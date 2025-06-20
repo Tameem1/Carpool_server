@@ -324,12 +324,7 @@ export class DatabaseStorage implements IStorage {
 
   // Ride request operations
   async createRideRequest(requestData: InsertRideRequest): Promise<RideRequest> {
-    console.log("=== CREATING RIDE REQUEST ===");
-    console.log("Input data:", requestData);
-    console.log("Preferred time type:", typeof requestData.preferredTime);
-    console.log("Preferred time value:", requestData.preferredTime);
-    console.log("Preferred time ISO:", requestData.preferredTime instanceof Date ? requestData.preferredTime.toISOString() : 'Not a Date object');
-    
+    const now = fromGMTPlus3ToUTC(nowGMTPlus3());
     const [request] = await db
       .insert(rideRequests)
       .values({
@@ -341,12 +336,10 @@ export class DatabaseStorage implements IStorage {
         notes: requestData.notes || null,
         status: requestData.status || "pending",
         tripId: null,
+        createdAt: now,
+        updatedAt: now,
       })
       .returning();
-    
-    console.log("=== RIDE REQUEST CREATED ===");
-    console.log("Created request:", request);
-    console.log("Created preferred time:", request.preferredTime);
     return request;
   }
 
@@ -473,6 +466,7 @@ export class DatabaseStorage implements IStorage {
 
   // Trip join request operations
   async createTripJoinRequest(requestData: InsertTripJoinRequest): Promise<TripJoinRequest> {
+    const now = fromGMTPlus3ToUTC(nowGMTPlus3());
     const [request] = await db
       .insert(tripJoinRequests)
       .values({
@@ -481,6 +475,8 @@ export class DatabaseStorage implements IStorage {
         seatsRequested: requestData.seatsRequested || 1,
         message: requestData.message,
         status: "pending",
+        createdAt: now,
+        updatedAt: now,
       })
       .returning();
     return request;
@@ -519,7 +515,7 @@ export class DatabaseStorage implements IStorage {
   async updateTripJoinRequestStatus(id: number, status: TripJoinRequest["status"]): Promise<TripJoinRequest> {
     const [request] = await db
       .update(tripJoinRequests)
-      .set({ status, updatedAt: nowGMTPlus3() })
+      .set({ status, updatedAt: fromGMTPlus3ToUTC(nowGMTPlus3()) })
       .where(eq(tripJoinRequests.id, id))
       .returning();
     return request;
