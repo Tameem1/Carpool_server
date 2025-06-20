@@ -1155,12 +1155,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Broadcast trip update to all connected clients
+      console.log("[BROADCAST] Sending trip_updated for add rider - trip", tripId, "new rider", userId);
       broadcastToAll({
         type: "trip_updated",
         data: updatedTrip,
       });
 
-      res.json(updatedTrip);
+      res.json({ message: "Rider added successfully", trip: updatedTrip });
     } catch (error) {
       console.error("Error adding rider to trip:", error);
       res.status(500).json({ message: "Failed to add rider to trip" });

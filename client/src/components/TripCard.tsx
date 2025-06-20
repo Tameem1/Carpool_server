@@ -118,8 +118,10 @@ export function TripCard({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/trips/my"] });
+      queryClient.refetchQueries({ queryKey: ["/api/trips"] });
       toast({
-        title: "Success",
+        title: "Success", 
         description: "Rider added to trip successfully",
       });
       setSelectedUserId("");
@@ -140,6 +142,8 @@ export function TripCard({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/trips/my"] });
+      queryClient.refetchQueries({ queryKey: ["/api/trips"] });
       toast({
         title: "Success",
         description: "Rider removed from trip successfully",

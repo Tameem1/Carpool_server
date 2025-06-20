@@ -79,7 +79,7 @@ export function RealTimeProvider({ children }: RealTimeProviderProps) {
         if (!reconnectTimeoutRef.current) {
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
-          }, 5000);
+          }, 3000);
         }
       };
 
@@ -129,8 +129,10 @@ export function RealTimeProvider({ children }: RealTimeProviderProps) {
         }
 
         // Force immediate refetch for better real-time experience
-        queryClient.refetchQueries({ queryKey: ["/api/trips"] });
-        queryClient.refetchQueries({ queryKey: ["/api/trips/my"] });
+        setTimeout(() => {
+          queryClient.refetchQueries({ queryKey: ["/api/trips"] });
+          queryClient.refetchQueries({ queryKey: ["/api/trips/my"] });
+        }, 100);
         break;
 
       case "ride_request_created":
