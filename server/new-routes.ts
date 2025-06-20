@@ -115,16 +115,35 @@ class TelegramNotificationService {
 
   async notifyAdminsRideRequestCreated(requestId: number, riderId: string) {
     try {
+      const request = await storage.getRideRequest(requestId);
+      const rider = await storage.getUser(riderId);
       const admins = await storage.getAdminUsers();
+
+      if (!request || !rider) return;
+
+      const title = "طلب رحلة جديد";
+      const message = `
+🚗 *طلب رحلة جديد من ${rider.username}*
+
+📍 *من:* ${request.fromLocation}
+📍 *إلى:* ${request.toLocation}
+🕐 *الوقت المفضل:* ${new Date(request.preferredTime).toLocaleTimeString("ar-SA")}
+👥 *عدد الركاب:* ${request.passengerCount}
+${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ""}
+
+*رقم الطلب:* ${requestId}
+      `;
 
       for (const admin of admins) {
         await this.sendNotification(
           admin.id,
-          "New Ride Request",
-          `A new ride request has been submitted by user ${riderId}.`,
-          "ride_request_created",
+          title,
+          message,
+          "admin_ride_request_created",
         );
       }
+
+      console.log(`[TELEGRAM] Notified ${admins.length} admin(s) about new ride request ${requestId}`);
     } catch (error) {
       console.error("Error notifying admins about ride request:", error);
     }
@@ -132,14 +151,53 @@ class TelegramNotificationService {
 
   async notifyTripCreated(tripId: number, driverId: string) {
     try {
+      const trip = await storage.getTrip(tripId);
+      if (!trip) return;
+
       await this.sendNotification(
         driverId,
-        "Trip Created",
-        `Your trip has been successfully created with ID ${tripId}.`,
+        "تم إنشاء الرحلة",
+        `🚗 *تم إنشاء رحلتك بنجاح*\n\n📍 *من:* ${trip.fromLocation}\n📍 *إلى:* ${trip.toLocation}\n🕐 *وقت المغادرة:* ${new Date(trip.departureTime).toLocaleTimeString("ar-SA")}\n👥 *المقاعد المتاحة:* ${trip.availableSeats}`,
         "trip_created",
       );
     } catch (error) {
       console.error("Error notifying trip creation:", error);
+    }
+  }
+
+  async notifyAdminsTripCreated(tripId: number, driverId: string) {
+    try {
+      const trip = await storage.getTrip(tripId);
+      const driver = await storage.getUser(driverId);
+      const admins = await storage.getAdminUsers();
+
+      if (!trip || !driver) return;
+
+      const title = "رحلة جديدة تم إنشاؤها";
+      const message = `
+🚗 *رحلة جديدة من ${driver.username}*
+
+📍 *من:* ${trip.fromLocation}
+📍 *إلى:* ${trip.toLocation}
+🕐 *وقت المغادرة:* ${new Date(trip.departureTime).toLocaleTimeString("ar-SA")}
+👥 *المقاعد المتاحة:* ${trip.availableSeats}
+${trip.notes ? `📝 *ملاحظات:* ${trip.notes}` : ""}
+
+*رقم الرحلة:* ${tripId}
+      `;
+
+      for (const admin of admins) {
+        await this.sendNotification(
+          admin.id,
+          title,
+          message,
+          "admin_trip_created",
+        );
+      }
+
+      console.log(`[TELEGRAM] Notified ${admins.length} admin(s) about new trip ${tripId}`);
+    } catch (error) {
+      console.error("Error notifying admins about trip creation:", error);
     }
   }
 
