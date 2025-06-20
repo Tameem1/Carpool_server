@@ -102,16 +102,24 @@ class TelegramNotificationService {
     if (this.bot) {
       try {
         const user = await storage.getUser(userId);
+        console.log(`[TELEGRAM] Debug - User data for ${userId}:`, {
+          id: user?.id,
+          username: user?.username,
+          telegramUsername: user?.telegramUsername,
+          telegramId: user?.telegramId
+        });
+        
         if (user?.telegramUsername) {
           const telegramMessage = `*${title}*\n\n${message}`;
+          console.log(`[TELEGRAM] Attempting to send message to ${user.telegramUsername}`);
           await this.bot.sendMessage(user.telegramUsername, telegramMessage, {
             parse_mode: "Markdown",
           });
           console.log(
-            `[TELEGRAM] Message sent to user ${userId} (${user.telegramUsername}): ${title}`,
+            `[TELEGRAM] Message sent successfully to user ${userId} (${user.telegramUsername}): ${title}`,
           );
         } else {
-          console.log(`[TELEGRAM] No Telegram ID found for user ${userId}`);
+          console.log(`[TELEGRAM] No Telegram Username found for user ${userId}. User data:`, user);
         }
       } catch (error) {
         console.error(
@@ -142,7 +150,7 @@ class TelegramNotificationService {
 
       const title = "طلب رحلة جديد";
       const message = `
-🚗 *طلب رحلة جديد من ${rider.firstName} ${rider.lastName}*
+🚗 *طلب رحلة جديد من ${rider.username}*
 
 📍 *من:* ${request.fromLocation}
 📍 *إلى:* ${request.toLocation}
@@ -196,7 +204,7 @@ ${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ""}
 
       const title = "رحلة جديدة تم إنشاؤها";
       const message = `
-🚗 *رحلة جديدة من ${driver.firstName} ${driver.lastName}*
+🚗 *رحلة جديدة من ${driver.username}*
 
 📍 *من:* ${trip.fromLocation}
 📍 *إلى:* ${trip.toLocation}
@@ -933,6 +941,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // Send Telegram notifications
+        console.log(`[TELEGRAM] Sending trip creation notifications for trip ${trip.id}, driver ${trip.driverId}`);
         await telegramService.notifyTripCreated(trip.id, trip.driverId);
         await telegramService.notifyAdminsTripCreated(trip.id, trip.driverId);
 
@@ -949,6 +958,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Send Telegram notifications
+      console.log(`[TELEGRAM] Sending trip creation notifications for trip ${trip.id}, driver ${trip.driverId}`);
       await telegramService.notifyTripCreated(trip.id, trip.driverId);
       await telegramService.notifyAdminsTripCreated(trip.id, trip.driverId);
 
@@ -1062,7 +1072,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send notification to driver
       const rider = await storage.getUser(userId);
-      const riderName = rider ? `${rider.firstName} ${rider.lastName}` : "راكب جديد";
+      const riderName = rider ? rider.username : "راكب جديد";
       await telegramService.sendNotification(
         trip.driverId,
         "راكب جديد انضم للرحلة",
@@ -1124,7 +1134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send notification to driver about new rider assignment
       const rider = await storage.getUser(userId);
-      const riderName = rider ? `${rider.firstName} ${rider.lastName}` : "راكب جديد";
+      const riderName = rider ? rider.username : "راكب جديد";
       await telegramService.sendNotification(
         trip.driverId,
         "راكب جديد تم تعيينه للرحلة",
