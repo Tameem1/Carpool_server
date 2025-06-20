@@ -762,6 +762,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/trips/my", async (req: any, res) => {
     try {
+      // Disable caching for debugging
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
       const userId = req.session?.userId;
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });

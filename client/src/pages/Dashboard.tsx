@@ -111,10 +111,11 @@ export default function Dashboard() {
   }) : [];
 
   const { data: myTrips = [], isLoading: myTripsLoading } = useQuery({
-    queryKey: ["/api/trips/my"],
+    queryKey: ["/api/trips/my", Date.now()], // Force fresh requests
     enabled: user?.role !== "admin", // Don't fetch my trips for admin users
     refetchOnWindowFocus: true,
     staleTime: 0, // Always consider data stale
+    cacheTime: 0, // Don't cache results
   });
 
   const { data: stats } = useQuery({
