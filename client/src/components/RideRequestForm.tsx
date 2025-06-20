@@ -11,16 +11,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { formatDateForInput, parseDateTimeLocalToUTC } from "@shared/timezone";
-
-// Helper function to convert time to today's date with that time
-function timeToTodayTimestamp(timeString: string): string {
-  if (!timeString) return "";
-  const today = new Date();
-  const [hours, minutes] = timeString.split(':');
-  today.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
-  return today.toISOString();
-}
+import { parseTimeToTodayUTC } from "@shared/timezone";
 
 const rideRequestFormSchema = z.object({
   fromLocation: z.string().min(1, "موقع الانطلاق مطلوب"),
@@ -61,7 +52,7 @@ export function RideRequestForm({ open, onClose }: RideRequestFormProps) {
     mutationFn: async (data: RideRequestFormData) => {
       const payload = {
         ...data,
-        preferredTime: timeToTodayTimestamp(data.preferredTime),
+        preferredTime: parseTimeToTodayUTC(data.preferredTime).toISOString(),
         // Don't send riderId if it's "self" or empty, let server use current user
         riderId: data.riderId === "self" || !data.riderId ? undefined : data.riderId,
       };

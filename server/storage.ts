@@ -21,7 +21,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lt } from "drizzle-orm";
-import { nowGMTPlus3, toGMTPlus3, GMT_PLUS_3_OFFSET } from "@shared/timezone";
+import { nowGMTPlus3, getTodayRangeUTC, fromGMTPlus3ToUTC } from "@shared/timezone";
 
 export interface IStorage {
   // User operations
@@ -222,6 +222,7 @@ export class DatabaseStorage implements IStorage {
 
   // Trip operations
   async createTrip(tripData: InsertTrip): Promise<Trip> {
+    const now = fromGMTPlus3ToUTC(nowGMTPlus3());
     const [trip] = await db
       .insert(trips)
       .values({
@@ -235,6 +236,8 @@ export class DatabaseStorage implements IStorage {
         isRecurring: tripData.isRecurring || false,
         recurringDays: tripData.recurringDays || null,
         notes: tripData.notes || null,
+        createdAt: now,
+        updatedAt: now,
       })
       .returning();
     return trip;
@@ -281,9 +284,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTrip(id: number, updates: Partial<InsertTrip>): Promise<Trip> {
+    const now = fromGMTPlus3ToUTC(nowGMTPlus3());
     const [trip] = await db
       .update(trips)
-      .set({ ...updates, updatedAt: nowGMTPlus3() })
+      .set({ ...updates, updatedAt: now })
       .where(eq(trips.id, id))
       .returning();
     if (!trip) throw new Error("Trip not found");
@@ -423,7 +427,7 @@ export class DatabaseStorage implements IStorage {
   async updateRideRequestStatus(id: number, status: RideRequest["status"], tripId?: number): Promise<RideRequest> {
     const updateData: any = { 
       status, 
-      updatedAt: nowGMTPlus3() 
+      updatedAt: fromGMTPlus3ToUTC(nowGMTPlus3()) 
     };
     
     if (tripId !== undefined) {

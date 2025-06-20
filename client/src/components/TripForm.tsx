@@ -18,32 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { X, UserMinus, UserPlus } from "lucide-react";
-import { formatDateForInput, nowGMTPlus3, parseDateTimeLocalToUTC, formatGMTPlus3TimeOnly } from "@shared/timezone";
-
-// Helper function to convert time to today's date with GMT+3 to UTC conversion
-function timeToTodayTimestamp(timeString: string): string {
-  if (!timeString) return "";
-  const today = new Date();
-  const [hours, minutes] = timeString.split(':');
-  today.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
-  
-  // Convert from GMT+3 to UTC for storage
-  const GMT_PLUS_3_OFFSET = 3 * 60 * 60 * 1000;
-  const utcTime = new Date(today.getTime() - GMT_PLUS_3_OFFSET);
-  return utcTime.toISOString();
-}
-
-// Helper function to extract time from timestamp with GMT+3 conversion
-function extractTimeFromTimestamp(timestamp: string): string {
-  if (!timestamp) return "";
-  const date = new Date(timestamp);
-  // Use the same GMT+3 conversion as display functions
-  const GMT_PLUS_3_OFFSET = 3 * 60 * 60 * 1000;
-  const gmt3Date = new Date(date.getTime() + GMT_PLUS_3_OFFSET);
-  const hours = gmt3Date.getUTCHours();
-  const minutes = gmt3Date.getUTCMinutes();
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-}
+import { formatDateForInput, nowGMTPlus3, parseTimeToTodayUTC, extractTimeFromUTC } from "@shared/timezone";
 
 const tripFormSchema = z.object({
   fromLocation: z.string().min(1, "موقع الانطلاق مطلوب"),
@@ -97,7 +72,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
     defaultValues: {
       fromLocation: trip?.fromLocation || "",
       toLocation: trip?.toLocation || "النادي",
-      departureTime: trip?.departureTime ? extractTimeFromTimestamp(trip.departureTime) : "",
+      departureTime: trip?.departureTime ? extractTimeFromUTC(new Date(trip.departureTime)) : "",
       availableSeats: trip?.availableSeats || 1,
       isRecurring: trip?.isRecurring || false,
       recurringDays: trip?.recurringDays || [],
@@ -179,7 +154,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
         ...data,
         totalSeats: data.availableSeats, // Automatically set totalSeats to match availableSeats
         participantIds: selectedParticipants,
-        departureTime: timeToTodayTimestamp(data.departureTime),
+        departureTime: parseTimeToTodayUTC(data.departureTime).toISOString(),
         riders: trip?.id ? undefined : selectedParticipants, // Only set riders for new trips
       };
       
