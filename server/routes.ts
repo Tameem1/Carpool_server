@@ -31,6 +31,7 @@ const connectedClients = new Set();
 
 function broadcastToAll(data: any) {
   const message = JSON.stringify(data);
+  console.log(`[BROADCAST] Sending to ${connectedClients.size} clients:`, data);
   connectedClients.forEach((ws: any) => {
     if (ws.readyState === 1) {
       // WebSocket.OPEN

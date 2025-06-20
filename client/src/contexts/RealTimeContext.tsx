@@ -95,6 +95,7 @@ export function RealTimeProvider({ children }: RealTimeProviderProps) {
   };
 
   const handleRealTimeMessage = (message: any) => {
+    console.log("Real-time message received:", message);
     switch (message.type) {
       case "notification":
         // Invalidate notifications cache to fetch new notifications
