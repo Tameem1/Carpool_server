@@ -87,8 +87,12 @@ class TelegramNotificationService {
   ) {
     try {
       const user = await storage.getUser(userId);
-      if (!user || !user.telegramId) {
-        console.log(`[TELEGRAM] No Telegram ID found for user ${userId}`);
+      if (!user || !user.telegramUsername) {
+        console.log(`[TELEGRAM] No Telegram Username found for user ${userId}. User data:`, {
+          id: user?.id,
+          username: user?.username,
+          telegramUsername: user?.telegramUsername
+        });
         return;
       }
 
@@ -98,13 +102,14 @@ class TelegramNotificationService {
       }
 
       const telegramMessage = `*${title}*\n\n${message}`;
-
-      await this.bot.sendMessage(user.telegramId, telegramMessage, {
+      
+      console.log(`[TELEGRAM] Attempting to send message to user ${userId} (${user.telegramUsername})`);
+      await this.bot.sendMessage(user.telegramUsername, telegramMessage, {
         parse_mode: "Markdown",
         disable_web_page_preview: true,
       });
 
-      console.log(`[TELEGRAM] Notification sent to user ${userId}`);
+      console.log(`[TELEGRAM] Notification sent successfully to user ${userId} (${user.telegramUsername})`);
     } catch (error) {
       console.error(
         `[TELEGRAM] Error sending notification to user ${userId}:`,
@@ -543,7 +548,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const trip = await storage.createTrip(parsedTripData);
 
+      console.log(`[TELEGRAM] Sending trip creation notifications for trip ${trip.id}, driver ${trip.driverId}`);
       await telegramService.notifyTripCreated(trip.id, trip.driverId);
+      await telegramService.notifyAdminsTripCreated(trip.id, trip.driverId);
       await notifyMatchingRideRequesters(trip);
 
       broadcastToAll({
