@@ -39,12 +39,24 @@ export function formatGMTPlus3(date: Date, locale: string = 'ar-SA'): string {
 export function formatGMTPlus3TimeOnly(date: Date, locale: string = 'ar-SA'): string {
   // Convert UTC date to GMT+3 by adding 3 hours
   const gmt3Date = new Date(date.getTime() + GMT_PLUS_3_OFFSET);
-  return gmt3Date.toLocaleTimeString(locale, {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-    timeZone: 'UTC' // Use UTC to prevent browser timezone interference
-  });
+  
+  // Extract hours and minutes directly to avoid timezone issues
+  const hours = gmt3Date.getUTCHours();
+  const minutes = gmt3Date.getUTCMinutes();
+  
+  // Format in 12-hour format
+  const ampm = hours >= 12 ? (locale === 'ar-SA' ? 'م' : 'PM') : (locale === 'ar-SA' ? 'ص' : 'AM');
+  const displayHours = hours % 12 || 12;
+  
+  // Use Arabic or English numerals based on locale
+  if (locale === 'ar-SA') {
+    const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    const hourStr = displayHours.toString().split('').map(d => arabicNumerals[parseInt(d)]).join('');
+    const minuteStr = minutes.toString().padStart(2, '0').split('').map(d => arabicNumerals[parseInt(d)]).join('');
+    return `${hourStr}:${minuteStr} ${ampm}`;
+  } else {
+    return `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+  }
 }
 
 /**
