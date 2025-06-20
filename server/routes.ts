@@ -186,6 +186,48 @@ ${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ""}
     );
   }
 
+  async notifyAdminsTripCreated(tripId: number, driverId: string) {
+    try {
+      const trip = await storage.getTrip(tripId);
+      const driver = await storage.getUser(driverId);
+      const admins = await storage.getAdminUsers();
+
+      if (!trip || !driver) return;
+
+      const title = "رحلة جديدة تم إنشاؤها";
+      const message = `
+🚗 *رحلة جديدة من ${driver.firstName} ${driver.lastName}*
+
+📍 *من:* ${trip.fromLocation}
+📍 *إلى:* ${trip.toLocation}
+🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime), "ar-SA")}
+👥 *المقاعد المتاحة:* ${trip.availableSeats}
+${trip.notes ? `📝 *ملاحظات:* ${trip.notes}` : ""}
+
+*رقم الرحلة:* ${tripId}
+      `;
+
+      // Notify all admin users
+      for (const admin of admins) {
+        await this.sendNotification(
+          admin.id,
+          title,
+          message,
+          "admin_trip_created",
+        );
+      }
+
+      console.log(
+        `[TELEGRAM] Notified ${admins.length} admin(s) about new trip ${tripId}`,
+      );
+    } catch (error) {
+      console.error(
+        "[TELEGRAM] Error notifying admins about trip creation:",
+        error,
+      );
+    }
+  }
+
   async notifyRideRequestReceived(driverId: string, requestId: number) {
     const request = await storage.getRideRequest(requestId);
     if (!request) return;
@@ -890,7 +932,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           availableSeats: trip.totalSeats - riders.length,
         });
 
+        // Send Telegram notifications
         await telegramService.notifyTripCreated(trip.id, trip.driverId);
+        await telegramService.notifyAdminsTripCreated(trip.id, trip.driverId);
 
         // Find and notify users with matching ride requests
         await notifyMatchingRideRequesters(updatedTrip);
@@ -904,8 +948,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(201).json(updatedTrip);
       }
 
-      // Send Telegram notification to driver
+      // Send Telegram notifications
       await telegramService.notifyTripCreated(trip.id, trip.driverId);
+      await telegramService.notifyAdminsTripCreated(trip.id, trip.driverId);
 
       // Find and notify users with matching ride requests
       await notifyMatchingRideRequesters(trip);
@@ -1016,11 +1061,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Send notification to driver
+      const rider = await storage.getUser(userId);
+      const riderName = rider ? `${rider.firstName} ${rider.lastName}` : "راكب جديد";
       await telegramService.sendNotification(
         trip.driverId,
-        "New Rider Joined",
-        `A new rider has joined your trip from ${trip.fromLocation} to ${trip.toLocation}.`,
-        "request_accepted",
+        "راكب جديد انضم للرحلة",
+        `🚗 *راكب جديد انضم لرحلتك*\n\n👤 *الراكب:* ${riderName}\n📍 *من:* ${trip.fromLocation}\n📍 *إلى:* ${trip.toLocation}\n🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime), "ar-SA")}\n👥 *المقاعد المتبقية:* ${trip.totalSeats - updatedRiders.length}`,
+        "rider_joined",
       );
 
       // Broadcast trip update to all connected clients
@@ -1074,6 +1121,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         riders: updatedRiders,
         availableSeats: trip.totalSeats - updatedRiders.length,
       });
+
+      // Send notification to driver about new rider assignment
+      const rider = await storage.getUser(userId);
+      const riderName = rider ? `${rider.firstName} ${rider.lastName}` : "راكب جديد";
+      await telegramService.sendNotification(
+        trip.driverId,
+        "راكب جديد تم تعيينه للرحلة",
+        `🚗 *تم تعيين راكب جديد لرحلتك*\n\n👤 *الراكب:* ${riderName}\n📍 *من:* ${trip.fromLocation}\n📍 *إلى:* ${trip.toLocation}\n🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime), "ar-SA")}\n👥 *المقاعد المتبقية:* ${trip.totalSeats - updatedRiders.length}`,
+        "rider_assigned",
+      );
 
       // Broadcast trip update to all connected clients
       broadcastToAll({
