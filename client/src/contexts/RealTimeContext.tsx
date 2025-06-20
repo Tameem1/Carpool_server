@@ -127,6 +127,10 @@ export function RealTimeProvider({ children }: RealTimeProviderProps) {
             queryKey: ["/api/trips", message.data.id],
           });
         }
+
+        // Force immediate refetch for better real-time experience
+        queryClient.refetchQueries({ queryKey: ["/api/trips"] });
+        queryClient.refetchQueries({ queryKey: ["/api/trips/my"] });
         break;
 
       case "ride_request_created":

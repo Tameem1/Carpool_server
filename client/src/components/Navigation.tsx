@@ -99,7 +99,8 @@ export function Navigation() {
             </div>
           </div>
 
-          <div className="flex items-center">
+          <div className="flex items-center space-x-3">
+            <RealTimeStatus />
             <Button
               variant="ghost"
               size="sm"

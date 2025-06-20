@@ -1688,6 +1688,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Send notification
         await telegramService.notifyRequestDeclined(request.riderId);
 
+        // Broadcast ride request update to all connected clients
+        broadcastToAll({
+          type: "ride_request_updated", 
+          data: { id: requestId, status: "declined" },
+        });
+
         res.json({ message: "Request declined successfully" });
       } catch (error) {
         console.error("Error declining ride request:", error);
@@ -1723,6 +1729,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .where(eq(trips.id, tripId));
       }
       
+      // Broadcast real-time updates for assignment
+      broadcastToAll({
+        type: "ride_request_updated",
+        data: { id: requestId, status: "accepted", tripId },
+      });
+      
+      broadcastToAll({
+        type: "trip_updated", 
+        data: { id: tripId },
+      });
+
       console.log("ASSIGNMENT COMPLETED");
       res.json({ success: true, message: "تم التعيين بنجاح" });
       
