@@ -63,6 +63,11 @@ function setupWebSocket(server: Server) {
 // Telegram notification service
 class TelegramNotificationService {
   private bot: any;
+  
+  // Helper function to escape Markdown special characters
+  private escapeMarkdown(text: string): string {
+    return text.replace(/[[\]()~`>#+=|{}.!-]/g, '\\$&');
+  }
 
   constructor() {
     const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -129,13 +134,13 @@ class TelegramNotificationService {
 
       const title = "طلب رحلة جديد";
       const message = `
-🚗 *طلب رحلة جديد من ${rider.username}*
+🚗 *طلب رحلة جديد من ${this.escapeMarkdown(rider.username)}*
 
-📍 *من:* ${request.fromLocation}
-📍 *إلى:* ${request.toLocation}
+📍 *من:* ${this.escapeMarkdown(request.fromLocation)}
+📍 *إلى:* ${this.escapeMarkdown(request.toLocation)}
 🕐 *الوقت المفضل:* ${formatGMTPlus3TimeOnly(new Date(request.preferredTime))}
 👥 *عدد الركاب:* ${request.passengerCount}
-${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ""}
+${request.notes ? `📝 *ملاحظات:* ${this.escapeMarkdown(request.notes)}` : ""}
 
 *رقم الطلب:* ${requestId}
       `;
@@ -166,7 +171,7 @@ ${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ""}
       await this.sendNotification(
         driverId,
         "تم إنشاء الرحلة",
-        `🚗 *تم إنشاء رحلتك بنجاح*\n\n📍 *من:* ${trip.fromLocation}\n📍 *إلى:* ${trip.toLocation}\n🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n👥 *المقاعد المتاحة:* ${trip.availableSeats}`,
+        `🚗 *تم إنشاء رحلتك بنجاح*\n\n📍 *من:* ${this.escapeMarkdown(trip.fromLocation)}\n📍 *إلى:* ${this.escapeMarkdown(trip.toLocation)}\n🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n👥 *المقاعد المتاحة:* ${trip.availableSeats}`,
         "trip_created",
       );
     } catch (error) {
@@ -186,13 +191,13 @@ ${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ""}
 
       const title = "رحلة جديدة تم إنشاؤها";
       const message = `
-🚗 *رحلة جديدة من ${driver.username}*
+🚗 *رحلة جديدة من ${this.escapeMarkdown(driver.username)}*
 
-📍 *من:* ${trip.fromLocation}
-📍 *إلى:* ${trip.toLocation}
+📍 *من:* ${this.escapeMarkdown(trip.fromLocation)}
+📍 *إلى:* ${this.escapeMarkdown(trip.toLocation)}
 🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}
 👥 *المقاعد المتاحة:* ${trip.availableSeats}
-${trip.notes ? `📝 *ملاحظات:* ${trip.notes}` : ""}
+${trip.notes ? `📝 *ملاحظات:* ${this.escapeMarkdown(trip.notes)}` : ""}
 
 *رقم الرحلة:* ${tripId}
       `;
@@ -259,7 +264,7 @@ ${trip.notes ? `📝 *ملاحظات:* ${trip.notes}` : ""}
     await this.sendNotification(
       userId,
       "New Trip Available",
-      `A new trip matching your request is available from ${trip.fromLocation} to ${trip.toLocation} departing at ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}. Click here to join: ${dashboardUrl}`,
+      `A new trip matching your request is available from ${this.escapeMarkdown(trip.fromLocation)} to ${this.escapeMarkdown(trip.toLocation)} departing at ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}. Click here to join: ${dashboardUrl}`,
       "trip_match_found",
     );
   }
