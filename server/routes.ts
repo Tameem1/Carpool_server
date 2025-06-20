@@ -767,7 +767,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      console.log("=== MY TRIPS API DEBUG ===");
+      console.log("User ID:", userId);
+      
+      // Debug the date range calculation
+      const now = new Date();
+      const nowGMT3 = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+      const currentHour = nowGMT3.getHours();
+      
+      const dayStart = new Date(nowGMT3);
+      if (currentHour < 5) {
+        dayStart.setDate(dayStart.getDate() - 1);
+      }
+      dayStart.setHours(5, 0, 0, 0);
+      
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+      dayEnd.setHours(4, 0, 0, 0);
+      
+      const startUTC = new Date(dayStart.getTime() - 3 * 60 * 60 * 1000);
+      const endUTC = new Date(dayEnd.getTime() - 3 * 60 * 60 * 1000);
+      
+      console.log("Date range - Start UTC:", startUTC.toISOString());
+      console.log("Date range - End UTC:", endUTC.toISOString());
+
       const trips = await storage.getTodayUserTrips(userId);
+      console.log("Raw trips returned:", trips.length);
+      if (trips.length > 0) {
+        console.log("Trip details:", trips.map(t => ({ id: t.id, departureTime: t.departureTime })));
+      }
 
       // Enrich with participant info and sync available seats with riders
       const enrichedTrips = await Promise.all(
