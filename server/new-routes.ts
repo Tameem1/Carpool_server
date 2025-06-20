@@ -7,6 +7,7 @@ import passport from "passport";
 import session from "express-session";
 import ConnectPgSimple from "connect-pg-simple";
 const PgSession = ConnectPgSimple(session);
+import { formatGMTPlus3TimeOnly } from "../shared/timezone";
 import {
   insertTripSchema,
   insertRideRequestSchema,
@@ -132,7 +133,7 @@ class TelegramNotificationService {
 
 📍 *من:* ${request.fromLocation}
 📍 *إلى:* ${request.toLocation}
-🕐 *الوقت المفضل:* ${new Date(request.preferredTime).toLocaleTimeString("ar-SA")}
+🕐 *الوقت المفضل:* ${formatGMTPlus3TimeOnly(new Date(request.preferredTime))}
 👥 *عدد الركاب:* ${request.passengerCount}
 ${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ""}
 
@@ -165,7 +166,7 @@ ${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ""}
       await this.sendNotification(
         driverId,
         "تم إنشاء الرحلة",
-        `🚗 *تم إنشاء رحلتك بنجاح*\n\n📍 *من:* ${trip.fromLocation}\n📍 *إلى:* ${trip.toLocation}\n🕐 *وقت المغادرة:* ${new Date(trip.departureTime).toLocaleTimeString("ar-SA")}\n👥 *المقاعد المتاحة:* ${trip.availableSeats}`,
+        `🚗 *تم إنشاء رحلتك بنجاح*\n\n📍 *من:* ${trip.fromLocation}\n📍 *إلى:* ${trip.toLocation}\n🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n👥 *المقاعد المتاحة:* ${trip.availableSeats}`,
         "trip_created",
       );
     } catch (error) {
@@ -189,7 +190,7 @@ ${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ""}
 
 📍 *من:* ${trip.fromLocation}
 📍 *إلى:* ${trip.toLocation}
-🕐 *وقت المغادرة:* ${new Date(trip.departureTime).toLocaleTimeString("ar-SA")}
+🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}
 👥 *المقاعد المتاحة:* ${trip.availableSeats}
 ${trip.notes ? `📝 *ملاحظات:* ${trip.notes}` : ""}
 
@@ -258,7 +259,7 @@ ${trip.notes ? `📝 *ملاحظات:* ${trip.notes}` : ""}
     await this.sendNotification(
       userId,
       "New Trip Available",
-      `A new trip matching your request is available from ${trip.fromLocation} to ${trip.toLocation} departing at ${new Date(trip.departureTime).toLocaleString()}. Click here to join: ${dashboardUrl}`,
+      `A new trip matching your request is available from ${trip.fromLocation} to ${trip.toLocation} departing at ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}. Click here to join: ${dashboardUrl}`,
       "trip_match_found",
     );
   }
