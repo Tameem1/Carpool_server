@@ -139,7 +139,10 @@ ${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ""}
 *رقم الطلب:* ${requestId}
       `;
 
-      for (const admin of admins) {
+      // Filter out the rider from admin notifications to avoid duplicates if rider is also admin
+      const adminsToNotify = admins.filter(admin => admin.id !== riderId);
+      
+      for (const admin of adminsToNotify) {
         await this.sendNotification(
           admin.id,
           title,
@@ -148,7 +151,7 @@ ${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ""}
         );
       }
 
-      console.log(`[TELEGRAM] Notified ${admins.length} admin(s) about new ride request ${requestId}`);
+      console.log(`[TELEGRAM] Notified ${adminsToNotify.length} admin(s) about new ride request ${requestId} (excluded rider from admin notifications)`);
     } catch (error) {
       console.error("Error notifying admins about ride request:", error);
     }
@@ -191,7 +194,10 @@ ${trip.notes ? `📝 *ملاحظات:* ${trip.notes}` : ""}
 *رقم الرحلة:* ${tripId}
       `;
 
-      for (const admin of admins) {
+      // Filter out the driver from admin notifications to avoid duplicates
+      const adminsToNotify = admins.filter(admin => admin.id !== driverId);
+      
+      for (const admin of adminsToNotify) {
         await this.sendNotification(
           admin.id,
           title,
@@ -200,7 +206,7 @@ ${trip.notes ? `📝 *ملاحظات:* ${trip.notes}` : ""}
         );
       }
 
-      console.log(`[TELEGRAM] Notified ${admins.length} admin(s) about new trip ${tripId}`);
+      console.log(`[TELEGRAM] Notified ${adminsToNotify.length} admin(s) about new trip ${tripId} (excluded driver from admin notifications)`);
     } catch (error) {
       console.error("Error notifying admins about trip creation:", error);
     }
@@ -549,7 +555,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const trip = await storage.createTrip(parsedTripData);
 
       console.log(`[TELEGRAM] Sending trip creation notifications for trip ${trip.id}, driver ${trip.driverId}`);
+      
+      // Send driver notification
       await telegramService.notifyTripCreated(trip.id, trip.driverId);
+      
+      // Send admin notifications (excluding the driver if they're also an admin to avoid duplicates)
       await telegramService.notifyAdminsTripCreated(trip.id, trip.driverId);
       await notifyMatchingRideRequesters(trip);
 
