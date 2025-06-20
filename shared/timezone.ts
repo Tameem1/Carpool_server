@@ -57,12 +57,14 @@ export function parseTimeToTodayUTC(timeString: string): Date {
     throw new Error("Invalid time format");
   }
   
-  // Create date in GMT+3 timezone for today
-  const todayGMT3 = nowGMTPlus3();
-  todayGMT3.setHours(hours, minutes, 0, 0);
+  // Create date for today with the specified time
+  // Treat this as if the user entered the time in GMT+3
+  const today = new Date();
+  today.setHours(hours, minutes, 0, 0);
   
-  // Convert to UTC for database storage
-  return fromGMTPlus3ToUTC(todayGMT3);
+  // The user entered this time thinking in GMT+3, so we need to adjust it to UTC
+  // If user enters 17:37 thinking it's GMT+3, we need to store 14:37 UTC
+  return new Date(today.getTime() - GMT_PLUS_3_OFFSET);
 }
 
 /**
