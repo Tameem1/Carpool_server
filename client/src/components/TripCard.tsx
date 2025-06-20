@@ -221,7 +221,7 @@ export function TripCard({
 
   return (
     <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-3 sm:p-6">
+      <CardContent className="p-3 sm:p-4 lg:p-6">
 
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 space-y-2 sm:space-y-0">
           <div className="flex-1">

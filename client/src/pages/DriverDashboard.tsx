@@ -152,7 +152,7 @@ export default function DriverDashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mobile-container py-3 sm:py-6 lg:py-8">
       <div className="mb-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Driver Dashboard</h2>
@@ -163,7 +163,7 @@ export default function DriverDashboard() {
         </div>
 
         {/* Driver Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="mobile-grid mb-6 sm:mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">

@@ -61,7 +61,7 @@ export function Navigation() {
 
   return (
     <nav className="bg-white dark:bg-gray-900 shadow-sm border-b mobile-safe-area">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div className="mobile-container">
         <div className="flex justify-between items-center h-14 sm:h-16">
           <div className="flex items-center space-x-4 sm:space-x-8">
             <div className="flex-shrink-0 flex items-center">
@@ -69,8 +69,7 @@ export function Navigation() {
               <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white hidden xs:block">
                 وصلني عالنادي
               </h1>
-              <h1 className="text-base font-bold text-gray-900 dark:text-white xs:hidden pl-[25px] pr-[25px] pt-[0px] pb-[0px]">
-                {" "}
+              <h1 className="text-base font-bold text-gray-900 dark:text-white xs:hidden px-2">
                 وصلني عالنادي
               </h1>
             </div>

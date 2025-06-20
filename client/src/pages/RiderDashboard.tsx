@@ -135,7 +135,7 @@ export default function RiderDashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mobile-container py-3 sm:py-6 lg:py-8">
       <div className="mb-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Find a Ride</h2>
@@ -151,7 +151,7 @@ export default function RiderDashboard() {
             <CardTitle>Search Available Rides</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div>
                 <Label htmlFor="from">From</Label>
                 <Input
