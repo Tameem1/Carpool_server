@@ -373,30 +373,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   private getCustomDayRange(date?: Date): { start: Date; end: Date } {
-    // Get current time in UTC
-    const now = date || new Date();
-    
-    // Convert to GMT+3 by adding 3 hours
-    const nowGMT3 = new Date(now.getTime() + 3 * 60 * 60 * 1000);
-    const currentHour = nowGMT3.getHours();
-    
-    // If it's before 5 AM GMT+3, we're in the previous day (started at 5 AM yesterday GMT+3)
-    const dayStart = new Date(nowGMT3);
-    if (currentHour < 5) {
-      dayStart.setDate(dayStart.getDate() - 1);
-    }
-    dayStart.setHours(5, 0, 0, 0);
-    
-    // Day ends at 4 AM the next day GMT+3
-    const dayEnd = new Date(dayStart);
-    dayEnd.setDate(dayEnd.getDate() + 1);
-    dayEnd.setHours(4, 0, 0, 0);
-    
-    // Convert back to UTC for database queries (subtract 3 hours)
-    const startUTC = new Date(dayStart.getTime() - 3 * 60 * 60 * 1000);
-    const endUTC = new Date(dayEnd.getTime() - 3 * 60 * 60 * 1000);
-    
-    return { start: startUTC, end: endUTC };
+    return getTodayRangeUTC();
   }
 
   async getTodayRideRequests(): Promise<RideRequest[]> {

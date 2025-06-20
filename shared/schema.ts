@@ -30,8 +30,8 @@ export const trips = pgTable("trips", {
   isRecurring: boolean("is_recurring").default(false),
   recurringDays: text("recurring_days"), // JSON array of days
   notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
 });
 
 export const rideRequests = pgTable("ride_requests", {
@@ -44,8 +44,8 @@ export const rideRequests = pgTable("ride_requests", {
   notes: text("notes"),
   status: varchar("status", { enum: ["pending", "accepted", "declined", "cancelled"] }).default("pending"),
   tripId: integer("trip_id"), // null when pending, set when accepted
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
 });
 
 export const tripParticipants = pgTable("trip_participants", {
