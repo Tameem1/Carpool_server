@@ -42,35 +42,45 @@ function Router() {
           <Route path="/" component={() => (
             <div className="min-h-screen bg-background">
               <Navigation />
-              <Dashboard />
+              <div className="px-3 sm:px-0">
+                <Dashboard />
+              </div>
             </div>
           )} />
 
           <Route path="/admin" component={() => (
             <div className="min-h-screen bg-background">
               <Navigation />
-              <AdminDashboard />
+              <div className="px-3 sm:px-0">
+                <AdminDashboard />
+              </div>
             </div>
           )} />
           
           <Route path="/driver" component={() => (
             <div className="min-h-screen bg-background">
               <Navigation />
-              <DriverDashboard />
+              <div className="px-3 sm:px-0">
+                <DriverDashboard />
+              </div>
             </div>
           )} />
           
           <Route path="/rider" component={() => (
             <div className="min-h-screen bg-background">
               <Navigation />
-              <RiderDashboard />
+              <div className="px-3 sm:px-0">
+                <RiderDashboard />
+              </div>
             </div>
           )} />
 
           <Route path="/profile" component={() => (
             <div className="min-h-screen bg-background">
               <Navigation />
-              <UserProfile />
+              <div className="px-3 sm:px-0">
+                <UserProfile />
+              </div>
             </div>
           )} />
           

@@ -100,8 +100,20 @@
 
   /* Mobile responsive utilities */
   .mobile-safe-area {
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  .mobile-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .mobile-padding-tight {
+    @apply px-3 sm:px-4;
+  }
+
+  .mobile-margin {
+    @apply mx-4 sm:mx-6 lg:mx-8;
   }
 
   .touch-friendly {
@@ -129,5 +141,18 @@
 
   .responsive-text-2xl {
     @apply text-xl sm:text-2xl;
+  }
+
+  /* Mobile container utilities */
+  .mobile-container {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .mobile-card-spacing {
+    @apply space-y-3 sm:space-y-4;
+  }
+
+  .mobile-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6;
   }
 }
