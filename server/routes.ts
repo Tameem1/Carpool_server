@@ -41,7 +41,7 @@ function broadcastToAll(data: any) {
 
 function setupWebSocket(server: Server) {
   const wss = new WebSocketServer({
-    port: 3001,
+    port: 5001,
     host: "0.0.0.0",
   });
 
@@ -60,7 +60,7 @@ function setupWebSocket(server: Server) {
     });
   });
 
-  console.log("Real-time WebSocket server running on port 3001");
+  console.log("Real-time WebSocket server running on port 5001");
   return wss;
 }
 
@@ -777,7 +777,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Sync available seats if they don't match
           if (trip.availableSeats !== availableSeats) {
-            await storage.updateTrip(trip.id, { availableSeats });
+            const syncedTrip = await storage.updateTrip(trip.id, { availableSeats });
+            
+            // Broadcast seat availability update
+            broadcastToAll({
+              type: "trip_updated",
+              data: syncedTrip,
+            });
           }
 
           return {
@@ -863,7 +869,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Sync available seats if they don't match
           if (trip.availableSeats !== availableSeats) {
-            await storage.updateTrip(trip.id, { availableSeats });
+            const syncedTrip = await storage.updateTrip(trip.id, { availableSeats });
+            
+            // Broadcast seat availability update
+            broadcastToAll({
+              type: "trip_updated",
+              data: syncedTrip,
+            });
           }
 
           return {
@@ -1230,6 +1242,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         await storage.deleteTrip(tripId);
+
+        // Broadcast trip deletion to all connected clients
+        broadcastToAll({
+          type: "trip_deleted",
+          data: { id: tripId },
+        });
+
         res.status(204).send();
       } catch (error) {
         console.error("Error deleting trip:", error);
@@ -1335,10 +1354,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             type: "join_approved",
           });
 
-          // Broadcast notification
+          // Broadcast trip update and notification
           broadcastToAll({
-            type: "rider_joined",
-            data: { joinRequest, trip: updatedTrip, rider: requester },
+            type: "trip_updated",
+            data: updatedTrip,
+          });
+
+          broadcastToAll({
+            type: "notification",
+            data: {
+              title: "راكب جديد انضم للرحلة",
+              message: `${requester.username} انضم إلى الرحلة`,
+            },
           });
         }
 

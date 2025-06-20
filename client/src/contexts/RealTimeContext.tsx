@@ -147,6 +147,13 @@ export function RealTimeProvider({ children }: RealTimeProviderProps) {
         }
         break;
 
+      case "trip_deleted":
+        // Invalidate trips cache when a trip is deleted
+        queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/trips/my"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+        break;
+
       case "user_updated":
         // Invalidate users cache
         queryClient.invalidateQueries({ queryKey: ["/api/users"] });
