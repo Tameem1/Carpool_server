@@ -939,13 +939,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .json({ message: "You have already requested to join this trip" });
         }
 
-        // Check if trip has available seats
+        // Allow joining regardless of available seats
         const requestedSeats = seatsRequested || 1;
-        if (trip.availableSeats < requestedSeats) {
-          return res
-            .status(400)
-            .json({ message: "Not enough available seats" });
-        }
 
         // Create join request with approved status
         const joinRequestData = insertTripJoinRequestSchema.parse({
@@ -1056,9 +1051,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: "Request is not pending" });
       }
       
-      if (trip.availableSeats < 1) {
-        return res.status(400).json({ success: false, message: "No available seats" });
-      }
+
       
       console.log("Updating request status...");
       // Update the ride request status and assign it to the trip

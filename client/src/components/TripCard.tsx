@@ -380,8 +380,7 @@ export function TripCard({
                 }
                 disabled={
                   !selectedUserId ||
-                  addRiderMutation.isPending ||
-                  (trip.riders?.length || 0) >= trip.totalSeats
+                  addRiderMutation.isPending
                 }
               >
                 <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
