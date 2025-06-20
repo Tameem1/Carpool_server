@@ -17,7 +17,7 @@ export function UserProfile() {
   
   const [formData, setFormData] = useState({
     phoneNumber: "",
-    telegramId: "",
+    telegramUsername: "",
   });
 
   // Update form data when user data loads
@@ -25,7 +25,7 @@ export function UserProfile() {
     if (user) {
       setFormData({
         phoneNumber: user.phoneNumber || "",
-        telegramId: user.telegramId || "",
+        telegramUsername: user.telegramUsername || "",
       });
     }
   }, [user]);
@@ -146,14 +146,14 @@ export function UserProfile() {
             </div>
 
             <div>
-              <Label htmlFor="telegramId" className="flex items-center gap-2">
+              <Label htmlFor="telegramUsername" className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4" />
                 Telegram ID
               </Label>
               <Input
-                id="telegramId"
-                value={formData.telegramId}
-                onChange={(e) => handleInputChange("telegramId", e.target.value)}
+                id="telegramUsername"
+                value={formData.telegramUsername}
+                onChange={(e) => handleInputChange("telegramUsername", e.target.value)}
                 placeholder="Enter your Telegram ID (e.g., 123456789)"
               />
               <p className="text-xs text-gray-500 mt-1">

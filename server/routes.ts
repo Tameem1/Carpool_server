@@ -102,13 +102,13 @@ class TelegramNotificationService {
     if (this.bot) {
       try {
         const user = await storage.getUser(userId);
-        if (user?.telegramId) {
+        if (user?.telegramUsername) {
           const telegramMessage = `*${title}*\n\n${message}`;
-          await this.bot.sendMessage(user.telegramId, telegramMessage, {
+          await this.bot.sendMessage(user.telegramUsername, telegramMessage, {
             parse_mode: "Markdown",
           });
           console.log(
-            `[TELEGRAM] Message sent to user ${userId} (${user.telegramId}): ${title}`,
+            `[TELEGRAM] Message sent to user ${userId} (${user.telegramUsername}): ${title}`,
           );
         } else {
           console.log(`[TELEGRAM] No Telegram ID found for user ${userId}`);
@@ -588,8 +588,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      // Only allow phoneNumber and telegramId to be updated
-      const { phoneNumber, telegramId } = req.body;
+      // Only allow phoneNumber and telegramUsername to be updated
+      const { phoneNumber, telegramUsername } = req.body;
       console.log("Profile update request body:", req.body);
       console.log("User ID:", userId);
 
@@ -603,7 +603,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedUser = await storage.updateUser(userId, {
         phoneNumber: phoneNumber || existingUser.phoneNumber,
-        telegramId: telegramId || existingUser.telegramId,
+        telegramUsername: telegramUsername || existingUser.telegramUsername,
       });
 
       console.log("Updated user phone:", updatedUser.phoneNumber);
