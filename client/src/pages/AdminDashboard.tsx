@@ -12,13 +12,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Plus, Edit, Trash2, UserPlus, MapPin, Clock } from "lucide-react";
 import { format } from "date-fns";
-import { formatGMTPlus3 } from "@shared/timezone";
+import { formatGMTPlus3, formatGMTPlus3TimeOnly } from "@shared/timezone";
 
-// Helper function to extract and format time from timestamp
+// Helper function to extract and format time from timestamp with GMT+3 timezone
 function formatTimeOnly(timestamp: string): string {
   if (!timestamp) return "";
   const date = new Date(timestamp);
-  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  return formatGMTPlus3TimeOnly(date, 'en-US');
 }
 
 // Utility function to detect Arabic text

@@ -15,7 +15,7 @@ import {
   Phone,
 } from "lucide-react";
 import { format } from "date-fns";
-import { formatGMTPlus3 } from "@shared/timezone";
+import { formatGMTPlus3, formatGMTPlus3TimeOnly } from "@shared/timezone";
 import { useState } from "react";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -23,15 +23,11 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { TripJoinRequestForm } from "./TripJoinRequestForm";
 
-// Helper function to extract and format time from timestamp with AM/PM
+// Helper function to extract and format time from timestamp with GMT+3 timezone
 function formatTimeOnly(timestamp: string): string {
   if (!timestamp) return "";
   const date = new Date(timestamp);
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  const displayHours = hours % 12 || 12; // Convert to 12-hour format, 0 becomes 12
-  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+  return formatGMTPlus3TimeOnly(date, 'en-US'); // Use English format for website display
 }
 
 interface TripCardProps {
