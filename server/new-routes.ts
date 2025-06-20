@@ -181,6 +181,8 @@ ${request.notes ? `📝 *ملاحظات:* ${request.notes}` : ""}
 
       if (!trip || !driver) return;
 
+      console.log(`[TELEGRAM] Debug - Driver ID: ${driverId}, Admin IDs: ${admins.map(a => a.id).join(', ')}`);
+
       const title = "رحلة جديدة تم إنشاؤها";
       const message = `
 🚗 *رحلة جديدة من ${driver.username}*
@@ -196,6 +198,8 @@ ${trip.notes ? `📝 *ملاحظات:* ${trip.notes}` : ""}
 
       // Filter out the driver from admin notifications to avoid duplicates
       const adminsToNotify = admins.filter(admin => admin.id !== driverId);
+      
+      console.log(`[TELEGRAM] Admins to notify after filtering: ${adminsToNotify.map(a => `${a.id}(${a.username})`).join(', ')}`);
       
       for (const admin of adminsToNotify) {
         await this.sendNotification(
@@ -559,7 +563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send driver notification
       await telegramService.notifyTripCreated(trip.id, trip.driverId);
       
-      // Send admin notifications (excluding the driver if they're also an admin to avoid duplicates)
+      // Send admin notifications to other admins (excluding the driver)
       await telegramService.notifyAdminsTripCreated(trip.id, trip.driverId);
       await notifyMatchingRideRequesters(trip);
 
