@@ -824,9 +824,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      console.log(`[DEBUG] Getting today's trips for user ${userId} at ${new Date().toISOString()}`);
-      const trips = await storage.getTodayUserTrips(userId);
-      console.log(`[DEBUG] Found ${trips.length} trips for today:`, trips.map(t => ({ id: t.id, departureTime: t.departureTime.toISOString() })));
+      const trips = await storage.getUserTrips(userId); // Get all user trips
 
       // Enrich with participant info and sync available seats with riders
       const enrichedTrips = await Promise.all(
@@ -895,13 +893,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }),
       );
 
-      // Add cache-busting headers and ETag
-      res.set({
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-        'ETag': `"${Date.now()}"`
-      });
       res.json(enrichedTrips);
     } catch (error) {
       console.error("Error fetching user trips:", error);

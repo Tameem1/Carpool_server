@@ -254,8 +254,7 @@ export class DatabaseStorage implements IStorage {
 
   async getTodayUserTrips(userId: string): Promise<Trip[]> {
     const { start, end } = this.getCustomDayRange();
-    console.log(`[DEBUG] getTodayUserTrips - Range: ${start.toISOString()} to ${end.toISOString()}`);
-    const result = await db.select()
+    return await db.select()
       .from(trips)
       .where(
         and(
@@ -264,8 +263,6 @@ export class DatabaseStorage implements IStorage {
           lt(trips.departureTime, end)
         )
       );
-    console.log(`[DEBUG] getTodayUserTrips - Query returned ${result.length} trips`);
-    return result;
   }
 
   async getTodayTrips(): Promise<Trip[]> {

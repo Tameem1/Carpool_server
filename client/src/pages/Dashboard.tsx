@@ -110,12 +110,20 @@ export default function Dashboard() {
     return tripTime >= startTime && tripTime <= endTime;
   }) : [];
 
-  const { data: myTrips = [], isLoading: myTripsLoading } = useQuery({
-    queryKey: ["/api/trips/my", new Date().toISOString().split('T')[0]], // Add date to force cache refresh
+  // Apply the same today filtering logic on the frontend to ensure consistency
+  const { data: allMyTrips = [], isLoading: myTripsLoading } = useQuery({
+    queryKey: ["/api/trips/my"],
     enabled: user?.role !== "admin", // Don't fetch my trips for admin users
     refetchOnWindowFocus: true,
     staleTime: 0, // Always consider data stale
   });
+
+  // Filter my trips to show only today's trips using the same logic as "All Trips"
+  const myTrips = Array.isArray(allMyTrips) ? allMyTrips.filter((trip: any) => {
+    const { startTime, endTime } = getTodayTripRange();
+    const tripTime = new Date(trip.departureTime);
+    return tripTime >= startTime && tripTime <= endTime;
+  }) : [];
 
   const { data: stats } = useQuery({
     queryKey: ["/api/stats"],
