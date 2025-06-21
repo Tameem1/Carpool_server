@@ -1,588 +1,509 @@
 # Carpool Management System
 
-A comprehensive ride-sharing application built with React, Express.js, and PostgreSQL. This system enables users to create trips, request rides, and manage carpooling activities with real-time notifications.
+A full-stack ride-sharing application built with React, Express.js, and PostgreSQL. Features real-time notifications, Telegram integration, and comprehensive trip management.
 
 ## Features
 
-- **User Management**: Multi-role system (Admin, Driver, Rider)
-- **Trip Creation**: Drivers can create and manage trips
-- **Ride Requests**: Riders can request rides with automatic matching
+- **User Authentication**: Secure login system with role-based access (Admin, User, Student)
+- **Trip Management**: Create, view, and manage carpooling trips
+- **Ride Requests**: Request rides and match with available trips
 - **Real-time Updates**: WebSocket-based live notifications
-- **Telegram Integration**: Optional notifications via Telegram bot
-- **Admin Dashboard**: Complete administrative control panel
-- **Multi-language Support**: Arabic and English interface
+- **Telegram Integration**: Automated notifications via Telegram bot
+- **Admin Dashboard**: User and trip management interface
+- **Mobile-Responsive**: Works seamlessly on desktop and mobile devices
+
+## Tech Stack
+
+- **Frontend**: React 18, TypeScript, Tailwind CSS, Shadcn/ui
+- **Backend**: Node.js, Express.js, TypeScript
+- **Database**: PostgreSQL with Drizzle ORM
+- **Real-time**: WebSocket (ws)
+- **Authentication**: Passport.js with session management
+- **Notifications**: Telegram Bot API
+- **Build Tool**: Vite
 
 ## Prerequisites
 
-Before running the application, ensure you have:
+Before setting up the project, ensure you have:
 
-- **Node.js** (version 18 or higher)
-- **npm** (comes with Node.js)
-- **PostgreSQL** database (local or remote)
+- **Node.js** 18 or higher
+- **PostgreSQL** 12 or higher
+- **Git** for version control
+- **PM2** (for production deployment)
+- **Nginx** (for reverse proxy in production)
 
-## Quick Start
+## Local Development Setup
 
-### 1. Clone and Install Dependencies
+### 1. Clone the Repository
 
 ```bash
-# Clone the repository
-git clone <repository-url>
+git clone <your-repository-url>
 cd carpool-management-system
+```
 
-# Install dependencies
+### 2. Install Dependencies
+
+```bash
 npm install
 ```
 
-### 2. Database Setup
+### 3. Database Setup
 
-#### Option A: Using Replit's Built-in Database
-If you're running on Replit, the PostgreSQL database is automatically configured.
+Create a PostgreSQL database:
 
-#### Option B: Local PostgreSQL Setup
 ```bash
-# Install PostgreSQL (Ubuntu/Debian)
-sudo apt update
-sudo apt install postgresql postgresql-contrib
-
-# Start PostgreSQL service
-sudo systemctl start postgresql
-sudo systemctl enable postgresql
+# Connect to PostgreSQL
+sudo -u postgres psql
 
 # Create database and user
-sudo -u postgres psql << EOF
+CREATE DATABASE carpool_db;
 CREATE USER carpool_user WITH PASSWORD 'your_secure_password';
-CREATE DATABASE carpool_db OWNER carpool_user;
 GRANT ALL PRIVILEGES ON DATABASE carpool_db TO carpool_user;
-EOF
+\q
 ```
 
-### 3. Environment Configuration
+### 4. Environment Configuration
 
 Create a `.env` file in the root directory:
 
 ```env
-# Database Configuration
+# Database
 DATABASE_URL=postgresql://carpool_user:your_secure_password@localhost:5432/carpool_db
 
-# Session Configuration
-SESSION_SECRET=your_very_secure_session_secret_here
+# Session
+SESSION_SECRET=your_very_secure_session_secret_key_here
 
-# Optional: Telegram Bot Configuration
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
+# Application
+NODE_ENV=development
+PORT=5000
+
+# Telegram Bot (Optional - for notifications)
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+TELEGRAM_CHAT_ID=your_telegram_chat_id
 ```
 
-### 4. Database Schema Setup
+### 5. Database Schema Setup
+
+Push the database schema:
 
 ```bash
-# Push database schema to create tables
 npm run db:push
 ```
 
-### 5. Running on Port 3000
-
-To run the application on port 3000 instead of the default port 5000, you have two options:
-
-#### Option A: Temporary Port Change
-```bash
-# Set PORT environment variable
-PORT=3000 npm run dev
-```
-
-#### Option B: Permanent Port Change
-Modify the `server/index.ts` file:
+### 6. Start Development Server
 
 ```bash
-# Edit the server configuration
-# Change line 64 from: const port = 5000;
-# To: const port = process.env.PORT || 3000;
-```
-
-Then create or update your `.env` file:
-```env
-PORT=3000
-# ... other environment variables
-```
-
-### 6. Start the Application
-
-```bash
-# Development mode
 npm run dev
-
-# The application will be available at:
-# http://localhost:3000 (if you modified the port)
-# http://localhost:5000 (default configuration)
 ```
 
-## Development Scripts
+The application will be available at:
+- Frontend: http://localhost:5000
+- WebSocket: ws://localhost:5001
+
+## Production Deployment on Linux Server
+
+### 1. Server Preparation
+
+Update your system and install required packages:
 
 ```bash
-# Start development server
-npm run dev
+# Update system
+sudo apt update && sudo apt upgrade -y
 
-# Build for production
-npm run build
+# Install Node.js 18
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
 
-# Start production server
-npm start
+# Install PostgreSQL
+sudo apt install -y postgresql postgresql-contrib
 
-# Type checking
-npm run check
+# Install Nginx
+sudo apt install -y nginx
 
-# Database schema operations
-npm run db:push
+# Install PM2 globally
+sudo npm install -g pm2
+
+# Install Git
+sudo apt install -y git
 ```
 
-## Application Structure
+### 2. Create Application User
 
-```
-├── client/                 # React frontend application
-│   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── pages/         # Application pages/routes
-│   │   ├── hooks/         # Custom React hooks
-│   │   └── lib/           # Utility functions and helpers
-├── server/                # Express.js backend
-│   ├── auth.ts           # Authentication middleware
-│   ├── routes.ts         # API route definitions
-│   ├── storage.ts        # Database operations layer
-│   ├── index.ts          # Server entry point
-│   └── new-routes.ts     # Updated API routes
-├── shared/               # Shared types and schemas
-│   ├── schema.ts         # Database schema definitions
-│   └── timezone.ts       # Timezone utilities
-└── README.md             # This file
-```
-
-## First Time Usage
-
-### Default Access
-1. Navigate to your application URL (http://localhost:3000 or configured port)
-2. The system automatically creates sample users on first startup
-3. Check the console logs for default admin credentials
-
-### User Roles
-
-- **Admin**: Full system access, user management, trip oversight
-- **Driver**: Can create trips, manage passengers, view requests
-- **Rider**: Can request rides, join available trips, view notifications
-
-### Core Workflows
-
-#### Creating a Trip (Drivers/Admins)
-1. Log in with driver or admin credentials
-2. Navigate to Dashboard
-3. Click "Create Trip"
-4. Fill in:
-   - Departure location
-   - Arrival location
-   - Departure time
-   - Available seats
-   - Optional notes
-
-#### Requesting a Ride (Riders)
-1. Log in with rider credentials
-2. Use "Request Ride" feature
-3. Specify:
-   - Pickup location
-   - Drop-off location
-   - Preferred time
-   - Number of passengers
-4. System automatically matches with available trips
-
-#### Managing Requests (Admins)
-1. Access Admin Dashboard
-2. View all pending ride requests
-3. Approve/decline requests manually
-4. Monitor trip utilization and user activity
-
-## Telegram Integration (Optional)
-
-To enable Telegram notifications:
-
-### 1. Create a Telegram Bot
 ```bash
-# Message @BotFather on Telegram
-# Send: /newbot
-# Follow the prompts to create your bot
-# Save the provided bot token
+# Create a dedicated user for the application
+sudo adduser carpool --disabled-password --gecos ""
+sudo usermod -aG sudo carpool
 ```
 
-### 2. Configure Environment
-Add to your `.env` file:
-```env
-TELEGRAM_BOT_TOKEN=your_bot_token_from_botfather
-```
+### 3. Database Setup
 
-### 3. Get User Telegram IDs
-- Users message @userinfobot to get their Telegram ID
-- Update user profiles with their Telegram IDs
-- Admins can configure notifications in the dashboard
-
-## Production Deployment
-
-### Git-Based Server Updates
-
-This application is designed to support seamless updates through git. Follow these workflows for different deployment scenarios:
-
-#### Initial Server Setup
 ```bash
-# Clone the repository on your server
-git clone <your-repository-url> carpool-app
-cd carpool-app
+# Switch to postgres user
+sudo -u postgres psql
+
+# Create production database
+CREATE DATABASE carpool_production;
+CREATE USER carpool_prod WITH PASSWORD 'your_production_password';
+GRANT ALL PRIVILEGES ON DATABASE carpool_production TO carpool_prod;
+ALTER USER carpool_prod CREATEDB;
+\q
+```
+
+### 4. Deploy Application
+
+```bash
+# Switch to application user
+sudo su - carpool
+
+# Clone the repository
+git clone <your-repository-url> /home/carpool/carpool-app
+cd /home/carpool/carpool-app
 
 # Install dependencies
-npm install
+npm ci --only=production
 
-# Set up environment variables (see Environment Setup below)
-cp .env.example .env
-# Edit .env with your production values
-
-# Initialize database schema
-npm run db:push
-
-# Build for production
-npm run build
-
-# Start the application
-npm start
-```
-
-#### Updating Server with Git
-
-##### Method 1: Simple Pull Update (Recommended for minor updates)
-```bash
-# Navigate to application directory
-cd /path/to/your/carpool-app
-
-# Stop the running application
-# (Use your process manager: pm2, systemd, docker, etc.)
-pm2 stop carpool-app  # if using PM2
-# OR
-sudo systemctl stop carpool-app  # if using systemd
-
-# Backup current state (optional but recommended)
-git stash  # saves any local changes
-git tag backup-$(date +%Y%m%d-%H%M%S)  # creates a backup tag
-
-# Pull latest changes
-git pull origin main  # or your default branch
-
-# Install any new dependencies
-npm install
-
-# Update database schema if needed
-npm run db:push
-
-# Rebuild application
-npm run build
-
-# Restart the application
-pm2 start carpool-app  # if using PM2
-# OR
-sudo systemctl start carpool-app  # if using systemd
-```
-
-##### Method 2: Safe Deployment with Rollback Support
-```bash
-# Create deployment script (save as deploy.sh)
-#!/bin/bash
-set -e
-
-APP_DIR="/path/to/your/carpool-app"
-BACKUP_DIR="/path/to/backups"
-TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-
-echo "Starting deployment at $TIMESTAMP"
-
-# Stop application
-pm2 stop carpool-app || true
-
-# Create backup
-mkdir -p $BACKUP_DIR
-cp -r $APP_DIR $BACKUP_DIR/carpool-backup-$TIMESTAMP
-
-# Update code
-cd $APP_DIR
-git fetch origin
-git reset --hard origin/main
-
-# Install dependencies and rebuild
-npm install
-npm run build
-
-# Update database schema
-npm run db:push
-
-# Start application
-pm2 start carpool-app
-
-echo "Deployment completed successfully"
-echo "Backup created at: $BACKUP_DIR/carpool-backup-$TIMESTAMP"
-```
-
-##### Method 3: Blue-Green Deployment (Zero Downtime)
-```bash
-# Setup script for blue-green deployment
-#!/bin/bash
-
-CURRENT_DIR="/opt/carpool-current"
-NEW_DIR="/opt/carpool-new"
-BACKUP_DIR="/opt/carpool-backup"
-
-# Clone fresh copy
-git clone <your-repository-url> $NEW_DIR
-cd $NEW_DIR
-
-# Install and build
-npm install
-npm run build
-
-# Copy environment configuration
-cp $CURRENT_DIR/.env $NEW_DIR/.env
-
-# Update database schema
-npm run db:push
-
-# Test the new deployment
-npm run check  # run any health checks
-
-# Backup current version
-mv $CURRENT_DIR $BACKUP_DIR-$(date +%Y%m%d-%H%M%S)
-
-# Switch to new version
-mv $NEW_DIR $CURRENT_DIR
-
-# Restart application
-pm2 restart carpool-app
-```
-
-#### Git Workflow Best Practices
-
-##### Branching Strategy
-```bash
-# Development workflow
-git checkout -b feature/new-feature
-# Make changes
-git add .
-git commit -m "Add new feature: description"
-git push origin feature/new-feature
-
-# Create pull request, review, then merge to main
-
-# Production deployment
-git checkout main
-git pull origin main
-# Follow deployment steps above
-```
-
-##### Rollback Procedures
-```bash
-# Quick rollback to previous commit
-git log --oneline -10  # find the commit to rollback to
-git reset --hard <commit-hash>
-npm install
-npm run build
-pm2 restart carpool-app
-
-# Rollback using backup
-cd /path/to/backups
-cp -r carpool-backup-TIMESTAMP /opt/carpool-current
-cd /opt/carpool-current
-pm2 restart carpool-app
-```
-
-##### Database Migration Safety
-```bash
-# Before major updates, backup database
-pg_dump $DATABASE_URL > backup-$(date +%Y%m%d-%H%M%S).sql
-
-# Test schema changes in staging first
-npm run db:push  # in staging environment
-
-# For production, consider gradual migration
-# 1. Deploy code that supports both old and new schema
-# 2. Run migration
-# 3. Deploy code that uses new schema only
-```
-
-### Environment Setup
-```env
+# Create production environment file
+cat > .env << EOF
 NODE_ENV=production
-SESSION_SECRET=very_secure_production_secret
-DATABASE_URL=your_production_database_url
-PORT=3000
+DATABASE_URL=postgresql://carpool_prod:your_production_password@localhost:5432/carpool_production
+SESSION_SECRET=your_very_secure_production_session_secret
+PORT=5000
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+TELEGRAM_CHAT_ID=your_telegram_chat_id
+EOF
 
-# Git deployment settings
-GIT_BRANCH=main
-DEPLOYMENT_ENV=production
+# Push database schema
+npm run db:push
+
+# Build the application
+npm run build
 ```
 
-### Automated Deployment with GitHub Actions
+### 5. PM2 Configuration
 
-Create `.github/workflows/deploy.yml`:
-```yaml
-name: Deploy to Production
+Create a PM2 ecosystem file:
 
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Deploy to server
-      uses: appleboy/ssh-action@v0.1.5
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSH_KEY }}
-        script: |
-          cd /path/to/carpool-app
-          git pull origin main
-          npm install
-          npm run build
-          npm run db:push
-          pm2 restart carpool-app
-```
-
-### Process Management with PM2
 ```bash
-# Install PM2 globally
-npm install -g pm2
-
-# Create PM2 ecosystem file (ecosystem.config.js)
+cat > ecosystem.config.js << EOF
 module.exports = {
   apps: [{
     name: 'carpool-app',
-    script: 'server/index.js',
+    script: './dist/index.js',
     instances: 'max',
     exec_mode: 'cluster',
     env: {
       NODE_ENV: 'production',
-      PORT: 3000
+      PORT: 5000
     },
     error_file: './logs/err.log',
     out_file: './logs/out.log',
     log_file: './logs/combined.log',
-    time: true
+    time: true,
+    max_restarts: 10,
+    min_uptime: '10s',
+    max_memory_restart: '1G'
   }]
 };
+EOF
 
-# Start with PM2
+# Create logs directory
+mkdir -p logs
+
+# Start the application with PM2
 pm2 start ecosystem.config.js
-
-# Save PM2 configuration
 pm2 save
-pm2 startup  # follow the instructions to auto-start on boot
+pm2 startup
 ```
 
-### Security Considerations
-- Use strong, unique SESSION_SECRET
-- Enable SSL/TLS for production
-- Configure firewall rules appropriately
-- Regular database backups
-- Monitor application logs
-- Use SSH keys for git operations on server
-- Implement proper user permissions for deployment scripts
-- Consider using git hooks for automated testing before deployment
+### 6. Nginx Configuration
+
+Create Nginx configuration:
+
+```bash
+sudo tee /etc/nginx/sites-available/carpool << EOF
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    # Redirect HTTP to HTTPS
+    return 301 https://\$server_name\$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+
+    # SSL Configuration (add your certificates)
+    ssl_certificate /path/to/your/certificate.crt;
+    ssl_certificate_key /path/to/your/private.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    # Main application
+    location / {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_cache_bypass \$http_upgrade;
+    }
+
+    # WebSocket proxy
+    location /ws {
+        proxy_pass http://localhost:5001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    # Security headers
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
+}
+EOF
+
+# Enable the site
+sudo ln -s /etc/nginx/sites-available/carpool /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# Test and reload Nginx
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 7. SSL Certificate Setup (Using Let's Encrypt)
+
+```bash
+# Install Certbot
+sudo apt install -y certbot python3-certbot-nginx
+
+# Obtain SSL certificate
+sudo certbot --nginx -d your-domain.com
+
+# Auto-renewal (certbot usually sets this up automatically)
+sudo crontab -e
+# Add this line:
+# 0 12 * * * /usr/bin/certbot renew --quiet
+```
+
+### 8. Firewall Configuration
+
+```bash
+# Configure UFW firewall
+sudo ufw enable
+sudo ufw allow 22/tcp    # SSH
+sudo ufw allow 80/tcp    # HTTP
+sudo ufw allow 443/tcp   # HTTPS
+sudo ufw allow 5432/tcp  # PostgreSQL (if external access needed)
+```
+
+## Deployment Commands
+
+### Update Deployment
+
+```bash
+# Switch to application user
+sudo su - carpool
+cd /home/carpool/carpool-app
+
+# Pull latest changes
+git pull origin main
+
+# Install dependencies
+npm ci --only=production
+
+# Update database schema
+npm run db:push
+
+# Build application
+npm run build
+
+# Restart with PM2
+pm2 restart carpool-app
+```
+
+### Backup Database
+
+```bash
+# Create backup
+pg_dump -h localhost -U carpool_prod carpool_production > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# Restore from backup
+psql -h localhost -U carpool_prod carpool_production < backup_file.sql
+```
+
+## Monitoring and Maintenance
+
+### PM2 Commands
+
+```bash
+# View application status
+pm2 status
+
+# View logs
+pm2 logs carpool-app
+
+# Monitor resources
+pm2 monit
+
+# Restart application
+pm2 restart carpool-app
+
+# Stop application
+pm2 stop carpool-app
+```
+
+### Log Management
+
+```bash
+# View application logs
+tail -f /home/carpool/carpool-app/logs/combined.log
+
+# Rotate logs (setup logrotate)
+sudo tee /etc/logrotate.d/carpool << EOF
+/home/carpool/carpool-app/logs/*.log {
+    daily
+    missingok
+    rotate 7
+    compress
+    delaycompress
+    notifempty
+    create 644 carpool carpool
+    postrotate
+        pm2 reloadLogs
+    endscript
+}
+EOF
+```
+
+### System Monitoring
+
+```bash
+# Check system resources
+htop
+
+# Check disk usage
+df -h
+
+# Check memory usage
+free -h
+
+# Check PostgreSQL status
+sudo systemctl status postgresql
+
+# Check Nginx status
+sudo systemctl status nginx
+```
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### Port Already in Use
-```bash
-# Check what's using the port
-lsof -ti:3000
+1. **Application won't start**
+   ```bash
+   # Check logs
+   pm2 logs carpool-app
+   
+   # Check if port is in use
+   sudo netstat -tlnp | grep :5000
+   ```
 
-# Kill the process
-lsof -ti:3000 | xargs kill
+2. **Database connection issues**
+   ```bash
+   # Test database connection
+   psql -h localhost -U carpool_prod carpool_production
+   
+   # Check PostgreSQL status
+   sudo systemctl status postgresql
+   ```
 
-# Or use a different port
-PORT=3001 npm run dev
-```
+3. **Nginx configuration errors**
+   ```bash
+   # Test Nginx configuration
+   sudo nginx -t
+   
+   # Check Nginx logs
+   sudo tail -f /var/log/nginx/error.log
+   ```
 
-#### Database Connection Issues
-```bash
-# Check PostgreSQL status
-sudo systemctl status postgresql
+4. **SSL certificate issues**
+   ```bash
+   # Renew certificates
+   sudo certbot renew
+   
+   # Check certificate status
+   sudo certbot certificates
+   ```
 
-# Restart PostgreSQL
-sudo systemctl restart postgresql
+### Performance Optimization
 
-# Test connection
-psql -h localhost -U carpool_user -d carpool_db
-```
+1. **Database Optimization**
+   ```sql
+   -- Add indexes for frequently queried columns
+   CREATE INDEX idx_trips_driver_id ON trips(driver_id);
+   CREATE INDEX idx_ride_requests_rider_id ON ride_requests(rider_id);
+   CREATE INDEX idx_trip_participants_trip_id ON trip_participants(trip_id);
+   ```
 
-#### Build Errors
-```bash
-# Clear cache and reinstall
-rm -rf node_modules package-lock.json
-npm install
+2. **PM2 Cluster Mode**
+   - The ecosystem.config.js is configured for cluster mode
+   - Adjust `instances` based on your server's CPU cores
 
-# Check Node.js version
-node --version  # Should be 18+
-```
+3. **Nginx Performance**
+   ```nginx
+   # Add to server block for better performance
+   location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+       expires 1y;
+       add_header Cache-Control "public, immutable";
+   }
+   ```
 
-#### Missing Tables Error
-```bash
-# Recreate database schema
-npm run db:push
-```
+## Security Considerations
 
-### Development Tips
+1. **Environment Variables**: Never commit `.env` files to version control
+2. **Database Security**: Use strong passwords and limit database access
+3. **Regular Updates**: Keep all dependencies updated
+4. **Backup Strategy**: Implement automated database backups
+5. **Monitoring**: Set up log monitoring and alerts
+6. **Firewall**: Configure firewall rules to limit access
 
-- Monitor application logs for debugging information
-- Use browser developer tools for frontend issues
-- Check network tab for API request/response details
-- WebSocket connections require both ports (main app + WebSocket server)
+## API Documentation
 
-## API Endpoints
+The application provides RESTful API endpoints:
 
-### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-- `GET /api/auth/user` - Get current user
-
-### Trips
-- `GET /api/trips` - List all trips
-- `POST /api/trips` - Create new trip
-- `PUT /api/trips/:id` - Update trip
-- `DELETE /api/trips/:id` - Delete trip
-
-### Ride Requests
+- `POST /api/auth/login` - User authentication
+- `GET /api/trips` - List trips
+- `POST /api/trips` - Create trip
 - `GET /api/ride-requests` - List ride requests
 - `POST /api/ride-requests` - Create ride request
-- `PUT /api/ride-requests/:id` - Update request status
-
-### Users (Admin only)
-- `GET /api/users` - List all users
-- `POST /api/users` - Create user
-- `PUT /api/users/:id` - Update user
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+- `GET /api/users` - List users (admin only)
 
 ## Support
 
 For issues and questions:
-1. Check this README and troubleshooting section
-2. Review application logs for error details
-3. Ensure all prerequisites are properly installed
-4. Verify database connectivity and schema
 
----
+1. Check the application logs: `pm2 logs carpool-app`
+2. Review the troubleshooting section above
+3. Check database connectivity and schema
+4. Verify environment variables are correctly set
 
-**Note**: This application is designed for educational and internal use. Ensure proper security measures are implemented before deploying to production environments.
+## License
+
+MIT License - See LICENSE file for details
