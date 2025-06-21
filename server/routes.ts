@@ -41,8 +41,9 @@ function broadcastToAll(data: any) {
 }
 
 function setupWebSocket(server: Server) {
+  const websocketPort = parseInt(process.env.WEBSOCKET_PORT || "5001", 10);
   const wss = new WebSocketServer({
-    port: 5001,
+    port: websocketPort,
     host: "0.0.0.0",
   });
 
@@ -61,7 +62,7 @@ function setupWebSocket(server: Server) {
     });
   });
 
-  console.log("Real-time WebSocket server running on port 5001");
+  console.log(`Real-time WebSocket server running on port ${websocketPort}`);
   return wss;
 }
 

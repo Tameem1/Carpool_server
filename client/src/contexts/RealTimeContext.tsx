@@ -35,7 +35,7 @@ export function RealTimeProvider({ children }: RealTimeProviderProps) {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
-  const connect = () => {
+  const connect = async () => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       return;
     }
@@ -43,9 +43,14 @@ export function RealTimeProvider({ children }: RealTimeProviderProps) {
     setConnectionStatus("connecting");
 
     try {
+      // Fetch WebSocket port from server configuration
+      const configResponse = await fetch('/api/config');
+      const config = await configResponse.json();
+      const websocketPort = config.websocketPort || 5001;
+
       // Use secure WebSocket in production, regular WebSocket in development
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.hostname}:5001`;
+      const wsUrl = `${protocol}//${window.location.hostname}:${websocketPort}`;
       console.log("Connecting to WebSocket:", wsUrl);
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;

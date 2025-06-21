@@ -36,8 +36,9 @@ function broadcastToAll(data: any) {
 }
 
 function setupWebSocket(server: Server) {
+  const websocketPort = parseInt(process.env.WEBSOCKET_PORT || "5001", 10);
   const wss = new WebSocketServer({
-    port: 5001,
+    port: websocketPort,
     host: "0.0.0.0",
   });
 
@@ -56,7 +57,7 @@ function setupWebSocket(server: Server) {
     });
   });
 
-  console.log("Real-time WebSocket server running on port 5001");
+  console.log(`Real-time WebSocket server running on port ${websocketPort}`);
   return wss;
 }
 
@@ -339,6 +340,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Setup WebSocket
   setupWebSocket(server);
+
+  // Configuration routes
+  app.get("/api/config", (req, res) => {
+    res.json({
+      websocketPort: parseInt(process.env.WEBSOCKET_PORT || "5001", 10),
+      port: parseInt(process.env.PORT || "5000", 10)
+    });
+  });
 
   // Authentication routes
   app.get("/api/auth/sections", async (req, res) => {
