@@ -1,5 +1,4 @@
 import { useRealTime } from '@/contexts/RealTimeContext';
-import { Badge } from '@/components/ui/badge';
 import { Wifi, WifiOff, Loader2 } from 'lucide-react';
 
 export function RealTimeStatus() {
@@ -40,13 +39,5 @@ export function RealTimeStatus() {
 
   const config = getStatusConfig();
 
-  return (
-    <Badge 
-      variant={config.variant}
-      className={`flex items-center gap-1 ${config.className}`}
-    >
-      {config.icon}
-      <span className="text-xs font-medium">{config.text}</span>
-    </Badge>
-  );
+  return null;
 }
