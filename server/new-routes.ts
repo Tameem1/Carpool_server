@@ -547,8 +547,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Trip creation payload:", req.body);
 
+      // Get current user to check if admin
+      const currentUser = await storage.getUser(req.user.id);
+      if (!currentUser) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      // Admin can specify driver, regular users create trips for themselves
+      const driverId = currentUser.role === "admin" && tripData.driverId 
+        ? tripData.driverId 
+        : req.user.id;
+
       const parsedTripData = {
-        driverId: req.user.id,
+        driverId,
         riders: tripData.riders || [],
         fromLocation: tripData.fromLocation,
         toLocation: tripData.toLocation,
@@ -563,6 +574,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Parsed trip data:", parsedTripData);
 
       const trip = await storage.createTrip(parsedTripData);
+
+      // If admin pre-assigned participants, add them to the trip and update riders array
+      if (currentUser.role === "admin" && tripData.participantIds && Array.isArray(tripData.participantIds)) {
+        const riders = [];
+        for (const participantId of tripData.participantIds) {
+          await storage.addTripParticipant({
+            tripId: trip.id,
+            userId: participantId,
+            status: "confirmed"
+          });
+          riders.push(participantId);
+        }
+        
+        // Update trip with riders and recalculate available seats
+        if (riders.length > 0) {
+          await storage.updateTrip(trip.id, {
+            riders,
+            availableSeats: trip.totalSeats - riders.length
+          });
+        }
+      }
 
       console.log(`[TELEGRAM] Sending trip creation notifications for trip ${trip.id}, driver ${trip.driverId}`);
       
