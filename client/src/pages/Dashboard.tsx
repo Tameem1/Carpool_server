@@ -111,7 +111,7 @@ export default function Dashboard() {
   }) : [];
 
   const { data: myTrips = [], isLoading: myTripsLoading } = useQuery({
-    queryKey: ["/api/trips/my"],
+    queryKey: ["/api/trips/my", new Date().toISOString().split('T')[0]], // Add date to force cache refresh
     enabled: user?.role !== "admin", // Don't fetch my trips for admin users
     refetchOnWindowFocus: true,
     staleTime: 0, // Always consider data stale
