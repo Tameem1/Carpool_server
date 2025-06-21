@@ -165,7 +165,7 @@ export default function Dashboard() {
   const assignRideMutation = useMutation({
     mutationFn: async ({ requestId, tripId }: { requestId: number; tripId: number }) => {
       const response = await apiRequest("PATCH", `/api/ride-requests/${requestId}/assign-to-trip`, { tripId });
-      return response;
+      return response.json();
     },
     onSuccess: (data) => {
       if (data?.success) {
@@ -176,7 +176,7 @@ export default function Dashboard() {
       } else {
         toast({
           title: "خطأ في التعيين",
-          description: "فشل في تعيين الطلب للرحلة.",
+          description: data?.message || "فشل في تعيين الطلب للرحلة.",
           variant: "destructive",
         });
       }
