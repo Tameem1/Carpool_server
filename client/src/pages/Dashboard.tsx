@@ -502,13 +502,16 @@ export default function Dashboard() {
 
         {user?.role !== "admin" && (
           <TabsContent value="my-trips" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">رحلاتي</h2>
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+              <div className="flex-1">
+                <h2 className="responsive-text-xl font-semibold">رحلاتي لليوم</h2>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">من الساعة 5 صباحاً حتى 4 صباحاً من اليوم التالي</p>
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
                 <div className="flex items-center gap-2">
                   <ArrowUpDown className="h-4 w-4 text-gray-500" />
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-full sm:w-40 touch-friendly">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -520,28 +523,28 @@ export default function Dashboard() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Badge variant="secondary">{Array.isArray(myTrips) ? myTrips.length : 0} رحلة</Badge>
+                <Badge variant="secondary" className="text-xs">{sortedMyTrips.length} رحلة</Badge>
               </div>
             </div>
 
-            {!Array.isArray(myTrips) || myTrips.length === 0 ? (
+            {sortedMyTrips.length === 0 ? (
               <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <MapPin className="h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    لا توجد رحلات بعد
+                <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12">
+                  <MapPin className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mb-3 sm:mb-4" />
+                  <h3 className="responsive-text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    لا توجد رحلات لك اليوم
                   </h3>
-                  <p className="text-gray-600 text-center mb-4">
-                    ابدأ بإنشاء رحلتك الأولى لمشاركة الرحلات مع الآخرين.
+                  <p className="text-gray-600 dark:text-gray-400 text-center mb-4 text-sm sm:text-base px-4">
+                    ابدأ بإنشاء رحلتك الأولى لليوم وساعد الآخرين في التنقل!
                   </p>
-                  <Button onClick={() => setShowTripForm(true)}>
+                  <Button onClick={() => setShowTripForm(true)} className="touch-friendly">
                     <Plus className="h-4 w-4 mr-2" />
-                    إنشاء رحلة
+                    إنشاء رحلة لليوم
                   </Button>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {sortedMyTrips.map((trip: any) => (
                   <TripCard
                     key={trip.id}
