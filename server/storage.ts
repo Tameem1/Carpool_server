@@ -249,12 +249,44 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserTrips(userId: string): Promise<Trip[]> {
-    return await db.select().from(trips).where(eq(trips.driverId, userId));
+    // Get trips where user is the driver
+    const driverTrips = await db.select().from(trips).where(eq(trips.driverId, userId));
+    
+    // Get trips where user is a participant
+    const participantTrips = await db
+      .select({
+        id: trips.id,
+        driverId: trips.driverId,
+        riders: trips.riders,
+        fromLocation: trips.fromLocation,
+        toLocation: trips.toLocation,
+        departureTime: trips.departureTime,
+        availableSeats: trips.availableSeats,
+        totalSeats: trips.totalSeats,
+        isRecurring: trips.isRecurring,
+        recurringDays: trips.recurringDays,
+        notes: trips.notes,
+        createdAt: trips.createdAt,
+        updatedAt: trips.updatedAt,
+      })
+      .from(trips)
+      .innerJoin(tripParticipants, eq(trips.id, tripParticipants.tripId))
+      .where(eq(tripParticipants.userId, userId));
+    
+    // Combine and deduplicate trips
+    const allTrips = [...driverTrips, ...participantTrips];
+    const uniqueTrips = allTrips.filter((trip, index, self) => 
+      index === self.findIndex(t => t.id === trip.id)
+    );
+    
+    return uniqueTrips;
   }
 
   async getTodayUserTrips(userId: string): Promise<Trip[]> {
     const { start, end } = this.getCustomDayRange();
-    return await db.select()
+    
+    // Get trips where user is the driver
+    const driverTrips = await db.select()
       .from(trips)
       .where(
         and(
@@ -263,6 +295,41 @@ export class DatabaseStorage implements IStorage {
           lt(trips.departureTime, end)
         )
       );
+    
+    // Get trips where user is a participant
+    const participantTrips = await db
+      .select({
+        id: trips.id,
+        driverId: trips.driverId,
+        riders: trips.riders,
+        fromLocation: trips.fromLocation,
+        toLocation: trips.toLocation,
+        departureTime: trips.departureTime,
+        availableSeats: trips.availableSeats,
+        totalSeats: trips.totalSeats,
+        isRecurring: trips.isRecurring,
+        recurringDays: trips.recurringDays,
+        notes: trips.notes,
+        createdAt: trips.createdAt,
+        updatedAt: trips.updatedAt,
+      })
+      .from(trips)
+      .innerJoin(tripParticipants, eq(trips.id, tripParticipants.tripId))
+      .where(
+        and(
+          eq(tripParticipants.userId, userId),
+          gte(trips.departureTime, start),
+          lt(trips.departureTime, end)
+        )
+      );
+    
+    // Combine and deduplicate trips
+    const allTrips = [...driverTrips, ...participantTrips];
+    const uniqueTrips = allTrips.filter((trip, index, self) => 
+      index === self.findIndex(t => t.id === trip.id)
+    );
+    
+    return uniqueTrips;
   }
 
   async getTodayTrips(): Promise<Trip[]> {
