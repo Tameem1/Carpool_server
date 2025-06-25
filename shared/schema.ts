@@ -30,8 +30,8 @@ export const trips = pgTable("trips", {
   isRecurring: boolean("is_recurring").default(false),
   recurringDays: text("recurring_days"), // JSON array of days
   notes: text("notes"),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const rideRequests = pgTable("ride_requests", {
