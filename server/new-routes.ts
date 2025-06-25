@@ -36,11 +36,10 @@ function broadcastToAll(data: any) {
 }
 
 function setupWebSocket(server: Server) {
-  const websocketPort = parseInt(process.env.WEBSOCKET_PORT || "5001", 10);
-  const wss = new WebSocketServer({
-    port: websocketPort,
-    host: "0.0.0.0",
-  });
+  
+   const wss = new WebSocketServer({
+    server: server,
+    path: '/ws'});
 
   wss.on("connection", (ws) => {
     console.log("Client connected to real-time WebSocket");
@@ -57,7 +56,7 @@ function setupWebSocket(server: Server) {
     });
   });
 
-  console.log(`Real-time WebSocket server running on port ${websocketPort}`);
+  console.log(`Real-time WebSocket server attached to main HTTP server on path /ws`);
   return wss;
 }
 
@@ -341,15 +340,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup WebSocket
   setupWebSocket(server);
 
-  // Configuration routes
-  app.get("/api/config", (req, res) => {
-    res.json({
-      websocketPort: parseInt(process.env.WEBSOCKET_PORT || "5001", 10),
-      port: parseInt(process.env.PORT || "5000", 10)
-    });
-  });
-
-  // Authentication routes
+  
+   // Authentication routes
   app.get("/api/auth/sections", async (req, res) => {
     try {
       const sections = await storage.getUniqueSections();
