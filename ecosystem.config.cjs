@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "edu-schedule",
+      name: "carpool-connect-server",
       script: "dist/index.js",
       env: {
         NODE_ENV: "production",
