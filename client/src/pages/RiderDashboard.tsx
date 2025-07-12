@@ -195,13 +195,13 @@ export default function RiderDashboard() {
             <CardTitle>Your Ride Requests</CardTitle>
           </CardHeader>
           <CardContent>
-            {myRequests.length === 0 ? (
+            {(myRequests as any[] || []).length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 No ride requests yet. Request a ride to get started!
               </div>
             ) : (
               <div className="space-y-4">
-                {myRequests.map((request: any) => (
+                {(myRequests as any[] || []).map((request: any) => (
                   <div key={request.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div>

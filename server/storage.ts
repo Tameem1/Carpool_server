@@ -95,48 +95,53 @@ export class DatabaseStorage implements IStorage {
       const sampleUsers = [
         {
           id: 'admin-1',
-          email: 'admin@demo.com',
-          firstName: 'Admin',
-          lastName: 'User',
+          username: 'admin',
+          section: 'admin',
+          password: 'admin123',
           phoneNumber: '+1-555-0001',
           role: 'admin' as UserRole,
-          profileImageUrl: null,
+          telegramUsername: null,
+          telegramId: null,
         },
         {
           id: 'driver-1',
-          email: 'alice.driver@demo.com',
-          firstName: 'Alice',
-          lastName: 'Johnson',
+          username: 'alice',
+          section: 'drivers',
+          password: 'driver123',
           phoneNumber: '+1-555-0101',
           role: 'user' as UserRole,
-          profileImageUrl: null,
+          telegramUsername: null,
+          telegramId: null,
         },
         {
           id: 'driver-2', 
-          email: 'bob.driver@demo.com',
-          firstName: 'Bob',
-          lastName: 'Smith',
+          username: 'bob',
+          section: 'drivers',
+          password: 'driver123',
           phoneNumber: '+1-555-0102',
           role: 'user' as UserRole,
-          profileImageUrl: null,
+          telegramUsername: null,
+          telegramId: null,
         },
         {
           id: 'rider-1',
-          email: 'charlie.rider@demo.com',
-          firstName: 'Charlie',
-          lastName: 'Brown',
+          username: 'charlie',
+          section: 'riders',
+          password: 'rider123',
           phoneNumber: '+1-555-0201',
           role: 'user' as UserRole,
-          profileImageUrl: null,
+          telegramUsername: null,
+          telegramId: null,
         },
         {
           id: 'rider-2',
-          email: 'diana.rider@demo.com',
-          firstName: 'Diana',
-          lastName: 'Wilson',
+          username: 'diana',
+          section: 'riders',
+          password: 'rider123',
           phoneNumber: '+1-555-0202',
           role: 'user' as UserRole,
-          profileImageUrl: null,
+          telegramUsername: null,
+          telegramId: null,
         }
       ];
 
@@ -174,24 +179,24 @@ export class DatabaseStorage implements IStorage {
       .insert(users)
       .values({
         id: userData.id!,
-        email: userData.email || null,
-        firstName: userData.firstName || null,
-        lastName: userData.lastName || null,
-        profileImageUrl: userData.profileImageUrl || null,
+        username: userData.username,
+        section: userData.section,
+        password: userData.password,
+        phoneNumber: userData.phoneNumber || null,
+        telegramUsername: userData.telegramUsername || null,
+        telegramId: userData.telegramId || null,
         role: userData.role || "user",
       })
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          email: userData.email || null,
-          firstName: userData.firstName || null,
-          lastName: userData.lastName || null,
+          username: userData.username,
+          section: userData.section,
+          password: userData.password,
           phoneNumber: userData.phoneNumber || null,
           telegramUsername: userData.telegramUsername || null,
           telegramId: userData.telegramId || null,
-          profileImageUrl: userData.profileImageUrl || null,
           role: userData.role || "user",
-          updatedAt: nowGMTPlus3(),
         }
       })
       .returning();
@@ -518,8 +523,7 @@ export class DatabaseStorage implements IStorage {
         userId: participantData.userId,
         seatsBooked: participantData.seatsBooked || 1,
         status: participantData.status || "pending",
-        createdAt: now,
-        updatedAt: now,
+        joinedAt: now,
       })
       .returning();
     return participant;
@@ -607,7 +611,6 @@ export class DatabaseStorage implements IStorage {
         type: notificationData.type,
         isRead: notificationData.isRead || false,
         createdAt: now,
-        updatedAt: now,
       })
       .returning();
     return notification;

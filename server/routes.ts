@@ -262,6 +262,40 @@ ${trip.notes ? `📝 *ملاحظات:* ${trip.notes}` : ""}
     );
   }
 
+  async notifyDriverRiderJoined(driverId: string, tripId: number, riderId: string, notes?: string) {
+    try {
+      const trip = await storage.getTrip(tripId);
+      const rider = await storage.getUser(riderId);
+      
+      if (!trip || !rider) return;
+
+      const title = "راكب جديد انضم للرحلة";
+      const message = `
+🚗 *راكب جديد انضم لرحلتك*
+
+👤 *الراكب:* ${rider.username}
+📍 *من:* ${trip.fromLocation}
+📍 *إلى:* ${trip.toLocation}
+🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime), "ar-SA")}
+👥 *المقاعد المتبقية:* ${trip.availableSeats - 1}
+${notes ? `📝 *ملاحظات الراكب:* ${notes}` : ""}
+
+*رقم الرحلة:* ${tripId}
+      `;
+
+      await this.sendNotification(
+        driverId,
+        title,
+        message,
+        "rider_joined",
+      );
+
+      console.log(`[TELEGRAM] Notified driver ${driverId} about new rider ${riderId} joining trip ${tripId}`);
+    } catch (error) {
+      console.error("Error notifying driver about rider joining:", error);
+    }
+  }
+
   async notifyRequestDeclined(riderId: string) {
     await this.sendNotification(
       riderId,
@@ -357,7 +391,39 @@ const requireRole = (roles: string[]) => {
   };
 };
 
-import session from "express-session";
+// Demo users for testing
+const demoUsers = [
+  {
+    id: "admin-1",
+    username: "admin",
+    section: "admin",
+    password: "admin123",
+    role: "admin" as const,
+    phoneNumber: "+1-555-0001",
+    telegramUsername: null,
+    telegramId: null,
+  },
+  {
+    id: "user-1",
+    username: "john",
+    section: "section1",
+    password: "user123",
+    role: "user" as const,
+    phoneNumber: "+1-555-0002",
+    telegramUsername: null,
+    telegramId: null,
+  },
+  {
+    id: "user-2",
+    username: "jane",
+    section: "section1",
+    password: "user123",
+    role: "user" as const,
+    phoneNumber: "+1-555-0003",
+    telegramUsername: null,
+    telegramId: null,
+  },
+];
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
@@ -552,10 +618,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Create new user from auth claims
           user = await storage.upsertUser({
             id: userId,
-            email: req.user.claims.email,
-            firstName: req.user.claims.first_name,
-            lastName: req.user.claims.last_name,
-            profileImageUrl: req.user.claims.profile_image_url,
+            username: req.user.claims.email || `user_${userId}`,
+            section: "general",
+            password: "placeholder", // Will be updated by auth system
             role: "user", // Default role
           });
         }
@@ -672,8 +737,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update user with new profile information
       const updatedUser = await storage.upsertUser({
         ...currentUser,
-        firstName: firstName || currentUser.firstName,
-        lastName: lastName || currentUser.lastName,
         phoneNumber: phoneNumber || currentUser.phoneNumber,
       });
 
@@ -771,7 +834,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     section: rider.section,
                     role: rider.role,
                     phoneNumber: rider.phoneNumber,
-                    profileImageUrl: rider.profileImageUrl,
+                    profileImageUrl: null, // rider.profileImageUrl doesn't exist in schema
                   }
                 : null;
             }),
@@ -800,7 +863,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   section: driver.section,
                   role: driver.role,
                   phoneNumber: driver.phoneNumber,
-                  profileImageUrl: driver.profileImageUrl,
+                  profileImageUrl: null, // driver.profileImageUrl doesn't exist in schema
                 }
               : null,
             participantCount: participants.reduce(
@@ -839,9 +902,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 user: user
                   ? {
                       id: user.id,
-                      firstName: user.firstName,
-                      lastName: user.lastName,
-                      profileImageUrl: user.profileImageUrl,
+                      firstName: user.username, // Using username instead of firstName
+                      lastName: "", // lastName doesn't exist in schema
+                      profileImageUrl: null, // user.profileImageUrl doesn't exist in schema
                     }
                   : null,
               };
@@ -863,7 +926,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     section: rider.section,
                     role: rider.role,
                     phoneNumber: rider.phoneNumber,
-                    profileImageUrl: rider.profileImageUrl,
+                    profileImageUrl: null, // rider.profileImageUrl doesn't exist in schema
                   }
                 : null;
             }),
@@ -1081,14 +1144,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Send notification to driver
-      const rider = await storage.getUser(userId);
-      const riderName = rider ? rider.username : "راكب جديد";
-      await telegramService.sendNotification(
-        trip.driverId,
-        "راكب جديد انضم للرحلة",
-        `🚗 *راكب جديد انضم لرحلتك*\n\n👤 *الراكب:* ${riderName}\n📍 *من:* ${trip.fromLocation}\n📍 *إلى:* ${trip.toLocation}\n🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime), "ar-SA")}\n👥 *المقاعد المتبقية:* ${trip.totalSeats - updatedRiders.length}`,
-        "rider_joined",
-      );
+      try {
+        await telegramService.notifyDriverRiderJoined(trip.driverId, tripId, userId);
+      } catch (notificationError) {
+        console.error("Error sending Telegram notification:", notificationError);
+      }
 
       // Broadcast trip update to all connected clients
       broadcastToAll({
@@ -1139,14 +1199,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Send notification to driver about new rider assignment
-      const rider = await storage.getUser(userId);
-      const riderName = rider ? rider.username : "راكب جديد";
-      await telegramService.sendNotification(
-        trip.driverId,
-        "راكب جديد تم تعيينه للرحلة",
-        `🚗 *تم تعيين راكب جديد لرحلتك*\n\n👤 *الراكب:* ${riderName}\n📍 *من:* ${trip.fromLocation}\n📍 *إلى:* ${trip.toLocation}\n🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime), "ar-SA")}\n👥 *المقاعد المتبقية:* ${trip.totalSeats - updatedRiders.length}`,
-        "rider_assigned",
-      );
+      try {
+        await telegramService.notifyDriverRiderJoined(trip.driverId, tripId, userId);
+      } catch (notificationError) {
+        console.error("Error sending Telegram notification:", notificationError);
+      }
 
       // Broadcast trip update to all connected clients
       console.log("[BROADCAST] Sending trip_updated for add rider - trip", tripId, "new rider", userId);
@@ -1337,7 +1394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.createNotification({
             userId: driver.id,
             title: "راكب جديد انضم للرحلة",
-            message: `${requester.firstName} ${requester.lastName} انضم إلى رحلتك من ${trip.fromLocation} إلى ${trip.toLocation}`,
+            message: `${requester.username} انضم إلى الرحلة`,
             type: "rider_joined",
           });
 
@@ -1348,6 +1405,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: `تم قبولك في الرحلة من ${trip.fromLocation} إلى ${trip.toLocation}`,
             type: "join_approved",
           });
+
+          // Send Telegram notifications if available
+          try {
+            await telegramService.notifyRequestAccepted(riderId, tripId);
+            // Notify driver about the new rider joining
+            await telegramService.notifyDriverRiderJoined(trip.driverId, tripId, riderId, message);
+          } catch (notificationError) {
+            console.error("Error sending Telegram notification:", notificationError);
+          }
 
           // Broadcast trip update and notification
           broadcastToAll({
@@ -1403,7 +1469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   section: rider.section,
                   role: rider.role,
                   phoneNumber: rider.phoneNumber,
-                  profileImageUrl: rider.profileImageUrl,
+                  profileImageUrl: null, // rider.profileImageUrl doesn't exist in schema
                 }
               : null,
           };
@@ -1479,7 +1545,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     section: rider.section,
                     role: rider.role,
                     phoneNumber: rider.phoneNumber,
-                    profileImageUrl: rider.profileImageUrl,
+                    profileImageUrl: null, // rider.profileImageUrl doesn't exist in schema
                   }
                 : null,
             };
@@ -1643,8 +1709,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           availableSeats: trip.availableSeats - request.passengerCount,
         });
 
-        // Send notification
-        await telegramService.notifyRequestAccepted(request.riderId, tripId);
+        // Send notifications
+        try {
+          await telegramService.notifyRequestAccepted(request.riderId, tripId);
+          // Notify driver about the new rider assignment
+          await telegramService.notifyDriverRiderJoined(trip.driverId, tripId, request.riderId);
+        } catch (notificationError) {
+          console.error("Error sending Telegram notification:", notificationError);
+        }
 
         // Broadcast updates to all connected clients
         broadcastToAll({

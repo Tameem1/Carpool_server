@@ -7,7 +7,6 @@ import passport from "passport";
 import session from "express-session";
 import ConnectPgSimple from "connect-pg-simple";
 const PgSession = ConnectPgSimple(session);
-import { formatGMTPlus3TimeOnly } from "../shared/timezone";
 import {
   insertTripSchema,
   insertRideRequestSchema,
@@ -246,6 +245,40 @@ ${trip.notes ? `📝 *ملاحظات:* ${this.escapeMarkdown(trip.notes)}` : ""}
     );
   }
 
+  async notifyDriverRiderJoined(driverId: string, tripId: number, riderId: string, notes?: string) {
+    try {
+      const trip = await storage.getTrip(tripId);
+      const rider = await storage.getUser(riderId);
+      
+      if (!trip || !rider) return;
+
+      const title = "راكب جديد انضم للرحلة";
+      const message = `
+🚗 *راكب جديد انضم لرحلتك*
+
+👤 *الراكب:* ${this.escapeMarkdown(rider.username)}
+📍 *من:* ${this.escapeMarkdown(trip.fromLocation)}
+📍 *إلى:* ${this.escapeMarkdown(trip.toLocation)}
+🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}
+👥 *المقاعد المتبقية:* ${trip.availableSeats - 1}
+${notes ? `📝 *ملاحظات الراكب:* ${this.escapeMarkdown(notes)}` : ""}
+
+*رقم الرحلة:* ${tripId}
+      `;
+
+      await this.sendNotification(
+        driverId,
+        title,
+        message,
+        "rider_joined",
+      );
+
+      console.log(`[TELEGRAM] Notified driver ${driverId} about new rider ${riderId} joining trip ${tripId}`);
+    } catch (error) {
+      console.error("Error notifying driver about rider joining:", error);
+    }
+  }
+
   async notifyRequestDeclined(riderId: string) {
     await this.sendNotification(
       riderId,
@@ -292,7 +325,7 @@ async function notifyMatchingRideRequesters(trip: any) {
           .toLowerCase()
           .includes(request.toLocation.toLowerCase());
 
-      const requestTime = new Date(request.departureTime).getTime();
+      const requestTime = new Date(request.preferredTime).getTime();
       const tripTime = new Date(trip.departureTime).getTime();
       const timeDiff = Math.abs(requestTime - tripTime);
       const twoHours = 2 * 60 * 60 * 1000;
@@ -458,7 +491,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     section: user.section,
                     role: user.role,
                     phoneNumber: user.phoneNumber,
-                    profileImageUrl: user.profileImageUrl,
                   }
                 : null;
             }),
@@ -477,7 +509,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   section: driver.section,
                   role: driver.role,
                   phoneNumber: driver.phoneNumber,
-                  profileImageUrl: driver.profileImageUrl,
                 }
               : null,
           };
@@ -509,7 +540,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     section: user.section,
                     role: user.role,
                     phoneNumber: user.phoneNumber,
-                    profileImageUrl: user.profileImageUrl,
                   }
                 : null;
             }),
@@ -528,7 +558,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   section: driver.section,
                   role: driver.role,
                   phoneNumber: driver.phoneNumber,
-                  profileImageUrl: driver.profileImageUrl,
                 }
               : null,
           };
@@ -786,7 +815,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   section: rider.section,
                   role: rider.role,
                   phoneNumber: rider.phoneNumber,
-                  profileImageUrl: rider.profileImageUrl,
                 }
               : null,
           };
@@ -1022,6 +1050,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Send Telegram notifications if available
           try {
             await telegramService.notifyRequestAccepted(riderId, tripId);
+            // Notify driver about the new rider joining
+            await telegramService.notifyDriverRiderJoined(trip.driverId, tripId, riderId, message);
           } catch (notificationError) {
             console.error("Error sending Telegram notification:", notificationError);
           }
@@ -1110,6 +1140,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notifications
       try {
         await telegramService.notifyRequestAccepted(request.riderId, tripId);
+        // Notify driver about the new rider assignment
+        await telegramService.notifyDriverRiderJoined(trip.driverId, tripId, request.riderId);
       } catch (notificationError) {
         console.error("Error sending notification:", notificationError);
       }
@@ -1125,7 +1157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "تم تعيين الطلب للرحلة بنجاح" 
       });
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Assignment error:", error);
       console.error("Error details:", error.message);
       res.status(500).json({ 

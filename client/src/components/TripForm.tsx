@@ -87,7 +87,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       form.reset({
         fromLocation: trip.fromLocation || "",
         toLocation: trip.toLocation || "النادي",
-        departureTime: trip.departureTime ? extractTimeFromTimestamp(trip.departureTime) : "",
+        departureTime: trip.departureTime ? extractTimeFromUTC(new Date(trip.departureTime)) : "",
         availableSeats: trip.availableSeats || 6,
         isRecurring: trip.isRecurring || false,
         recurringDays: trip.recurringDays || [],

@@ -109,9 +109,9 @@ export default function DriverDashboard() {
     },
   });
 
-  const activeTrips = myTrips.filter((trip: any) => trip.status === 'active');
-  const completedTrips = myTrips.filter((trip: any) => trip.status === 'completed');
-  const totalRidersHelped = myTrips.reduce((sum: number, trip: any) => sum + (trip.participantCount || 0), 0);
+  const activeTrips = (myTrips as any[] || []).filter((trip: any) => trip.status === 'active');
+  const completedTrips = (myTrips as any[] || []).filter((trip: any) => trip.status === 'completed');
+  const totalRidersHelped = (myTrips as any[] || []).reduce((sum: number, trip: any) => sum + (trip.participantCount || 0), 0);
 
   const handleAcceptRequest = (requestId: number) => {
     // For simplicity, we'll use the first active trip
@@ -169,7 +169,7 @@ export default function DriverDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Your Trips</p>
-                  <p className="text-2xl font-bold text-gray-900">{myTrips.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{(myTrips as any[] || []).length}</p>
                 </div>
                 <Route className="h-8 w-8 text-primary" />
               </div>
@@ -234,13 +234,13 @@ export default function DriverDashboard() {
             <p className="text-sm text-gray-600">Requests within ±2 hours of your trips</p>
           </CardHeader>
           <CardContent>
-            {rideRequests.length === 0 ? (
+            {(rideRequests as any[] || []).length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 No pending ride requests matching your trips.
               </div>
             ) : (
               <div className="space-y-4">
-                {rideRequests.map((request: any) => (
+                {(rideRequests as any[] || []).map((request: any) => (
                   <div key={request.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center">

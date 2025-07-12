@@ -262,8 +262,8 @@ export function TripCard({
                     size="sm"
                     variant="ghost"
                     className="h-6 w-6 p-0 rounded-full bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800"
-                    onClick={() => window.open(`tel:${trip.driver.phoneNumber}`, '_self')}
-                    title={`Call ${trip.driver.username}`}
+                    onClick={() => trip.driver?.phoneNumber && window.open(`tel:${trip.driver.phoneNumber}`, '_self')}
+                    title={`Call ${trip.driver?.username || 'Driver'}`}
                   >
                     <Phone className="h-3 w-3 text-green-600" />
                   </Button>

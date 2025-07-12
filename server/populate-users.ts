@@ -40,7 +40,7 @@ async function populateUsers() {
     console.log(`Total users in database: ${count.length}`);
     
     // Show sections
-    const sections = [...new Set(count.map(u => u.section))].sort();
+    const sections = Array.from(new Set(count.map(u => u.section))).sort();
     console.log('Available sections:', sections);
     
   } catch (error) {

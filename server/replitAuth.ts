@@ -67,7 +67,16 @@ export async function setupAuth(app: Express) {
     }
 
     // Store user in storage
-    await storage.upsertUser(user);
+    await storage.upsertUser({
+      id: user.id,
+      username: user.email || user.id,
+      section: "replit",
+      password: "replit_managed",
+      role: user.role === "driver" ? "admin" : user.role === "rider" ? "user" : user.role,
+      phoneNumber: null,
+      telegramUsername: null,
+      telegramId: null,
+    });
     
     // Set session
     (req as any).session.userId = userId;
