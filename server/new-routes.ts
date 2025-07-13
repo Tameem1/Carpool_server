@@ -454,7 +454,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/users/profile", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const { phoneNumber, telegramId } = req.body;
+      // Allow updating phone number and Telegram username
+      const { phoneNumber, telegramUsername } = req.body;
 
       const existingUser = await storage.getUser(userId);
       if (!existingUser) {
@@ -462,8 +463,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedUser = await storage.updateUser(userId, {
-        phoneNumber: phoneNumber || existingUser.phoneNumber,
-        telegramId: telegramId || existingUser.telegramId,
+        phoneNumber: phoneNumber ?? existingUser.phoneNumber,
+        telegramUsername: telegramUsername ?? existingUser.telegramUsername,
       });
 
       res.json(updatedUser);
