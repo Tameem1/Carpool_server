@@ -339,8 +339,8 @@ export function TripCard({
                   <div className="flex items-center space-x-1 sm:space-x-2">
 
                     
-                    {/* Remove rider button for admin or driver */}
-                    {(userRole === "admin" || trip.driverId === currentUserId) && (
+                    {/* Remove rider button for admin, driver, or the rider themselves */}
+                    {(userRole === "admin" || trip.driverId === currentUserId || rider.id === currentUserId) && (
                       <Button
                         size="sm"
                         variant="ghost"

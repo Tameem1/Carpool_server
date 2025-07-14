@@ -726,7 +726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Remove rider from trip (admin or driver)
+  // Remove rider from trip (admin, driver, or the rider themselves)
   app.delete("/api/trips/:id/riders/:userId", isAuthenticated, async (req: any, res) => {
     try {
       const { id, userId } = req.params;
@@ -740,11 +740,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const currentUser = await storage.getUser(currentUserId);
 
-      // Check if user is admin or the driver of this trip
-      if (currentUser?.role !== "admin" && trip.driverId !== currentUserId) {
+      // Allow removal if the requester is (1) an admin, (2) the trip driver, **or**
+      // (3) the rider themselves trying to leave the trip.
+      const isAdmin = currentUser?.role === "admin";
+      const isDriver = trip.driverId === currentUserId;
+      const isSelfRemoval = userId === currentUserId;
+
+      if (!isAdmin && !isDriver && !isSelfRemoval) {
         return res
           .status(403)
-          .json({ message: "Only admins or the trip driver can remove riders" });
+          .json({ message: "Not authorized to remove this rider" });
       }
 
       const currentRiders = trip.riders || [];
