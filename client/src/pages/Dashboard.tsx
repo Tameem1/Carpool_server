@@ -414,7 +414,7 @@ export default function Dashboard() {
                                             <div className="flex flex-col">
                                               <div className={`font-medium ${isCompatible ? 'text-green-600' : ''}`}>
                                                 {isCompatible && '✓ '}
-                                                {formatRoute(trip.fromLocation, trip.toLocation)}
+                                                {formatRoute(trip.fromLocation, trip.toLocation)}{' - '}<bdi dir="auto">{trip.driver?.username ?? 'غير معروف'}</bdi>
                                               </div>
                                               <div className="text-xs text-gray-500">
                                                 {formatTimeOnly(trip.departureTime)} • 

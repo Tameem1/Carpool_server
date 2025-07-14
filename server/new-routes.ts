@@ -765,6 +765,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         availableSeats: trip.totalSeats - updatedRiders.length,
       });
 
+      // Clean up related records so the rider can re-join in the future
+      try {
+        // 1) Remove the rider from the trip participants table (if present)
+        await storage.removeTripParticipant(tripId, userId);
+
+        // 2) Delete any existing join-requests for this rider on this trip
+        const joinRequests = await storage.getTripJoinRequests(tripId);
+        for (const req of joinRequests) {
+          if (req.riderId === userId) {
+            await storage.deleteTripJoinRequest(req.id);
+          }
+        }
+      } catch (cleanupError) {
+        console.error("Error cleaning up participant/join-request records:", cleanupError);
+      }
+
       // Broadcast trip update to all connected clients
       broadcastToAll({
         type: "trip_updated",
@@ -1067,6 +1083,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
             type: "rider_joined",
             data: { joinRequest, trip: updatedTrip, rider: requester },
           });
+
+          // Remove rider's pending ride requests once they are assigned to a trip
+          try {
+            const riderRequests = await storage.getUserRideRequests(riderId);
+            const pendingRequests = riderRequests.filter((r) => r.status === "pending");
+            for (const pending of pendingRequests) {
+              await storage.updateRideRequestStatus(pending.id, "accepted", tripId);
+
+              // Broadcast the update so all clients refresh their lists
+              broadcastToAll({
+                type: "ride_request_updated",
+                data: { id: pending.id, status: "accepted", tripId },
+              });
+            }
+          } catch (updateError) {
+            console.error("Error updating rider's pending ride requests:", updateError);
+          }
         }
 
         res.json({
@@ -1142,7 +1175,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       console.log("Assignment completed successfully");
-      
+
+      // After successful assignment, mark any other pending ride requests by this rider as accepted
+      try {
+        const riderPending = await storage.getUserRideRequests(request.riderId);
+        const otherPending = riderPending.filter((r) => r.status === "pending" && r.id !== requestId);
+        for (const pending of otherPending) {
+          await storage.updateRideRequestStatus(pending.id, "accepted", tripId);
+          broadcastToAll({
+            type: "ride_request_updated",
+            data: { id: pending.id, status: "accepted", tripId },
+          });
+        }
+      } catch (err) {
+        console.error("Error updating rider's other pending requests:", err);
+      }
+
       // Send notifications
       try {
         await telegramService.notifyRequestAccepted(request.riderId, tripId);
