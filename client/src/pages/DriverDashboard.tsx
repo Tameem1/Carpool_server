@@ -18,6 +18,7 @@ export default function DriverDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showTripForm, setShowTripForm] = useState(false);
+  const [editingTrip, setEditingTrip] = useState<any>(null);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -132,6 +133,17 @@ export default function DriverDashboard() {
     declineRequestMutation.mutate(requestId);
   };
 
+  // Edit trip handlers
+  const handleEditTrip = (trip: any) => {
+    setEditingTrip(trip);
+    setShowTripForm(true);
+  };
+
+  const handleCloseTripForm = () => {
+    setShowTripForm(false);
+    setEditingTrip(null);
+  };
+
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
@@ -156,7 +168,7 @@ export default function DriverDashboard() {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Driver Dashboard</h2>
-          <Button onClick={() => setShowTripForm(true)} className="bg-primary hover:bg-primary/90">
+          <Button onClick={() => { setEditingTrip(null); setShowTripForm(true); }} className="bg-primary hover:bg-primary/90">
             <Plus className="h-4 w-4 mr-2" />
             Create Trip
           </Button>
@@ -217,9 +229,10 @@ export default function DriverDashboard() {
                   <TripCard
                     key={trip.id}
                     trip={trip}
-                    showActions={false}
+                    showActions={true}
                     userRole="driver"
                     currentUserId={user?.id}
+                    onEdit={() => handleEditTrip(trip)}
                   />
                 ))}
               </div>
@@ -311,7 +324,8 @@ export default function DriverDashboard() {
 
       <TripForm 
         open={showTripForm} 
-        onClose={() => setShowTripForm(false)}
+        onClose={handleCloseTripForm}
+        trip={editingTrip}
       />
     </div>
   );
