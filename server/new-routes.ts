@@ -20,6 +20,9 @@ import {
   formatGMTPlus3TimeOnly,
   formatDateForInput,
 } from "@shared/timezone";
+import { nanoid } from "nanoid";
+import { hashPassword } from "./auth-utils";
+import { userRoles } from "@shared/schema";
 
 // WebSocket connection management
 const connectedClients = new Set();
@@ -347,6 +350,14 @@ async function notifyMatchingRideRequesters(trip: any) {
   }
 }
 
+// Middleware to restrict access to admin users only
+const isAdmin = (req: any, res: any, next: any) => {
+  if (req.isAuthenticated?.() && req.user?.role === "admin") {
+    return next();
+  }
+  return res.status(403).json({ message: "Forbidden: Admins only" });
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
 
@@ -664,6 +675,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch users" });
     }
   });
+
+  // ===================== NEW: Create User (Admin Only) =====================
+  app.post("/api/users", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      // Validate request body
+      const userSchema = z.object({
+        username: z.string().min(1),
+        section: z.string().min(1),
+        password: z.string().min(1),
+        phoneNumber: z.string().optional(),
+        role: z.enum(userRoles).optional(),
+      });
+
+      const parsed = userSchema.parse(req.body);
+
+      // Hash the provided password
+      const hashedPassword = await hashPassword(parsed.password);
+
+      // Create the user in the database
+      const newUser = await storage.upsertUser({
+        id: nanoid(),
+        username: parsed.username,
+        section: parsed.section,
+        password: hashedPassword,
+        phoneNumber: parsed.phoneNumber || null,
+        role: parsed.role || "user",
+      });
+
+      // Exclude password from response
+      const { password: _pw, ...userWithoutPassword } = newUser;
+
+      res.status(201).json({ message: "User created successfully", user: userWithoutPassword });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
+      }
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+  // ========================================================================
 
   app.get("/api/notifications", isAuthenticated, async (req: any, res) => {
     try {

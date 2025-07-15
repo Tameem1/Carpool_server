@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { User, Phone, Mail, Save, MessageCircle } from "lucide-react";
+import AddUserDialog from "@/components/AddUserDialog";
 
 export function UserProfile() {
   const { user } = useAuth();
@@ -19,6 +20,8 @@ export function UserProfile() {
     phoneNumber: "",
     telegramUsername: "",
   });
+
+  const [showAddUser, setShowAddUser] = useState(false);
 
   // Update form data when user data loads
   useEffect(() => {
@@ -69,6 +72,15 @@ export function UserProfile() {
 
   return (
     <div className="max-w-2xl mx-auto mobile-padding py-3 sm:py-6 lg:py-8">
+      {/* Admin Add User Button */}
+      {user.role === 'admin' && (
+        <div className="flex justify-end mb-4">
+          <Button onClick={() => setShowAddUser(true)} className="bg-primary hover:bg-primary/90">
+            إضافة مستخدم
+          </Button>
+        </div>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -175,6 +187,11 @@ export function UserProfile() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Add User Dialog */}
+      {user.role === 'admin' && (
+        <AddUserDialog open={showAddUser} onClose={() => setShowAddUser(false)} />
+      )}
     </div>
   );
 }
