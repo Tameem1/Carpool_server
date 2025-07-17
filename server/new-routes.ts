@@ -304,6 +304,31 @@ ${notes ? `📝 *ملاحظات الراكب:* ${this.escapeMarkdown(notes)}` : 
       "trip_match_found",
     );
   }
+
+  // Notify all riders when their driver's trip details are updated
+  async notifyRidersTripUpdated(tripId: number) {
+    try {
+      const trip = await storage.getTrip(tripId);
+      if (!trip) return;
+
+      const riderIds = trip.riders || [];
+      if (riderIds.length === 0) {
+        console.log(`[TELEGRAM] No riders to notify for updated trip ${tripId}`);
+        return;
+      }
+
+      const title = "تم تحديث تفاصيل الرحلة";
+      const message = `\n🚗 *تم تعديل تفاصيل الرحلة*\n\n📍 *من:* ${this.escapeMarkdown(trip.fromLocation)}\n📍 *إلى:* ${this.escapeMarkdown(trip.toLocation)}\n🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n👥 *المقاعد المتاحة:* ${trip.availableSeats}\n\n*رقم الرحلة:* ${tripId}`;
+
+      for (const riderId of riderIds) {
+        await this.sendNotification(riderId, title, message, "trip_updated");
+      }
+
+      console.log(`[TELEGRAM] Notified ${riderIds.length} rider(s) about updated trip ${tripId}`);
+    } catch (error) {
+      console.error("Error notifying riders about trip update:", error);
+    }
+  }
 }
 
 const telegramService = new TelegramNotificationService();
@@ -1272,6 +1297,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // ===================== UPDATE TRIP (Driver/Admin) =====================
+  app.patch("/api/trips/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const tripId = parseInt(id);
+      const currentUserId = req.user.id;
+
+      const trip = await storage.getTrip(tripId);
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+
+      // Only the trip's driver or an admin can edit
+      const currentUser = await storage.getUser(currentUserId);
+      if (trip.driverId !== currentUserId && currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Not authorized to edit this trip" });
+      }
+
+      // Validate incoming updates
+      const updates = insertTripSchema.partial().parse(req.body);
+
+      const updatedTrip = await storage.updateTrip(tripId, updates);
+
+      // Notify all riders that the trip has been updated
+      try {
+        await telegramService.notifyRidersTripUpdated(tripId);
+      } catch (notificationError) {
+        console.error("Error sending Telegram notifications for trip update:", notificationError);
+      }
+
+      // Broadcast trip update to connected WebSocket clients
+      broadcastToAll({
+        type: "trip_updated",
+        trip: updatedTrip,
+      });
+
+      res.json(updatedTrip);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
+      console.error("Error updating trip:", error);
+      res.status(500).json({ message: "Failed to update trip" });
+    }
+  });
+  // =====================================================================
 
   return server;
 }
