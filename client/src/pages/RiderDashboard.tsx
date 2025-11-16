@@ -4,19 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { RideRequestForm } from "@/components/RideRequestForm";
 import { TripCard } from "@/components/TripCard";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
 export default function RiderDashboard() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [showRequestForm, setShowRequestForm] = useState(false);
   const [searchParams, setSearchParams] = useState({
     from: "",
     to: "",
@@ -139,10 +137,6 @@ export default function RiderDashboard() {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Find a Ride</h2>
-          <Button onClick={() => setShowRequestForm(true)} className="bg-primary hover:bg-primary/90">
-            <Plus className="h-4 w-4 mr-2" />
-            Request Ride
-          </Button>
         </div>
 
         {/* Quick Search Form */}
@@ -271,11 +265,6 @@ export default function RiderDashboard() {
           </CardContent>
         </Card>
       </div>
-
-      <RideRequestForm 
-        open={showRequestForm} 
-        onClose={() => setShowRequestForm(false)}
-      />
     </div>
   );
 }
