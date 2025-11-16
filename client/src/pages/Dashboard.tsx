@@ -18,7 +18,7 @@ import { RideRequestForm } from "@/components/RideRequestForm";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Calendar, Users, MapPin, Settings, ArrowUpDown, Clock, UserPlus } from "lucide-react";
+import { Plus, Calendar, Users, MapPin, Settings, ArrowUpDown, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { formatGMTPlus3, formatGMTPlus3TimeOnly } from "@shared/timezone";
 
@@ -265,16 +265,6 @@ export default function Dashboard() {
             <Plus className="h-4 w-4 mr-2" />
             إنشاء رحلة
           </Button>
-          {user?.role !== "admin" && (
-            <Button
-              onClick={() => setShowRideRequestForm(true)}
-              className="bg-[#16b7a4] hover:bg-[#16b7a4]/90 text-white touch-friendly w-full sm:w-auto"
-              size="sm"
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              طلب رحلة
-            </Button>
-          )}
         </div>
       </div>
 

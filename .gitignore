@@ -6,3 +6,6 @@ vite.config.ts.*
 *.tar.gz
 .env
 .env.backup
+*-test-*.ts
+test-*.ts
+reset-*.ts
