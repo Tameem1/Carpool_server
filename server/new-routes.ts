@@ -243,7 +243,7 @@ ${trip.notes ? `📝 *ملاحظات:* ${this.escapeMarkdown(trip.notes)}` : ""}
     await this.sendNotification(
       riderId,
       "Ride Request Accepted",
-      `Your ride request has been accepted for the trip from ${trip.fromLocation} to ${trip.toLocation}.`,
+      "الرجاء الإتصال مع السائق لتأكيد الوقت والمكان.",
       "request_accepted",
     );
   }
