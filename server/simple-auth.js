@@ -7,13 +7,15 @@ const demoUsers = [
   { id: "rider-1", email: "rider@demo.com", firstName: "Jane", lastName: "Rider", role: "rider", profileImageUrl: null },
 ];
 
+const ONE_YEAR_MS = 1000 * 60 * 60 * 24 * 365;
+
 async function setupAuth(app, storage) {
   // Session middleware
   app.use(session({
     secret: 'demo-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 86400000 }
+    cookie: { maxAge: ONE_YEAR_MS }
   }));
 
   // Demo login page

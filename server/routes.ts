@@ -29,6 +29,9 @@ import {
 // WebSocket connection management
 const connectedClients = new Set();
 
+const ONE_YEAR_MS = 1000 * 60 * 60 * 24 * 365;
+const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
+
 function broadcastToAll(data: any) {
   const message = JSON.stringify(data);
   console.log(`[BROADCAST] Sending to ${connectedClients.size} clients:`, data);
@@ -434,13 +437,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       store: new PgSession({
         conString: process.env.DATABASE_URL,
         createTableIfMissing: true,
+        ttl: ONE_YEAR_SECONDS,
       }),
       secret: process.env.SESSION_SECRET || "fallback-secret-key",
       resave: false,
       saveUninitialized: false,
       cookie: {
         secure: false, // Set to true in production with HTTPS
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        maxAge: ONE_YEAR_MS, // 1 year
       },
     }),
   );
