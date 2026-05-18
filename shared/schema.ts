@@ -15,6 +15,8 @@ export const users = pgTable("users", {
   password: varchar("password").notNull(),
   telegramId: varchar("telegram_id"),
   role: varchar("role", { enum: userRoles }).notNull().default("user"),
+  preferredDepartureStart: varchar("preferred_departure_start"),
+  preferredDepartureEnd: varchar("preferred_departure_end"),
 });
 
 export const trips = pgTable("trips", {

@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Phone, Mail, Save, MessageCircle } from "lucide-react";
+import { User, Phone, Mail, Save, MessageCircle, Clock } from "lucide-react";
 import AddUserDialog from "@/components/AddUserDialog";
 
 export function UserProfile() {
@@ -19,6 +19,8 @@ export function UserProfile() {
   const [formData, setFormData] = useState({
     phoneNumber: "",
     telegramUsername: "",
+    preferredDepartureStart: "",
+    preferredDepartureEnd: "",
   });
 
   const [showAddUser, setShowAddUser] = useState(false);
@@ -29,6 +31,8 @@ export function UserProfile() {
       setFormData({
         phoneNumber: user.phoneNumber || "",
         telegramUsername: user.telegramUsername || "",
+        preferredDepartureStart: user.preferredDepartureStart || "",
+        preferredDepartureEnd: user.preferredDepartureEnd || "",
       });
     }
   }, [user]);
@@ -176,8 +180,42 @@ export function UserProfile() {
               </p>
             </div>
 
-            <Button 
-              type="submit" 
+            <div>
+              <Label className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Preferred Departure Window (GMT+3)
+              </Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
+                <div>
+                  <Label htmlFor="preferredDepartureStart" className="text-xs text-gray-600 dark:text-gray-400">
+                    From
+                  </Label>
+                  <Input
+                    id="preferredDepartureStart"
+                    type="time"
+                    value={formData.preferredDepartureStart}
+                    onChange={(e) => handleInputChange("preferredDepartureStart", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="preferredDepartureEnd" className="text-xs text-gray-600 dark:text-gray-400">
+                    To
+                  </Label>
+                  <Input
+                    id="preferredDepartureEnd"
+                    type="time"
+                    value={formData.preferredDepartureEnd}
+                    onChange={(e) => handleInputChange("preferredDepartureEnd", e.target.value)}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                We'll send you a Telegram message when a new trip departs in this window. Leave either field empty to disable.
+              </p>
+            </div>
+
+            <Button
+              type="submit"
               disabled={updateProfileMutation.isPending}
               className="w-full"
             >

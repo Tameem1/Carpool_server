@@ -24,6 +24,7 @@ import {
   formatGMTPlus3,
   formatGMTPlus3TimeOnly,
   formatDateForInput,
+  extractTimeFromUTC,
 } from "@shared/timezone";
 
 // WebSocket connection management
@@ -376,6 +377,39 @@ async function notifyMatchingRideRequesters(trip: any) {
   }
 }
 
+function isInDepartureWindow(t: string, start: string, end: string): boolean {
+  return start <= end ? t >= start && t <= end : t >= start || t <= end;
+}
+
+async function notifyUsersByPreferredTime(trip: any) {
+  try {
+    const tripHHMM = extractTimeFromUTC(new Date(trip.departureTime));
+    const users = await storage.getAllUsers();
+
+    const matches = users.filter(
+      (u) =>
+        u.id !== trip.driverId &&
+        u.preferredDepartureStart &&
+        u.preferredDepartureEnd &&
+        isInDepartureWindow(
+          tripHHMM,
+          u.preferredDepartureStart,
+          u.preferredDepartureEnd,
+        ),
+    );
+
+    for (const u of matches) {
+      await telegramService.notifyTripMatchesRequest(u.id, trip.id);
+    }
+
+    console.log(
+      `Notified ${matches.length} users by preferred departure window for trip ${trip.id} (${tripHHMM})`,
+    );
+  } catch (error) {
+    console.error("Error notifying users by preferred time:", error);
+  }
+}
+
 // Middleware for role-based access
 const requireRole = (roles: string[]) => {
   return async (req: any, res: any, next: any) => {
@@ -667,10 +701,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      // Only allow phoneNumber and telegramUsername to be updated
-      const { phoneNumber, telegramUsername } = req.body;
+      // Only allow phoneNumber, telegramUsername, and preferred departure window to be updated
+      const {
+        phoneNumber,
+        telegramUsername,
+        preferredDepartureStart,
+        preferredDepartureEnd,
+      } = req.body;
       console.log("Profile update request body:", req.body);
       console.log("User ID:", userId);
+
+      const hhmmRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+      const isValidTimeField = (v: unknown) =>
+        v === undefined || v === null || v === "" ||
+        (typeof v === "string" && hhmmRegex.test(v));
+      if (
+        !isValidTimeField(preferredDepartureStart) ||
+        !isValidTimeField(preferredDepartureEnd)
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Preferred departure times must be HH:MM (24h)" });
+      }
 
       const existingUser = await storage.getUser(userId);
       if (!existingUser) {
@@ -680,9 +732,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Existing user phone:", existingUser.phoneNumber);
       console.log("New phone number:", phoneNumber);
 
+      // Empty string clears the field; undefined keeps the existing value.
+      const resolveField = <T,>(incoming: T | undefined, existing: T): T =>
+        incoming === undefined ? existing : incoming;
+      const normalizeTime = (v: string | null | undefined) =>
+        v === "" ? null : v;
+
       const updatedUser = await storage.updateUser(userId, {
         phoneNumber: phoneNumber || existingUser.phoneNumber,
         telegramUsername: telegramUsername || existingUser.telegramUsername,
+        preferredDepartureStart: normalizeTime(
+          resolveField(preferredDepartureStart, existingUser.preferredDepartureStart),
+        ),
+        preferredDepartureEnd: normalizeTime(
+          resolveField(preferredDepartureEnd, existingUser.preferredDepartureEnd),
+        ),
       });
 
       console.log("Updated user phone:", updatedUser.phoneNumber);
@@ -1029,6 +1093,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Find and notify users with matching ride requests
         await notifyMatchingRideRequesters(updatedTrip);
 
+        // Notify users whose preferred departure window contains this trip
+        await notifyUsersByPreferredTime(updatedTrip);
+
         // Broadcast trip creation to all connected clients
         broadcastToAll({
           type: "trip_created",
@@ -1045,6 +1112,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Find and notify users with matching ride requests
       await notifyMatchingRideRequesters(trip);
+
+      // Notify users whose preferred departure window contains this trip
+      await notifyUsersByPreferredTime(trip);
 
       // Broadcast trip creation to all connected clients
       broadcastToAll({
