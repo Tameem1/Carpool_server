@@ -15,6 +15,7 @@ import {
 import { TripCard } from "@/components/TripCard";
 import { TripForm } from "@/components/TripForm";
 import { RideRequestForm } from "@/components/RideRequestForm";
+import { PreferredTimeDialog } from "@/components/PreferredTimeDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -55,6 +56,7 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const [showTripForm, setShowTripForm] = useState(false);
   const [showRideRequestForm, setShowRideRequestForm] = useState(false);
+  const [showPreferredTime, setShowPreferredTime] = useState(false);
 
   const [sortBy, setSortBy] = useState("departure_time");
   const [activeTab, setActiveTab] = useState("all-trips");
@@ -257,6 +259,15 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <Button
+            onClick={() => setShowPreferredTime(true)}
+            variant="outline"
+            className="touch-friendly w-full sm:w-auto"
+            size="sm"
+          >
+            <Clock className="h-4 w-4 mr-2" />
+            وقت المغادرة المفضل
+          </Button>
           <Button
             onClick={() => setShowTripForm(true)}
             className="bg-primary hover:bg-primary/90 touch-friendly w-full sm:w-auto"
@@ -561,6 +572,7 @@ export default function Dashboard() {
 
       <TripForm open={showTripForm} onClose={() => setShowTripForm(false)} />
       <RideRequestForm open={showRideRequestForm} onClose={() => setShowRideRequestForm(false)} />
+      <PreferredTimeDialog open={showPreferredTime} onClose={() => setShowPreferredTime(false)} />
     </div>
   );
 }

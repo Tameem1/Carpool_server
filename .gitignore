@@ -8,4 +8,4 @@ vite.config.ts.*
 .env.backup
 *-test-*.ts
 test-*.ts
-reset-*.ts
+reset-*.ts.claude/
