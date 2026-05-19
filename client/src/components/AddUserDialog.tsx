@@ -8,7 +8,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { userRoles } from "@shared/schema";
 
 const addUserSchema = z.object({
@@ -29,6 +29,11 @@ interface AddUserDialogProps {
 export default function AddUserDialog({ open, onClose }: AddUserDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const { data: sections = [] } = useQuery<string[]>({
+    queryKey: ["/api/auth/sections"],
+    enabled: open,
+  });
 
   const form = useForm<AddUserFormData>({
     resolver: zodResolver(addUserSchema),
@@ -89,7 +94,16 @@ export default function AddUserDialog({ open, onClose }: AddUserDialogProps) {
                 <FormItem>
                   <FormLabel>القسم</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="القسم" />
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="اختر القسم" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sections.map((section) => (
+                          <SelectItem key={section} value={section}>{section}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
