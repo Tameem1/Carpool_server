@@ -37,9 +37,14 @@ const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 function broadcastToAll(data: any) {
   const message = JSON.stringify(data);
   connectedClients.forEach((ws: any) => {
-    if (ws.readyState === 1) {
-      // WebSocket.OPEN
+    if (ws.readyState !== 1) return; // not OPEN
+    try {
       ws.send(message);
+    } catch (error) {
+      // A socket can die between the readyState check and send(); drop it
+      // rather than letting the throw bubble up and fail the request.
+      console.error("Failed to send WebSocket message, dropping client:", error);
+      connectedClients.delete(ws);
     }
   });
 }
