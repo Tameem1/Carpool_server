@@ -14,6 +14,7 @@ import {
   insertTripJoinRequestSchema,
   createSlotRequestSchema,
   type CreateSlotRequest,
+  type User,
 } from "@shared/schema";
 import { z } from "zod";
 import TelegramBot from "node-telegram-bot-api";
@@ -445,6 +446,17 @@ const isAdmin = (req: any, res: any, next: any) => {
   return res.status(403).json({ message: "Forbidden: Admins only" });
 };
 
+// Strip a User down to the public fields exposed in API responses.
+function toPublicUser(user: User) {
+  return {
+    id: user.id,
+    username: user.username,
+    section: user.section,
+    role: user.role,
+    phoneNumber: user.phoneNumber,
+  };
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
 
@@ -578,42 +590,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const trips = await storage.getAllTrips();
 
-      const tripsWithDetails = await Promise.all(
-        trips.map(async (trip) => {
-          // Get rider details from the riders array in the trip
-          const riderDetails = await Promise.all(
-            (trip.riders || []).map(async (riderId) => {
-              const user = await storage.getUser(riderId);
-              return user
-                ? {
-                    id: user.id,
-                    username: user.username,
-                    section: user.section,
-                    role: user.role,
-                    phoneNumber: user.phoneNumber,
-                  }
-                : null;
-            }),
-          );
+      // Batch-fetch every driver/rider user in one query to avoid N+1 lookups.
+      const userIds = trips.flatMap((trip) => [
+        trip.driverId,
+        ...(trip.riders || []),
+      ]);
+      const userMap = await storage.getUsersByIds(userIds);
 
-          const driver = await storage.getUser(trip.driverId);
+      const tripsWithDetails = trips.map((trip) => {
+        const riderDetails = (trip.riders || [])
+          .map((riderId) => userMap.get(riderId))
+          .filter(Boolean)
+          .map((user) => toPublicUser(user!));
 
-          return {
-            ...trip,
-            participantCount: trip.riders?.length || 0,
-            riderDetails: riderDetails.filter(Boolean),
-            driver: driver
-              ? {
-                  id: driver.id,
-                  username: driver.username,
-                  section: driver.section,
-                  role: driver.role,
-                  phoneNumber: driver.phoneNumber,
-                }
-              : null,
-          };
-        }),
-      );
+        const driver = userMap.get(trip.driverId);
+
+        return {
+          ...trip,
+          participantCount: trip.riders?.length || 0,
+          riderDetails,
+          driver: driver ? toPublicUser(driver) : null,
+        };
+      });
 
       res.json(tripsWithDetails);
     } catch (error) {
@@ -627,42 +625,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const trips = await storage.getUserTrips(userId);
 
-      const tripsWithDetails = await Promise.all(
-        trips.map(async (trip) => {
-          // Get rider details from the riders array in the trip
-          const riderDetails = await Promise.all(
-            (trip.riders || []).map(async (riderId) => {
-              const user = await storage.getUser(riderId);
-              return user
-                ? {
-                    id: user.id,
-                    username: user.username,
-                    section: user.section,
-                    role: user.role,
-                    phoneNumber: user.phoneNumber,
-                  }
-                : null;
-            }),
-          );
+      // Batch-fetch every driver/rider user in one query to avoid N+1 lookups.
+      const userIds = trips.flatMap((trip) => [
+        trip.driverId,
+        ...(trip.riders || []),
+      ]);
+      const userMap = await storage.getUsersByIds(userIds);
 
-          const driver = await storage.getUser(trip.driverId);
+      const tripsWithDetails = trips.map((trip) => {
+        const riderDetails = (trip.riders || [])
+          .map((riderId) => userMap.get(riderId))
+          .filter(Boolean)
+          .map((user) => toPublicUser(user!));
 
-          return {
-            ...trip,
-            participantCount: trip.riders?.length || 0,
-            riderDetails: riderDetails.filter(Boolean),
-            driver: driver
-              ? {
-                  id: driver.id,
-                  username: driver.username,
-                  section: driver.section,
-                  role: driver.role,
-                  phoneNumber: driver.phoneNumber,
-                }
-              : null,
-          };
-        }),
-      );
+        const driver = userMap.get(trip.driverId);
+
+        return {
+          ...trip,
+          participantCount: trip.riders?.length || 0,
+          riderDetails,
+          driver: driver ? toPublicUser(driver) : null,
+        };
+      });
 
       res.json(tripsWithDetails);
     } catch (error) {
@@ -964,24 +948,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("User authenticated:", req.session?.userId || req.user?.id);
       console.log("Found requests:", requests.length);
 
-      // Enrich with rider info
-      const enrichedRequests = await Promise.all(
-        requests.map(async (request) => {
-          const rider = await storage.getUser(request.riderId);
-          return {
-            ...request,
-            rider: rider
-              ? {
-                  id: rider.id,
-                  username: rider.username,
-                  section: rider.section,
-                  role: rider.role,
-                  phoneNumber: rider.phoneNumber,
-                }
-              : null,
-          };
-        }),
+      // Enrich with rider info, batch-fetching all riders in one query.
+      const riderMap = await storage.getUsersByIds(
+        requests.map((request) => request.riderId),
       );
+      const enrichedRequests = requests.map((request) => {
+        const rider = riderMap.get(request.riderId);
+        return {
+          ...request,
+          rider: rider ? toPublicUser(rider) : null,
+        };
+      });
 
       console.log("Returning", enrichedRequests.length, "enriched requests");
       
