@@ -85,6 +85,29 @@ export const sessions = pgTable("session", {
   expire: timestamp("expire").notNull(),
 });
 
+// Scheduling board: admin-declared recurring journey demand ("slots").
+// Each row is one concrete occurrence; recurring occurrences share a seriesId.
+export const scheduleSlots = pgTable("schedule_slots", {
+  id: serial("id").primaryKey(),
+  seriesId: varchar("series_id"), // null = one-off; shared across recurring occurrences
+  destination: text("destination").notNull(),
+  startTime: timestamp("start_time").notNull(), // UTC
+  endTime: timestamp("end_time").notNull(), // UTC (gives the event its duration/height)
+  driversNeeded: integer("drivers_needed").notNull(),
+  notes: text("notes"),
+  createdBy: varchar("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// A driver's pledge to drive for a specific slot occurrence.
+export const slotRegistrations = pgTable("slot_registrations", {
+  id: serial("id").primaryKey(),
+  slotId: integer("slot_id").notNull(),
+  driverId: varchar("driver_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   trips: many(trips),
@@ -144,6 +167,25 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
   }),
 }));
 
+export const scheduleSlotsRelations = relations(scheduleSlots, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [scheduleSlots.createdBy],
+    references: [users.id],
+  }),
+  registrations: many(slotRegistrations),
+}));
+
+export const slotRegistrationsRelations = relations(slotRegistrations, ({ one }) => ({
+  slot: one(scheduleSlots, {
+    fields: [slotRegistrations.slotId],
+    references: [scheduleSlots.id],
+  }),
+  driver: one(users, {
+    fields: [slotRegistrations.driverId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertTripSchema = createInsertSchema(trips).omit({
   id: true,
@@ -183,6 +225,33 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
   createdAt: true,
 });
 
+export const insertScheduleSlotSchema = createInsertSchema(scheduleSlots).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// API request schema for creating slots (admin). Accepts a start time + duration
+// plus optional weekly recurrence; the server expands this into occurrence rows.
+export const createSlotRequestSchema = z.object({
+  destination: z.string().min(1),
+  startTime: z.string(), // ISO datetime, interpreted as GMT+3 on the server
+  durationMinutes: z.number().int().positive().max(24 * 60),
+  driversNeeded: z.number().int().positive(),
+  notes: z.string().optional(),
+  recurrence: z
+    .object({
+      daysOfWeek: z.array(z.number().int().min(0).max(6)).min(1), // 0=Sun..6=Sat
+      endDate: z.string(), // ISO date; recurrence runs through this date inclusive
+    })
+    .optional(),
+});
+
+export const insertSlotRegistrationSchema = createInsertSchema(slotRegistrations).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
@@ -197,3 +266,8 @@ export type InsertTripJoinRequest = z.infer<typeof insertTripJoinRequestSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type UserRole = typeof userRoles[number];
+export type ScheduleSlot = typeof scheduleSlots.$inferSelect;
+export type InsertScheduleSlot = z.infer<typeof insertScheduleSlotSchema>;
+export type CreateSlotRequest = z.infer<typeof createSlotRequestSchema>;
+export type SlotRegistration = typeof slotRegistrations.$inferSelect;
+export type InsertSlotRegistration = z.infer<typeof insertSlotRegistrationSchema>;
