@@ -4,6 +4,17 @@ import { setupVite, serveStatic, log } from "./vite";
 import dotenv from "dotenv";
 dotenv.config();
 
+// Keep the process alive when a single request or background task fails.
+// Without these guards (and with no process manager to restart us), one
+// unhandled error takes the entire server down — making every page, including
+// the dashboard, "break immediately" until a manual restart.
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled promise rejection:", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
+});
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -45,8 +56,12 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
+    console.error("Unhandled request error:", err);
+    // Respond once; do NOT re-throw. Re-throwing here aborts the response and,
+    // for async errors, can take down the whole process.
+    if (!res.headersSent) {
+      res.status(status).json({ message });
+    }
   });
 
   // importantly only setup vite in development and after
