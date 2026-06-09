@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -61,19 +61,8 @@ export default function Dashboard() {
   const [sortBy, setSortBy] = useState("departure_time");
   const [activeTab, setActiveTab] = useState("all-trips");
 
-  // Effect to refresh data when switching tabs
-  useEffect(() => {
-    // Force refresh of queries when switching tabs to ensure fresh data
-    const timeoutId = setTimeout(() => {
-      if (activeTab === "all-trips") {
-        queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
-      } else if (activeTab === "my-trips") {
-        queryClient.invalidateQueries({ queryKey: ["/api/trips/my"] });
-      }
-    }, 100); // Small delay to ensure tab switch is complete
-    
-    return () => clearTimeout(timeoutId);
-  }, [activeTab, queryClient]);
+  // Trips data is kept fresh via refetchOnWindowFocus plus a short staleTime,
+  // so switching tabs reuses the cache instead of forcing a blocking refetch.
 
   // Function to get today's trip range (5 AM today to 4 AM tomorrow)
   const getTodayTripRange = () => {
@@ -102,7 +91,7 @@ export default function Dashboard() {
     queryFn: () =>
       fetch(`/api/trips`).then((res) => res.json()),
     refetchOnWindowFocus: true,
-    staleTime: 0, // Always consider data stale
+    staleTime: 30_000, // Reuse cached data for 30s to avoid blocking refetches
   });
 
   // Filter trips to show only today's trips (5 AM to 4 AM next day)
@@ -117,7 +106,7 @@ export default function Dashboard() {
     queryKey: ["/api/trips/my"],
     enabled: user?.role !== "admin", // Don't fetch my trips for admin users
     refetchOnWindowFocus: true,
-    staleTime: 0, // Always consider data stale
+    staleTime: 30_000, // Reuse cached data for 30s to avoid blocking refetches
   });
 
   // Filter my trips to show only today's trips using the same logic as "All Trips"

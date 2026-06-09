@@ -31,6 +31,7 @@ import { nowGMTPlus3, getTodayRangeUTC, fromGMTPlus3ToUTC } from "@shared/timezo
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
+  getUsersByIds(ids: (string | null | undefined)[]): Promise<Map<string, User>>;
   getUserByUsernameAndSection(username: string, section: string): Promise<User | undefined>;
   upsertUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<InsertUser>): Promise<User>;
@@ -173,6 +174,15 @@ export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
+  }
+
+  // Batch-fetch users by id in a single query, returned as an id->user map.
+  // Avoids the N+1 query pattern when enriching lists of trips/requests.
+  async getUsersByIds(ids: (string | null | undefined)[]): Promise<Map<string, User>> {
+    const uniqueIds = Array.from(new Set(ids.filter((id): id is string => Boolean(id))));
+    if (uniqueIds.length === 0) return new Map();
+    const rows = await db.select().from(users).where(inArray(users.id, uniqueIds));
+    return new Map(rows.map((u) => [u.id, u]));
   }
 
   async getUserByUsernameAndSection(username: string, section: string): Promise<User | undefined> {
