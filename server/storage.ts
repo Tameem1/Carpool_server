@@ -5,6 +5,8 @@ import {
   tripParticipants,
   tripJoinRequests,
   notifications,
+  scheduleSlots,
+  slotRegistrations,
   type User,
   type InsertUser,
   type Trip,
@@ -18,9 +20,12 @@ import {
   type Notification,
   type InsertNotification,
   type UserRole,
+  type ScheduleSlot,
+  type InsertScheduleSlot,
+  type SlotRegistration,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte, lt } from "drizzle-orm";
+import { eq, and, gte, lt, inArray, sql } from "drizzle-orm";
 import { nowGMTPlus3, getTodayRangeUTC, fromGMTPlus3ToUTC } from "@shared/timezone";
 
 export interface IStorage {
@@ -75,6 +80,19 @@ export interface IStorage {
   createNotification(notification: InsertNotification): Promise<Notification>;
   getUserNotifications(userId: string): Promise<Notification[]>;
   markNotificationAsRead(id: number): Promise<void>;
+
+  // Schedule slot operations
+  createSlots(rows: InsertScheduleSlot[]): Promise<ScheduleSlot[]>;
+  getSlot(id: number): Promise<ScheduleSlot | undefined>;
+  getSlotsBetween(start: Date, end: Date): Promise<ScheduleSlot[]>;
+  deleteSlot(id: number): Promise<void>;
+  deleteSeriesFrom(seriesId: string, fromTime: Date): Promise<void>;
+  getFutureSlotsInSeries(seriesId: string, fromTime: Date): Promise<ScheduleSlot[]>;
+  getSlotRegistrationCounts(slotIds: number[]): Promise<Map<number, number>>;
+  getUserRegisteredSlotIds(slotIds: number[], userId: string): Promise<Set<number>>;
+  getSlotRegistrations(slotId: number): Promise<(SlotRegistration & { username: string; section: string; phoneNumber: string | null })[]>;
+  registerForSlot(slotId: number, driverId: string): Promise<void>;
+  unregisterFromSlot(slotId: number, driverId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -628,6 +646,106 @@ export class DatabaseStorage implements IStorage {
       .update(notifications)
       .set({ isRead: true })
       .where(eq(notifications.id, id));
+  }
+
+  // ===================== Schedule slot operations =====================
+  async createSlots(rows: InsertScheduleSlot[]): Promise<ScheduleSlot[]> {
+    if (rows.length === 0) return [];
+    return await db.insert(scheduleSlots).values(rows).returning();
+  }
+
+  async getSlot(id: number): Promise<ScheduleSlot | undefined> {
+    const [slot] = await db.select().from(scheduleSlots).where(eq(scheduleSlots.id, id));
+    return slot || undefined;
+  }
+
+  async getSlotsBetween(start: Date, end: Date): Promise<ScheduleSlot[]> {
+    return await db
+      .select()
+      .from(scheduleSlots)
+      .where(and(gte(scheduleSlots.startTime, start), lt(scheduleSlots.startTime, end)))
+      .orderBy(scheduleSlots.startTime);
+  }
+
+  async deleteSlot(id: number): Promise<void> {
+    await db.delete(slotRegistrations).where(eq(slotRegistrations.slotId, id));
+    await db.delete(scheduleSlots).where(eq(scheduleSlots.id, id));
+  }
+
+  async deleteSeriesFrom(seriesId: string, fromTime: Date): Promise<void> {
+    const slots = await this.getFutureSlotsInSeries(seriesId, fromTime);
+    const ids = slots.map((s) => s.id);
+    if (ids.length === 0) return;
+    await db.delete(slotRegistrations).where(inArray(slotRegistrations.slotId, ids));
+    await db.delete(scheduleSlots).where(inArray(scheduleSlots.id, ids));
+  }
+
+  async getFutureSlotsInSeries(seriesId: string, fromTime: Date): Promise<ScheduleSlot[]> {
+    return await db
+      .select()
+      .from(scheduleSlots)
+      .where(and(eq(scheduleSlots.seriesId, seriesId), gte(scheduleSlots.startTime, fromTime)))
+      .orderBy(scheduleSlots.startTime);
+  }
+
+  async getSlotRegistrationCounts(slotIds: number[]): Promise<Map<number, number>> {
+    const counts = new Map<number, number>();
+    if (slotIds.length === 0) return counts;
+    const rows = await db
+      .select({
+        slotId: slotRegistrations.slotId,
+        count: sql<number>`cast(count(*) as int)`,
+      })
+      .from(slotRegistrations)
+      .where(inArray(slotRegistrations.slotId, slotIds))
+      .groupBy(slotRegistrations.slotId);
+    for (const row of rows) counts.set(row.slotId, row.count);
+    return counts;
+  }
+
+  async getUserRegisteredSlotIds(slotIds: number[], userId: string): Promise<Set<number>> {
+    const result = new Set<number>();
+    if (slotIds.length === 0) return result;
+    const rows = await db
+      .select({ slotId: slotRegistrations.slotId })
+      .from(slotRegistrations)
+      .where(and(inArray(slotRegistrations.slotId, slotIds), eq(slotRegistrations.driverId, userId)));
+    for (const row of rows) result.add(row.slotId);
+    return result;
+  }
+
+  async getSlotRegistrations(
+    slotId: number,
+  ): Promise<(SlotRegistration & { username: string; section: string; phoneNumber: string | null })[]> {
+    return await db
+      .select({
+        id: slotRegistrations.id,
+        slotId: slotRegistrations.slotId,
+        driverId: slotRegistrations.driverId,
+        createdAt: slotRegistrations.createdAt,
+        username: users.username,
+        section: users.section,
+        phoneNumber: users.phoneNumber,
+      })
+      .from(slotRegistrations)
+      .innerJoin(users, eq(slotRegistrations.driverId, users.id))
+      .where(eq(slotRegistrations.slotId, slotId))
+      .orderBy(slotRegistrations.createdAt);
+  }
+
+  async registerForSlot(slotId: number, driverId: string): Promise<void> {
+    const existing = await db
+      .select({ id: slotRegistrations.id })
+      .from(slotRegistrations)
+      .where(and(eq(slotRegistrations.slotId, slotId), eq(slotRegistrations.driverId, driverId)));
+    if (existing.length > 0) return; // already registered — no-op
+    await db.insert(slotRegistrations).values({ slotId, driverId });
+  }
+
+  async unregisterFromSlot(slotId: number, driverId: string): Promise<void> {
+    await db
+      .delete(slotRegistrations)
+      .where(and(eq(slotRegistrations.slotId, slotId), eq(slotRegistrations.driverId, driverId)));
   }
 }
 

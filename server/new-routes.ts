@@ -12,6 +12,8 @@ import {
   insertRideRequestSchema,
   insertTripParticipantSchema,
   insertTripJoinRequestSchema,
+  createSlotRequestSchema,
+  type CreateSlotRequest,
 } from "@shared/schema";
 import { z } from "zod";
 import TelegramBot from "node-telegram-bot-api";
@@ -19,6 +21,7 @@ import {
   formatGMTPlus3,
   formatGMTPlus3TimeOnly,
   formatDateForInput,
+  GMT_PLUS_3_OFFSET,
 } from "@shared/timezone";
 import { nanoid } from "nanoid";
 import { hashPassword } from "./auth-utils";
@@ -38,6 +41,62 @@ function broadcastToAll(data: any) {
       ws.send(message);
     }
   });
+}
+
+// ===================== Schedule slot helpers =====================
+// All slot times are entered as GMT+3 wall-clock and stored as UTC. GMT+3 has a
+// fixed offset (no DST), so we can do plain ms arithmetic on day boundaries.
+const DAY_MS = 24 * 60 * 60 * 1000;
+const MAX_OCCURRENCES = 366; // safety bound on a single recurring series
+
+// Parse a "YYYY-MM-DDTHH:mm" GMT+3 wall-clock string into its numeric parts.
+function parseWall(wall: string): { y: number; mo: number; d: number; h: number; mi: number } {
+  const [datePart, timePart = "00:00"] = wall.split("T");
+  const [y, mo, d] = datePart.split("-").map(Number);
+  const [h, mi] = timePart.split(":").map(Number);
+  return { y, mo, d, h, mi };
+}
+
+// Expand a create-slot request into concrete occurrences (UTC start/end Dates).
+function expandOccurrences(reqData: CreateSlotRequest): { startTime: Date; endTime: Date }[] {
+  const { startTime, durationMinutes, recurrence } = reqData;
+  const base = parseWall(startTime);
+  const durMs = durationMinutes * 60 * 1000;
+  // A UTC instant whose UTC fields equal the GMT+3 wall clock, minus the offset.
+  const toUTC = (wallMs: number) => new Date(wallMs - GMT_PLUS_3_OFFSET);
+
+  if (!recurrence) {
+    const start = toUTC(Date.UTC(base.y, base.mo - 1, base.d, base.h, base.mi));
+    return [{ startTime: start, endTime: new Date(start.getTime() + durMs) }];
+  }
+
+  const days = new Set(recurrence.daysOfWeek);
+  const end = parseWall(recurrence.endDate);
+  const endWallMs = Date.UTC(end.y, end.mo - 1, end.d, 23, 59); // inclusive of end date
+  const occurrences: { startTime: Date; endTime: Date }[] = [];
+
+  // Iterate day-by-day from the start date forward, keeping the wall-clock time.
+  let cursor = Date.UTC(base.y, base.mo - 1, base.d, base.h, base.mi);
+  let guard = 0;
+  while (cursor <= endWallMs && guard < MAX_OCCURRENCES) {
+    const weekday = new Date(cursor).getUTCDay(); // weekday of the GMT+3 wall date
+    if (days.has(weekday)) {
+      const start = toUTC(cursor);
+      occurrences.push({ startTime: start, endTime: new Date(start.getTime() + durMs) });
+    }
+    cursor += DAY_MS;
+    guard++;
+  }
+  return occurrences;
+}
+
+// Compute the UTC range [start, end) for a GMT+3 week beginning on the given
+// "YYYY-MM-DD" Sunday.
+function weekRangeUTC(weekStart: string): { start: Date; end: Date } {
+  const { y, mo, d } = parseWall(weekStart);
+  const start = new Date(Date.UTC(y, mo - 1, d, 0, 0) - GMT_PLUS_3_OFFSET);
+  const end = new Date(start.getTime() + 7 * DAY_MS);
+  return { start, end };
 }
 
 function setupWebSocket(server: Server) {
@@ -1345,6 +1404,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error updating trip:", error);
       res.status(500).json({ message: "Failed to update trip" });
+    }
+  });
+  // =====================================================================
+
+  // ===================== Scheduling board (slots) =====================
+  // Weekly view data: all slots in a GMT+3 week, with registration counts and
+  // whether the current user is registered.
+  app.get("/api/schedule/slots", isAuthenticated, async (req: any, res) => {
+    try {
+      const weekStart = String(req.query.weekStart || "");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
+        return res.status(400).json({ message: "weekStart (YYYY-MM-DD) is required" });
+      }
+      const { start, end } = weekRangeUTC(weekStart);
+      const slots = await storage.getSlotsBetween(start, end);
+      const ids = slots.map((s) => s.id);
+      const counts = await storage.getSlotRegistrationCounts(ids);
+      const registered = await storage.getUserRegisteredSlotIds(ids, req.user.id);
+
+      res.json(
+        slots.map((slot) => ({
+          ...slot,
+          registeredCount: counts.get(slot.id) || 0,
+          isRegistered: registered.has(slot.id),
+        })),
+      );
+    } catch (error) {
+      console.error("Error fetching schedule slots:", error);
+      res.status(500).json({ message: "Failed to fetch schedule slots" });
+    }
+  });
+
+  // Admin creates a slot (optionally recurring), expanded into occurrence rows.
+  app.post("/api/schedule/slots", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const data = createSlotRequestSchema.parse(req.body);
+      const occurrences = expandOccurrences(data);
+      if (occurrences.length === 0) {
+        return res.status(400).json({ message: "No occurrences generated for this slot" });
+      }
+
+      const seriesId = data.recurrence ? `slot_${nanoid()}` : null;
+      const rows = occurrences.map((occ) => ({
+        seriesId,
+        destination: data.destination,
+        startTime: occ.startTime,
+        endTime: occ.endTime,
+        driversNeeded: data.driversNeeded,
+        notes: data.notes || null,
+        createdBy: req.user.id,
+      }));
+
+      const created = await storage.createSlots(rows);
+
+      broadcastToAll({ type: "slot_created", count: created.length });
+      res.status(201).json({ created: created.length, seriesId });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid slot data", errors: error.errors });
+      }
+      console.error("Error creating schedule slot:", error);
+      res.status(500).json({ message: "Failed to create schedule slot" });
+    }
+  });
+
+  // Admin deletes a slot — either this single occurrence or this + future ones.
+  app.delete("/api/schedule/slots/:id", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const scope = req.query.scope === "series" ? "series" : "single";
+      const slot = await storage.getSlot(id);
+      if (!slot) return res.status(404).json({ message: "Slot not found" });
+
+      if (scope === "series" && slot.seriesId) {
+        await storage.deleteSeriesFrom(slot.seriesId, slot.startTime);
+      } else {
+        await storage.deleteSlot(id);
+      }
+
+      broadcastToAll({ type: "slot_deleted", id });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting schedule slot:", error);
+      res.status(500).json({ message: "Failed to delete schedule slot" });
+    }
+  });
+
+  // List the drivers registered for a slot (for the details dialog).
+  app.get("/api/schedule/slots/:id/registrations", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const registrations = await storage.getSlotRegistrations(id);
+      res.json(registrations);
+    } catch (error) {
+      console.error("Error fetching slot registrations:", error);
+      res.status(500).json({ message: "Failed to fetch registrations" });
+    }
+  });
+
+  // Current user registers as a driver for a slot (optionally the whole series).
+  app.post("/api/schedule/slots/:id/register", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const repeatWeekly = req.body?.repeatWeekly === true;
+      const slot = await storage.getSlot(id);
+      if (!slot) return res.status(404).json({ message: "Slot not found" });
+
+      if (repeatWeekly && slot.seriesId) {
+        const futureSlots = await storage.getFutureSlotsInSeries(slot.seriesId, slot.startTime);
+        for (const s of futureSlots) {
+          await storage.registerForSlot(s.id, req.user.id);
+        }
+      } else {
+        await storage.registerForSlot(id, req.user.id);
+      }
+
+      broadcastToAll({ type: "slot_registration_changed", id });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error registering for slot:", error);
+      res.status(500).json({ message: "Failed to register for slot" });
+    }
+  });
+
+  // Current user unregisters from a slot (optionally the whole future series).
+  app.delete("/api/schedule/slots/:id/register", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const scope = req.body?.scope === "series" ? "series" : "single";
+      const slot = await storage.getSlot(id);
+      if (!slot) return res.status(404).json({ message: "Slot not found" });
+
+      if (scope === "series" && slot.seriesId) {
+        const futureSlots = await storage.getFutureSlotsInSeries(slot.seriesId, slot.startTime);
+        for (const s of futureSlots) {
+          await storage.unregisterFromSlot(s.id, req.user.id);
+        }
+      } else {
+        await storage.unregisterFromSlot(id, req.user.id);
+      }
+
+      broadcastToAll({ type: "slot_registration_changed", id });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error unregistering from slot:", error);
+      res.status(500).json({ message: "Failed to unregister from slot" });
     }
   });
   // =====================================================================

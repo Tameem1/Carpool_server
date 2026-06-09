@@ -2,7 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Car, MessageSquare, Home, Users, Settings, UserCheck, User } from "lucide-react";
+import { Bell, Car, MessageSquare, Home, Users, Settings, UserCheck, User, Calendar } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { RealTimeStatus } from "@/components/RealTimeStatus";
@@ -44,9 +44,15 @@ export function Navigation() {
   const navItems = [
     {
       href: "/",
+      label: "الجدول",
+      icon: Calendar,
+      active: location === "/",
+    },
+    {
+      href: "/dashboard",
       label: "لوحة التحكم",
       icon: Home,
-      active: location === "/",
+      active: location === "/dashboard",
     },
     {
       href: "/profile",

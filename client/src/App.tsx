@@ -8,6 +8,7 @@ import { Navigation } from "@/components/Navigation";
 import { RealTimeProvider } from "@/contexts/RealTimeContext";
 import { LoginForm } from "@/components/LoginForm";
 import Dashboard from "@/pages/Dashboard";
+import SchedulePage from "@/pages/SchedulePage";
 
 import AdminDashboard from "@/pages/AdminDashboard";
 import DriverDashboard from "@/pages/DriverDashboard";
@@ -40,6 +41,15 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={() => (
+            <div className="min-h-screen bg-background">
+              <Navigation />
+              <div className="px-3 sm:px-0">
+                <SchedulePage />
+              </div>
+            </div>
+          )} />
+
+          <Route path="/dashboard" component={() => (
             <div className="min-h-screen bg-background">
               <Navigation />
               <div className="px-3 sm:px-0">

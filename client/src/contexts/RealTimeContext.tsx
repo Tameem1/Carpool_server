@@ -171,6 +171,13 @@ export function RealTimeProvider({ children }: RealTimeProviderProps) {
         queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
         break;
 
+      case "slot_created":
+      case "slot_deleted":
+      case "slot_registration_changed":
+        // Refresh the scheduling board so counts update live for everyone.
+        queryClient.invalidateQueries({ queryKey: ["/api/schedule/slots"] });
+        break;
+
       default:
         console.log("Unknown real-time message type:", message.type);
     }
