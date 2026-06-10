@@ -44,15 +44,15 @@ export function Navigation() {
   const navItems = [
     {
       href: "/",
-      label: "الجدول",
-      icon: Calendar,
+      label: "لوحة التحكم",
+      icon: Home,
       active: location === "/",
     },
     {
-      href: "/dashboard",
-      label: "لوحة التحكم",
-      icon: Home,
-      active: location === "/dashboard",
+      href: "/schedule",
+      label: "الجدول",
+      icon: Calendar,
+      active: location === "/schedule",
     },
     {
       href: "/profile",
