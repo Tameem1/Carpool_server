@@ -44,16 +44,16 @@ function Router() {
             <div className="min-h-screen bg-background">
               <Navigation />
               <div className="px-3 sm:px-0">
-                <SchedulePage />
+                <Dashboard />
               </div>
             </div>
           )} />
 
-          <Route path="/dashboard" component={() => (
+          <Route path="/schedule" component={() => (
             <div className="min-h-screen bg-background">
               <Navigation />
               <div className="px-3 sm:px-0">
-                <Dashboard />
+                <SchedulePage />
               </div>
             </div>
           )} />
