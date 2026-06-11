@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TripForm } from "@/components/TripForm";
+import { ShortageRecipients } from "@/components/ShortageRecipients";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -328,9 +329,11 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        <ShortageRecipients />
       </div>
 
-      <TripForm 
+      <TripForm
         open={showTripForm} 
         onClose={handleCloseTripForm}
         trip={editingTrip}

@@ -108,6 +108,14 @@ export const slotRegistrations = pgTable("slot_registrations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Admin-curated list of users who receive the daily driver-shortage Telegram
+// digest (9 AM / 12 PM GMT+3). The set is replaced wholesale when the admin saves.
+export const shortageAlertRecipients = pgTable("shortage_alert_recipients", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(), // references users.id
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   trips: many(trips),
@@ -252,6 +260,16 @@ export const insertSlotRegistrationSchema = createInsertSchema(slotRegistrations
   createdAt: true,
 });
 
+export const insertShortageAlertRecipientSchema = createInsertSchema(shortageAlertRecipients).omit({
+  id: true,
+  createdAt: true,
+});
+
+// API request schema for the admin to replace the shortage-alert recipient set.
+export const setShortageRecipientsSchema = z.object({
+  userIds: z.array(z.string()),
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
@@ -271,3 +289,5 @@ export type InsertScheduleSlot = z.infer<typeof insertScheduleSlotSchema>;
 export type CreateSlotRequest = z.infer<typeof createSlotRequestSchema>;
 export type SlotRegistration = typeof slotRegistrations.$inferSelect;
 export type InsertSlotRegistration = z.infer<typeof insertSlotRegistrationSchema>;
+export type ShortageAlertRecipient = typeof shortageAlertRecipients.$inferSelect;
+export type InsertShortageAlertRecipient = z.infer<typeof insertShortageAlertRecipientSchema>;

@@ -13,9 +13,14 @@ import {
   insertTripParticipantSchema,
   insertTripJoinRequestSchema,
   createSlotRequestSchema,
+  setShortageRecipientsSchema,
   type CreateSlotRequest,
   type User,
 } from "@shared/schema";
+import {
+  runDriverShortageCheck,
+  startDriverShortageJobs,
+} from "./driver-shortage-job";
 import { z } from "zod";
 import TelegramBot from "node-telegram-bot-api";
 import {
@@ -1535,6 +1540,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   // =====================================================================
+
+  // ============== Driver-shortage alert recipients (admin) =============
+  // The curated set of users who receive the daily driver-shortage digest.
+  app.get("/api/admin/shortage-recipients", isAuthenticated, isAdmin, async (_req: any, res) => {
+    try {
+      const recipients = await storage.getShortageAlertRecipients();
+      res.json({ recipientIds: recipients.map((u) => u.id) });
+    } catch (error) {
+      console.error("Error fetching shortage recipients:", error);
+      res.status(500).json({ message: "Failed to fetch shortage recipients" });
+    }
+  });
+
+  app.put("/api/admin/shortage-recipients", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { userIds } = setShortageRecipientsSchema.parse(req.body);
+      await storage.setShortageAlertRecipients(userIds);
+      const recipients = await storage.getShortageAlertRecipients();
+      res.json({ recipientIds: recipients.map((u) => u.id) });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid recipient data", errors: error.errors });
+      }
+      console.error("Error saving shortage recipients:", error);
+      res.status(500).json({ message: "Failed to save shortage recipients" });
+    }
+  });
+
+  // Manually run the shortage check now (for testing / ad-hoc reminders).
+  app.post("/api/admin/shortage-check/run", isAuthenticated, isAdmin, async (_req: any, res) => {
+    try {
+      const result = await runDriverShortageCheck((userId, title, message, type) =>
+        telegramService.sendNotification(userId, title, message, type),
+      );
+      res.json(result);
+    } catch (error) {
+      console.error("Error running shortage check:", error);
+      res.status(500).json({ message: "Failed to run shortage check" });
+    }
+  });
+  // =====================================================================
+
+  // Schedule the recurring 09:00 / 12:00 (GMT+3) driver-shortage checks.
+  startDriverShortageJobs((userId, title, message, type) =>
+    telegramService.sendNotification(userId, title, message, type),
+  );
 
   return server;
 }

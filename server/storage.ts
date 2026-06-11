@@ -7,6 +7,7 @@ import {
   notifications,
   scheduleSlots,
   slotRegistrations,
+  shortageAlertRecipients,
   type User,
   type InsertUser,
   type Trip,
@@ -94,6 +95,10 @@ export interface IStorage {
   getSlotRegistrations(slotId: number): Promise<(SlotRegistration & { username: string; section: string; phoneNumber: string | null })[]>;
   registerForSlot(slotId: number, driverId: string): Promise<void>;
   unregisterFromSlot(slotId: number, driverId: string): Promise<void>;
+
+  // Driver-shortage alert recipients
+  getShortageAlertRecipients(): Promise<User[]>;
+  setShortageAlertRecipients(userIds: string[]): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -756,6 +761,24 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(slotRegistrations)
       .where(and(eq(slotRegistrations.slotId, slotId), eq(slotRegistrations.driverId, driverId)));
+  }
+
+  // ================= Driver-shortage alert recipients =================
+  async getShortageAlertRecipients(): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .innerJoin(shortageAlertRecipients, eq(shortageAlertRecipients.userId, users.id))
+      .then((rows) => rows.map((row) => row.users));
+  }
+
+  // Replace the recipient set wholesale: clear the table, then insert the given
+  // ids (deduped, ignoring blanks).
+  async setShortageAlertRecipients(userIds: string[]): Promise<void> {
+    const unique = Array.from(new Set(userIds.filter((id) => id && id.trim() !== "")));
+    await db.delete(shortageAlertRecipients);
+    if (unique.length === 0) return;
+    await db.insert(shortageAlertRecipients).values(unique.map((userId) => ({ userId })));
   }
 }
 
