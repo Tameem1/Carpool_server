@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -14,11 +13,8 @@ import {
 } from "@/components/ui/select";
 import { TripCard } from "@/components/TripCard";
 import { TripForm } from "@/components/TripForm";
-import { RideRequestForm } from "@/components/RideRequestForm";
 import { PreferredTimeDialog } from "@/components/PreferredTimeDialog";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { Plus, Calendar, Users, MapPin, Settings, ArrowUpDown, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { formatGMTPlus3, formatGMTPlus3TimeOnly } from "@shared/timezone";
@@ -52,10 +48,7 @@ function formatRoute(fromLocation: string, toLocation: string): string {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [showTripForm, setShowTripForm] = useState(false);
-  const [showRideRequestForm, setShowRideRequestForm] = useState(false);
   const [showPreferredTime, setShowPreferredTime] = useState(false);
 
   const [sortBy, setSortBy] = useState("departure_time");
@@ -121,17 +114,6 @@ export default function Dashboard() {
     enabled: user?.role === "admin",
   });
 
-  const { data: allRequests = [], isLoading: requestsLoading, error: requestsError } = useQuery({
-    queryKey: ["/api/ride-requests/all"],
-    enabled: !!user && user.role === 'admin',
-    retry: false,
-    refetchOnWindowFocus: true,
-    staleTime: 0,
-  });
-
-
-
-
   // Sorting function
   const sortTrips = (trips: any[], sortBy: string) => {
     if (!Array.isArray(trips)) return [];
@@ -151,76 +133,6 @@ export default function Dashboard() {
       default:
         return sortedTrips;
     }
-  };
-
-  const assignRideMutation = useMutation({
-    mutationFn: async ({ requestId, tripId }: { requestId: number; tripId: number }) => {
-      const response = await apiRequest("PATCH", `/api/ride-requests/${requestId}/assign-to-trip`, { tripId });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data?.success) {
-        toast({
-          title: "تم التعيين بنجاح",
-          description: "تم تعيين الراكب للرحلة وإزالة الطلب من القائمة.",
-        });
-      } else {
-        toast({
-          title: "خطأ في التعيين",
-          description: data?.message || "فشل في تعيين الطلب للرحلة.",
-          variant: "destructive",
-        });
-      }
-      queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/ride-requests/all"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "فشل التعيين",
-        description: error.message || "تحقق من توفر المقاعد في الرحلة المختارة.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const getCompatibleTrips = (request: any) => {
-    if (!Array.isArray(todayTrips)) return [];
-    
-    const compatibleTrips = todayTrips.filter((trip: any) => {
-      // Check if trip has available seats
-      if (trip.availableSeats < 1) return false;
-      
-      // Check if trip is active
-      if (trip.status !== 'active') return false;
-      
-      // Check location compatibility (basic string matching)
-      const fromMatch = trip.fromLocation.toLowerCase().includes(request.fromLocation.toLowerCase()) ||
-                       request.fromLocation.toLowerCase().includes(trip.fromLocation.toLowerCase());
-      const toMatch = trip.toLocation.toLowerCase().includes(request.toLocation.toLowerCase()) ||
-                     request.toLocation.toLowerCase().includes(trip.toLocation.toLowerCase());
-      
-      if (!fromMatch && !toMatch) return false;
-      
-      // Check time compatibility (within 2 hours)
-      const tripTime = new Date(trip.departureTime).getTime();
-      const requestTime = new Date(request.preferredTime).getTime();
-      const timeDiff = Math.abs(tripTime - requestTime);
-      const twoHours = 2 * 60 * 60 * 1000;
-      
-      return timeDiff <= twoHours;
-    });
-
-    // Sort by time proximity (closest to requested time first)
-    return compatibleTrips.sort((a: any, b: any) => {
-      const requestTime = new Date(request.preferredTime).getTime();
-      const aTimeDiff = Math.abs(new Date(a.departureTime).getTime() - requestTime);
-      const bTimeDiff = Math.abs(new Date(b.departureTime).getTime() - requestTime);
-      return aTimeDiff - bTimeDiff;
-    });
-  };
-
-  const handleAssignRide = (requestId: number, tripId: number) => {
-    assignRideMutation.mutate({ requestId, tripId });
   };
 
   const sortedTrips = sortTrips(Array.isArray(todayTrips) ? todayTrips : [], sortBy);
@@ -269,171 +181,6 @@ export default function Dashboard() {
       </div>
 
       
-
-      {user?.role === "admin" && (
-        <Card className="mb-6 sm:mb-8">
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex-1">
-                <CardTitle className="responsive-text-lg">تعيين طلبات الرحلات</CardTitle>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">تعيين طلبات الرحلات المعلقة للرحلات المتاحة</p>
-              </div>
-              <Button
-                onClick={() => setShowRideRequestForm(true)}
-                className="hover:bg-blue-700 text-white bg-[#16b7a4] touch-friendly w-full sm:w-auto"
-                size="sm"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                طلب رحلة
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {requestsLoading ? (
-              <div className="text-center py-8 text-gray-500">
-                جاري تحميل طلبات الرحلات...
-              </div>
-            ) : requestsError ? (
-              <div className="text-center py-8 text-red-500">
-                خطأ في تحميل طلبات الرحلات: {requestsError.message || 'خطأ غير معروف'}
-              </div>
-            ) : !Array.isArray(allRequests) || allRequests.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                لا توجد طلبات رحلات معلقة للتعيين.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {allRequests.filter((request: any) => request.status === 'pending').map((request: any) => {
-                  const compatibleTrips = getCompatibleTrips(request);
-                  return (
-                    <div key={request.id} className="border rounded-lg p-4 bg-gray-50">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={request.rider?.profileImageUrl || ""} />
-                            <AvatarFallback>
-                              {request.rider?.username?.[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <h4 className="font-semibold text-gray-900">
-                              {request.rider?.username}
-                            </h4>
-                            <div className="flex items-center space-x-4 text-sm text-gray-600">
-                              <div className={`flex items-center ${(isArabicText(request.fromLocation) || isArabicText(request.toLocation)) ? 'text-right' : 'text-left'}`}>
-                                <MapPin className="h-4 w-4 mr-1" />
-                                {formatRoute(request.fromLocation, request.toLocation)}
-                              </div>
-                              <div className="flex items-center">
-                                <Clock className="h-4 w-4 mr-1" />
-                                {formatTimeOnly(request.preferredTime)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          {request.passengerCount} {request.passengerCount !== 1 ? 'ركاب' : 'راكب'}
-                        </Badge>
-                      </div>
-                      
-                      {request.notes && (
-                        <div className="mb-4 p-3 bg-white rounded-md border">
-                          <p className="text-sm font-medium text-gray-700 mb-1">ملاحظات:</p>
-                          <p className="text-sm text-gray-600">{request.notes}</p>
-                        </div>
-                      )}
-
-                      <div className="flex flex-col space-y-3">
-                        <span className="text-sm font-medium text-gray-700">جميع الرحلات المتاحة لهذا اليوم:</span>
-                        <div className="text-xs text-gray-500 mb-2">
-                          إجمالي الرحلات: {todayTrips.length} | الرحلات النشطة: {todayTrips.filter(t => t.status === 'active').length} | المقاعد متاحة: {todayTrips.filter(t => t.availableSeats > 0).length}
-                          <br />
-                          الرحلات بعد التصفية: {todayTrips.filter((trip: any) => trip.availableSeats >= 0).length}
-                          <br />
-                          أول رحلة: {todayTrips.length > 0 ? `${formatRoute(todayTrips[0].fromLocation, todayTrips[0].toLocation)} (${todayTrips[0].availableSeats} مقاعد)` : 'لا يوجد'}
-                        </div>
-                        {compatibleTrips.length > 0 && (
-                          <div className="mb-2 p-2 bg-green-50 rounded-md">
-                            <span className="text-xs text-green-700 font-medium">
-                              الرحلات المتوافقة ({compatibleTrips.length}): تطابق في الموقع والوقت
-                            </span>
-                          </div>
-                        )}
-                        {!Array.isArray(todayTrips) || todayTrips.length === 0 ? (
-                          <span className="text-sm text-gray-500">لا توجد رحلات متاحة لهذا اليوم</span>
-                        ) : (
-                          <div className="flex items-center gap-3">
-                            <div className="flex-1">
-                              <Select onValueChange={(value) => handleAssignRide(request.id, parseInt(value))}>
-                                <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="اختر رحلة (مرتبة حسب الأقرب زمنياً)" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {todayTrips.length === 0 ? (
-                                    <SelectItem value="no-trips" disabled>
-                                      لا توجد رحلات متاحة
-                                    </SelectItem>
-                                  ) : (
-                                    [...todayTrips]
-                                      .sort((a: any, b: any) => {
-                                        // Sort by time proximity first
-                                        const requestTime = new Date(request.preferredTime).getTime();
-                                        const aTimeDiff = Math.abs(new Date(a.departureTime).getTime() - requestTime);
-                                        const bTimeDiff = Math.abs(new Date(b.departureTime).getTime() - requestTime);
-                                        return aTimeDiff - bTimeDiff;
-                                      })
-                                      .map((trip: any) => {
-                                        const requestTime = new Date(request.preferredTime).getTime();
-                                        const tripTime = new Date(trip.departureTime).getTime();
-                                        const timeDiffMinutes = Math.abs(tripTime - requestTime) / (1000 * 60);
-                                        const timeDiffHours = Math.floor(timeDiffMinutes / 60);
-                                        const remainingMinutes = Math.floor(timeDiffMinutes % 60);
-                                        
-                                        let timeDiffText = "";
-                                        if (timeDiffHours > 0) {
-                                          timeDiffText = `${timeDiffHours}س ${remainingMinutes}د`;
-                                        } else {
-                                          timeDiffText = `${remainingMinutes}د`;
-                                        }
-
-                                        // Check if this trip is compatible
-                                        const isCompatible = compatibleTrips.some((compatTrip: any) => compatTrip.id === trip.id);
-                                        
-                                        return (
-                                          <SelectItem key={trip.id} value={trip.id.toString()}>
-                                            <div className="flex flex-col">
-                                              <div className={`font-medium ${isCompatible ? 'text-green-600' : ''}`}>
-                                                {isCompatible && '✓ '}
-                                                {formatRoute(trip.fromLocation, trip.toLocation)}{' - '}<bdi dir="auto">{trip.driver?.username ?? 'غير معروف'}</bdi>
-                                              </div>
-                                              <div className="text-xs text-gray-500">
-                                                {formatTimeOnly(trip.departureTime)} • 
-                                                {trip.availableSeats} {trip.availableSeats !== 1 ? 'مقاعد' : 'مقعد'} متاح •
-                                                فرق زمني: {timeDiffText}
-                                                {isCompatible && <span className="text-green-600 ml-1">• متوافق</span>}
-                                              </div>
-                                            </div>
-                                          </SelectItem>
-                                        );
-                                      })
-                                  )}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            {assignRideMutation.isPending && (
-                              <div className="text-sm text-gray-500">جاري التعيين...</div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className={`grid w-full ${user?.role === "admin" ? "grid-cols-1" : "grid-cols-2"} h-auto`}>
@@ -560,7 +307,6 @@ export default function Dashboard() {
       </Tabs>
 
       <TripForm open={showTripForm} onClose={() => setShowTripForm(false)} />
-      <RideRequestForm open={showRideRequestForm} onClose={() => setShowRideRequestForm(false)} />
       <PreferredTimeDialog open={showPreferredTime} onClose={() => setShowPreferredTime(false)} />
     </div>
   );
