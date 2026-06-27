@@ -25,7 +25,7 @@ import {
   startDriverShortageJobs,
 } from "./driver-shortage-job";
 import { z } from "zod";
-import TelegramBot from "node-telegram-bot-api";
+import { telegramService } from "./telegram";
 import {
   formatGMTPlus3,
   formatGMTPlus3TimeOnly,
@@ -138,276 +138,6 @@ function setupWebSocket(server: Server) {
   return wss;
 }
 
-// Telegram notification service
-class TelegramNotificationService {
-  private bot: any;
-  
-  // Helper function to escape Markdown special characters
-  private escapeMarkdown(text: string): string {
-    return text.replace(/[[\]()~`>#+=|{}.!-]/g, '\\$&');
-  }
-
-  constructor() {
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    if (token) {
-      try {
-        this.bot = new TelegramBot(token, { polling: false });
-        console.log("[TELEGRAM] Bot initialized successfully");
-      } catch (error) {
-        console.error("[TELEGRAM] Error initializing bot:", error);
-        this.bot = null;
-      }
-    } else {
-      console.log("[TELEGRAM] No bot token provided");
-      this.bot = null;
-    }
-  }
-
-  async sendNotification(
-    userId: string,
-    title: string,
-    message: string,
-    type: string,
-  ) {
-    try {
-      const user = await storage.getUser(userId);
-      if (!user || !user.telegramUsername) {
-        console.log(`[TELEGRAM] No Telegram Username found for user ${userId}. User data:`, {
-          id: user?.id,
-          username: user?.username,
-          telegramUsername: user?.telegramUsername
-        });
-        return;
-      }
-
-      if (!this.bot) {
-        console.log("[TELEGRAM] Bot not available");
-        return;
-      }
-
-      const telegramMessage = `*${title}*\n\n${message}`;
-      
-      console.log(`[TELEGRAM] Attempting to send message to user ${userId} (${user.telegramUsername})`);
-      await this.bot.sendMessage(user.telegramUsername, telegramMessage, {
-        parse_mode: "Markdown",
-        disable_web_page_preview: true,
-      });
-
-      console.log(`[TELEGRAM] Notification sent successfully to user ${userId} (${user.telegramUsername})`);
-    } catch (error) {
-      console.error(
-        `[TELEGRAM] Error sending notification to user ${userId}:`,
-        error,
-      );
-    }
-  }
-
-  async notifyAdminsRideRequestCreated(requestId: number, riderId: string) {
-    try {
-      const request = await storage.getRideRequest(requestId);
-      const rider = await storage.getUser(riderId);
-      const admins = await storage.getAdminUsers();
-
-      if (!request || !rider) return;
-
-      const title = "طلب رحلة جديد";
-      const message = `
-🚗 *طلب رحلة جديد من ${this.escapeMarkdown(rider.username)}*
-
-📍 *من:* ${this.escapeMarkdown(request.fromLocation)}
-📍 *إلى:* ${this.escapeMarkdown(request.toLocation)}
-🕐 *الوقت المفضل:* ${formatGMTPlus3TimeOnly(new Date(request.preferredTime))}
-👥 *عدد الركاب:* ${request.passengerCount}
-${request.notes ? `📝 *ملاحظات:* ${this.escapeMarkdown(request.notes)}` : ""}
-
-*رقم الطلب:* ${requestId}
-      `;
-
-      // Filter out the rider from admin notifications to avoid duplicates if rider is also admin
-      const adminsToNotify = admins.filter(admin => admin.id !== riderId);
-      
-      for (const admin of adminsToNotify) {
-        await this.sendNotification(
-          admin.id,
-          title,
-          message,
-          "admin_ride_request_created",
-        );
-      }
-
-      console.log(`[TELEGRAM] Notified ${adminsToNotify.length} admin(s) about new ride request ${requestId} (excluded rider from admin notifications)`);
-    } catch (error) {
-      console.error("Error notifying admins about ride request:", error);
-    }
-  }
-
-  async notifyTripCreated(tripId: number, driverId: string) {
-    try {
-      const trip = await storage.getTrip(tripId);
-      if (!trip) return;
-
-      await this.sendNotification(
-        driverId,
-        "تم إنشاء الرحلة",
-        `🚗 *تم إنشاء رحلتك بنجاح*\n\n📍 *من:* ${this.escapeMarkdown(trip.fromLocation)}\n📍 *إلى:* ${this.escapeMarkdown(trip.toLocation)}\n🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n👥 *المقاعد المتاحة:* ${trip.availableSeats}`,
-        "trip_created",
-      );
-    } catch (error) {
-      console.error("Error notifying trip creation:", error);
-    }
-  }
-
-  async notifyAdminsTripCreated(tripId: number, driverId: string) {
-    try {
-      const trip = await storage.getTrip(tripId);
-      const driver = await storage.getUser(driverId);
-      const admins = await storage.getAdminUsers();
-
-      if (!trip || !driver) return;
-
-      console.log(`[TELEGRAM] Debug - Driver ID: ${driverId}, Admin IDs: ${admins.map(a => a.id).join(', ')}`);
-
-      const title = "رحلة جديدة تم إنشاؤها";
-      const message = `
-🚗 *رحلة جديدة من ${this.escapeMarkdown(driver.username)}*
-
-📍 *من:* ${this.escapeMarkdown(trip.fromLocation)}
-📍 *إلى:* ${this.escapeMarkdown(trip.toLocation)}
-🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}
-👥 *المقاعد المتاحة:* ${trip.availableSeats}
-${trip.notes ? `📝 *ملاحظات:* ${this.escapeMarkdown(trip.notes)}` : ""}
-
-*رقم الرحلة:* ${tripId}
-      `;
-
-      // Filter out the driver from admin notifications to avoid duplicates
-      const adminsToNotify = admins.filter(admin => admin.id !== driverId);
-      
-      console.log(`[TELEGRAM] Admins to notify after filtering: ${adminsToNotify.map(a => `${a.id}(${a.username})`).join(', ')}`);
-      
-      for (const admin of adminsToNotify) {
-        await this.sendNotification(
-          admin.id,
-          title,
-          message,
-          "admin_trip_created",
-        );
-      }
-
-      console.log(`[TELEGRAM] Notified ${adminsToNotify.length} admin(s) about new trip ${tripId} (excluded driver from admin notifications)`);
-    } catch (error) {
-      console.error("Error notifying admins about trip creation:", error);
-    }
-  }
-
-  async notifyRideRequestReceived(driverId: string, requestId: number) {
-    const request = await storage.getRideRequest(requestId);
-    if (!request) return;
-
-    await this.sendNotification(
-      driverId,
-      "New Ride Request",
-      `You have a new ride request from ${request.fromLocation} to ${request.toLocation}.`,
-      "request_received",
-    );
-  }
-
-  async notifyRequestAccepted(riderId: string, tripId: number) {
-    const trip = await storage.getTrip(tripId);
-    if (!trip) return;
-
-    await this.sendNotification(
-      riderId,
-      "Ride Request Accepted",
-      "الرجاء الإتصال مع السائق لتأكيد الوقت والمكان.",
-      "request_accepted",
-    );
-  }
-
-  async notifyDriverRiderJoined(driverId: string, tripId: number, riderId: string, notes?: string) {
-    try {
-      const trip = await storage.getTrip(tripId);
-      const rider = await storage.getUser(riderId);
-      
-      if (!trip || !rider) return;
-
-      const title = "راكب جديد انضم للرحلة";
-      const message = `
-🚗 *راكب جديد انضم لرحلتك*
-
-👤 *الراكب:* ${this.escapeMarkdown(rider.username)}
-📍 *من:* ${this.escapeMarkdown(trip.fromLocation)}
-📍 *إلى:* ${this.escapeMarkdown(trip.toLocation)}
-🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}
-👥 *المقاعد المتبقية:* ${trip.availableSeats - 1}
-${notes ? `📝 *ملاحظات الراكب:* ${this.escapeMarkdown(notes)}` : ""}
-
-*رقم الرحلة:* ${tripId}
-      `;
-
-      await this.sendNotification(
-        driverId,
-        title,
-        message,
-        "rider_joined",
-      );
-
-      console.log(`[TELEGRAM] Notified driver ${driverId} about new rider ${riderId} joining trip ${tripId}`);
-    } catch (error) {
-      console.error("Error notifying driver about rider joining:", error);
-    }
-  }
-
-  async notifyRequestDeclined(riderId: string) {
-    await this.sendNotification(
-      riderId,
-      "Ride Request Declined",
-      "Your ride request has been declined. Please try another trip.",
-      "request_declined",
-    );
-  }
-
-  async notifyTripMatchesRequest(userId: string, tripId: number) {
-    const trip = await storage.getTrip(tripId);
-    if (!trip) return;
-
-    const dashboardUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "http://localhost:5000"}/dashboard`;
-
-    await this.sendNotification(
-      userId,
-      "New Trip Available",
-      `A new trip matching your request is available from ${this.escapeMarkdown(trip.fromLocation)} to ${this.escapeMarkdown(trip.toLocation)} departing at ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}. Click here to join: ${dashboardUrl}`,
-      "trip_match_found",
-    );
-  }
-
-  // Notify all riders when their driver's trip details are updated
-  async notifyRidersTripUpdated(tripId: number) {
-    try {
-      const trip = await storage.getTrip(tripId);
-      if (!trip) return;
-
-      const riderIds = trip.riders || [];
-      if (riderIds.length === 0) {
-        console.log(`[TELEGRAM] No riders to notify for updated trip ${tripId}`);
-        return;
-      }
-
-      const title = "تم تحديث تفاصيل الرحلة";
-      const message = `\n🚗 *تم تعديل تفاصيل الرحلة*\n\n📍 *من:* ${this.escapeMarkdown(trip.fromLocation)}\n📍 *إلى:* ${this.escapeMarkdown(trip.toLocation)}\n🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n👥 *المقاعد المتاحة:* ${trip.availableSeats}\n\n*رقم الرحلة:* ${tripId}`;
-
-      for (const riderId of riderIds) {
-        await this.sendNotification(riderId, title, message, "trip_updated");
-      }
-
-      console.log(`[TELEGRAM] Notified ${riderIds.length} rider(s) about updated trip ${tripId}`);
-    } catch (error) {
-      console.error("Error notifying riders about trip update:", error);
-    }
-  }
-}
-
-const telegramService = new TelegramNotificationService();
 
 async function notifyMatchingRideRequesters(trip: any) {
   try {
@@ -603,6 +333,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update profile" });
     }
   });
+
+  // ─── Telegram account linking ─────────────────────────────────────────────
+
+  app.get("/api/telegram/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (!user) return res.status(404).json({ message: "User not found" });
+      res.json({
+        linked: !!user.telegramId,
+        telegramUsername: user.telegramUsername ?? null,
+        linkedAt: null,
+      });
+    } catch (error) {
+      console.error("Error fetching Telegram status:", error);
+      res.status(500).json({ message: "Failed to fetch Telegram status" });
+    }
+  });
+
+  app.post("/api/telegram/connect", isAuthenticated, async (req: any, res) => {
+    try {
+      const code = telegramService.generateVerificationCode(req.user.id);
+      console.log(`[TELEGRAM] Verification code generated for user ${req.user.id}`);
+      res.json({ code });
+    } catch (error) {
+      console.error("Error generating Telegram verification code:", error);
+      res.status(500).json({ message: "Failed to generate verification code" });
+    }
+  });
+
+  app.post("/api/telegram/unlink", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (!user) return res.status(404).json({ message: "User not found" });
+      if (!user.telegramId) {
+        return res.status(400).json({ message: "No Telegram account linked" });
+      }
+      await storage.updateUser(req.user.id, { telegramId: null, telegramUsername: null });
+      console.log(`[TELEGRAM] User ${req.user.id} unlinked their Telegram account`);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error unlinking Telegram:", error);
+      res.status(500).json({ message: "Failed to unlink Telegram" });
+    }
+  });
+  // ─────────────────────────────────────────────────────────────────────────
 
   // Trips routes
   app.get("/api/trips", async (req, res) => {
