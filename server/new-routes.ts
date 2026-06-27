@@ -475,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         availableSeats: tripData.availableSeats,
         totalSeats: tripData.totalSeats || tripData.availableSeats,
         isRecurring: tripData.isRecurring || false,
-        recurringDays: JSON.stringify(tripData.recurringDays || []),
+        recurringDays: (tripData.recurringDays as unknown as string) ?? "[]",
         participantIds: tripData.participantIds || [],
       };
 

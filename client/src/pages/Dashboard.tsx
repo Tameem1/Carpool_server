@@ -65,24 +65,28 @@ export default function Dashboard() {
   // Trips data is kept fresh via refetchOnWindowFocus plus a short staleTime,
   // so switching tabs reuses the cache instead of forcing a blocking refetch.
 
-  // Function to get today's trip range (5 AM today to 4 AM tomorrow)
+  // Function to get the upcoming trip range using GMT+3 timezone.
+  // Shows trips from the START of the current carpool day (5 AM GMT+3)
+  // through the END of the NEXT carpool day — a ~48-hour forward window
+  // so trips created for tomorrow are always visible.
   const getTodayTripRange = () => {
-    const now = new Date();
-    const today = new Date(now);
+    const GMT3 = 3 * 60 * 60 * 1000;
+    const nowGMT3 = new Date(Date.now() + GMT3);
+    const hourGMT3 = nowGMT3.getUTCHours();
 
-    // If current time is before 5 AM, consider it part of previous day
-    if (now.getHours() < 5) {
-      today.setDate(today.getDate() - 1);
-    }
+    // Find the start of the current carpool day (5 AM GMT+3).
+    // If it's before 5 AM GMT+3 we're still in "yesterday's" carpool day.
+    const startGMT3 = new Date(nowGMT3);
+    if (hourGMT3 < 5) startGMT3.setUTCDate(startGMT3.getUTCDate() - 1);
+    startGMT3.setUTCHours(5, 0, 0, 0);
 
-    // Start at 5 AM today
-    const startTime = new Date(today);
-    startTime.setHours(5, 0, 0, 0);
+    // End = 5 AM two carpool days later (covers today + tomorrow fully)
+    const endGMT3 = new Date(startGMT3);
+    endGMT3.setUTCDate(endGMT3.getUTCDate() + 2);
 
-    // End at 4 AM tomorrow
-    const endTime = new Date(today);
-    endTime.setDate(endTime.getDate() + 1);
-    endTime.setHours(4, 0, 0, 0);
+    // Convert from "GMT+3 wall-clock stored as UTC" back to real UTC
+    const startTime = new Date(startGMT3.getTime() - GMT3);
+    const endTime = new Date(endGMT3.getTime() - GMT3);
 
     return { startTime, endTime };
   };
@@ -258,7 +262,7 @@ export default function Dashboard() {
               <div className="flex-1">
                 <h2 className="responsive-text-xl font-semibold">{tabSectionTitle}</h2>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                  من الساعة 5 صباحاً حتى 4 صباحاً من اليوم التالي
+                  رحلات اليوم والغد (من الساعة 5 صباحاً)
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
@@ -330,7 +334,7 @@ export default function Dashboard() {
                   رحلاتي لليوم
                 </h2>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                  من الساعة 5 صباحاً حتى 4 صباحاً من اليوم التالي
+                  رحلات اليوم والغد (من الساعة 5 صباحاً)
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
