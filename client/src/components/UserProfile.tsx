@@ -65,9 +65,9 @@ export function UserProfile() {
   });
 
   const connectMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (): Promise<{ code: string }> => {
       const res = await apiRequest("POST", "/api/telegram/connect", {});
-      return res as { code: string };
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/telegram/status"] });
