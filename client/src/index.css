@@ -1,0 +1,181 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 220 13% 98%; /* #F9FAFB */
+  --foreground: 220 87% 5%; /* #111827 */
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 87% 5%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 87% 5%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --primary: 173 80% 40%; /* #00D4AA */
+  --primary-foreground: 0 0% 98%;
+  --secondary: 221 83% 53%; /* #1E3A8A */
+  --secondary-foreground: 0 0% 98%;
+  --accent: 220 14% 96%;
+  --accent-foreground: 220 87% 5%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --success: 142 76% 36%; /* #10B981 */
+  --warning: 38 92% 50%; /* #F59E0B */
+  --ring: 220 87% 5%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 240 10% 4%;
+  --foreground: 0 0% 98%;
+  --muted: 240 4% 16%;
+  --muted-foreground: 240 5% 65%;
+  --popover: 240 10% 4%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 4%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 4% 16%;
+  --input: 240 4% 16%;
+  --primary: 173 80% 40%; /* #00D4AA */
+  --primary-foreground: 0 0% 98%;
+  --secondary: 221 83% 53%; /* #1E3A8A */
+  --secondary-foreground: 0 0% 98%;
+  --accent: 240 4% 16%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 0 0% 98%;
+  --success: 142 76% 36%; /* #10B981 */
+  --warning: 38 92% 50%; /* #F59E0B */
+  --ring: 240 5% 84%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', 'Cairo', 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    direction: rtl;
+    text-align: right;
+  }
+
+  html {
+    overflow-x: hidden;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+}
+
+/* Custom utility classes for the carpool app */
+@layer utilities {
+  .text-success {
+    color: hsl(var(--success));
+  }
+  
+  .text-warning {
+    color: hsl(var(--warning));
+  }
+  
+  .bg-success {
+    background-color: hsl(var(--success));
+  }
+  
+  .bg-warning {
+    background-color: hsl(var(--warning));
+  }
+  
+  .border-success {
+    border-color: hsl(var(--success));
+  }
+  
+  .border-warning {
+    border-color: hsl(var(--warning));
+  }
+
+  /* Mobile responsive utilities */
+  .mobile-safe-area {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  .mobile-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .mobile-padding-tight {
+    @apply px-3 sm:px-4;
+  }
+
+  .mobile-margin {
+    @apply mx-4 sm:mx-6 lg:mx-8;
+  }
+
+  .touch-friendly {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Fix for RTL spacing on mobile */
+  .mobile-rtl-fix {
+    direction: rtl;
+  }
+
+  .mobile-rtl-fix .flex {
+    flex-direction: row-reverse;
+  }
+
+  /* Responsive text sizes */
+  .responsive-text-lg {
+    @apply text-base sm:text-lg;
+  }
+
+  .responsive-text-xl {
+    @apply text-lg sm:text-xl;
+  }
+
+  .responsive-text-2xl {
+    @apply text-xl sm:text-2xl;
+  }
+
+  /* Mobile container utilities */
+  .mobile-container {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .mobile-card-spacing {
+    @apply space-y-3 sm:space-y-4;
+  }
+
+  .mobile-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6;
+  }
+
+  /* Mobile button improvements */
+  .mobile-button {
+    @apply touch-friendly px-4 py-2 text-sm sm:text-base;
+  }
+
+  .mobile-button-sm {
+    @apply touch-friendly px-3 py-2 text-xs sm:text-sm;
+  }
+
+  /* Mobile form spacing */
+  .mobile-form-spacing {
+    @apply space-y-3 sm:space-y-4;
+  }
+
+  /* Mobile text responsive */
+  .mobile-text {
+    @apply text-sm sm:text-base;
+  }
+
+  .mobile-heading {
+    @apply text-lg sm:text-xl lg:text-2xl;
+  }
+}

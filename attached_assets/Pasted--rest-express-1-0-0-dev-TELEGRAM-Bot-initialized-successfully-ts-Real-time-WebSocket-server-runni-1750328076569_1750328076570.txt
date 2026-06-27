@@ -1,0 +1,132 @@
+> rest-express@1.0.0 dev
+[TELEGRAM] Bot initialized successfully.ts
+Real-time WebSocket server running on port 5001
+10:13:18 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+10:13:23 AM [express] GET /api/auth/user 401 in 2ms :: {"message":"Not authenticated"}
+Client connected to real-time WebSocket
+10:13:23 AM [express] GET /api/auth/sections 200 in 258ms :: ["aasem","awab","bader","dubai-omar","ja…
+Client disconnected from real-time WebSocket
+10:13:32 AM [express] GET /api/auth/user 304 in 176ms :: {"id":"66","username":"تميم","section":"duba…
+Intercepted ride requests API call
+=== RIDE REQUESTS API ROUTE HIT ===
+Session: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-06-20T09:04:19.177Z,
+    originalMaxAge: 86400000,
+    httpOnly: true,
+    secure: false
+  },
+  passport: { user: '66' }
+}
+User: {
+  id: '66',
+  username: 'تميم',
+  section: 'dubai-omar',
+  role: 'admin',
+  telegramUsername: '778969069',
+  telegramId: '123456789'
+}
+IsAuthenticated: true
+Getting today's pending ride requests...
+Date range for today's requests:
+Start UTC: 2025-06-19T02:00:00.000Z
+End UTC: 2025-06-20T01:00:00.000Z
+10:13:33 AM [express] GET /api/stats 200 in 179ms
+Found today's pending ride requests: 3
+Sample request: {
+  id: 34,
+  riderId: '30',
+  fromLocation: 'fdd[',
+  toLocation: 'htfht',
+  preferredTime: 2025-06-19T08:48:00.000Z,
+  passengerCount: 1,
+  notes: null,
+  status: 'pending',
+  tripId: null,
+  createdAt: 2025-06-19T07:48:34.411Z,
+  updatedAt: 2025-06-19T09:48:07.306Z
+}
+Total pending requests in database: 18
+Latest pending request: {
+  id: 35,
+  riderId: '384',
+  fromLocation: 'المالكي',
+  toLocation: 'النادي',
+  preferredTime: 2025-06-19T13:42:00.000Z,
+  passengerCount: 1,
+  notes: null,
+  status: 'pending',
+  tripId: null,
+  createdAt: 2025-06-19T08:42:35.321Z,
+  updatedAt: 2025-06-19T08:42:35.321Z
+}
+User authenticated: 66
+Found requests: 3
+10:13:33 AM [express] GET /api/notifications 304 in 233ms :: [{"id":78,"userId":"66","title":"راكب جد…
+Returning 3 enriched requests
+10:13:33 AM [express] GET /api/ride-requests/all 200 in 355ms :: [{"id":34,"riderId":"30","fromLocati…
+10:13:33 AM [express] GET /api/trips 304 in 879ms :: [{"id":5,"driverId":"driver-2","riders":["rider-…
+10:13:34 AM [express] GET /api/users 304 in 345ms :: [{"id":"66","username":"تميم","section":"dubai-o…
+10:14:00 AM [express] PATCH /api/ride-requests/36/assign-to-trip 200 in 705ms
+Intercepted ride requests API call
+=== RIDE REQUESTS API ROUTE HIT ===
+Session: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-06-20T09:04:19.177Z,
+    originalMaxAge: 86400000,
+    httpOnly: true,
+    secure: false
+  },
+  passport: { user: '66' }
+}
+User: {
+  id: '66',
+  username: 'تميم',
+  section: 'dubai-omar',
+  role: 'admin',
+  telegramUsername: '778969069',
+  telegramId: '123456789'
+}
+IsAuthenticated: true
+Getting today's pending ride requests...
+Date range for today's requests:
+Start UTC: 2025-06-19T02:00:00.000Z
+End UTC: 2025-06-20T01:00:00.000Z
+Found today's pending ride requests: 3
+Sample request: {
+  id: 34,
+  riderId: '30',
+  fromLocation: 'fdd[',
+  toLocation: 'htfht',
+  preferredTime: 2025-06-19T08:48:00.000Z,
+  passengerCount: 1,
+  notes: null,
+  status: 'pending',
+  tripId: null,
+  createdAt: 2025-06-19T07:48:34.411Z,
+  updatedAt: 2025-06-19T09:48:07.306Z
+}
+Total pending requests in database: 18
+Latest pending request: {
+  id: 35,
+  riderId: '384',
+  fromLocation: 'المالكي',
+  toLocation: 'النادي',
+  preferredTime: 2025-06-19T13:42:00.000Z,
+  passengerCount: 1,
+  notes: null,
+  status: 'pending',
+  tripId: null,
+  createdAt: 2025-06-19T08:42:35.321Z,
+  updatedAt: 2025-06-19T08:42:35.321Z
+}
+User authenticated: 66
+Found requests: 3
+Returning 3 enriched requests
+10:14:02 AM [express] GET /api/ride-requests/all 200 in 541ms :: [{"id":34,"riderId":"30","fromLocati…
+10:14:03 AM [express] GET /api/trips 304 in 673ms :: [{"id":5,"driverId":"driver-2","riders":["rider-…
