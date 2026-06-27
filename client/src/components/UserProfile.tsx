@@ -9,7 +9,17 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Phone, Save, Send, Link2, Link2Off, Copy, CheckCheck, Loader2 } from "lucide-react";
+import {
+  User,
+  Phone,
+  Save,
+  Send,
+  Link2,
+  Link2Off,
+  Copy,
+  CheckCheck,
+  Loader2,
+} from "lucide-react";
 import AddUserDialog from "@/components/AddUserDialog";
 
 export function UserProfile() {
@@ -39,11 +49,18 @@ export function UserProfile() {
       return response;
     },
     onSuccess: () => {
-      toast({ title: "تم التحديث", description: "تم تحديث ملفك الشخصي بنجاح." });
+      toast({
+        title: "تم التحديث",
+        description: "تم تحديث ملفك الشخصي بنجاح.",
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     },
     onError: (error: any) => {
-      toast({ title: "خطأ", description: error.message || "فشل تحديث الملف الشخصي", variant: "destructive" });
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل تحديث الملف الشخصي",
+        variant: "destructive",
+      });
     },
   });
 
@@ -73,7 +90,11 @@ export function UserProfile() {
       queryClient.invalidateQueries({ queryKey: ["/api/telegram/status"] });
     },
     onError: (error: any) => {
-      toast({ title: "خطأ", description: error.message || "فشل توليد الكود", variant: "destructive" });
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل توليد الكود",
+        variant: "destructive",
+      });
     },
   });
 
@@ -82,12 +103,19 @@ export function UserProfile() {
       await apiRequest("POST", "/api/telegram/unlink", {});
     },
     onSuccess: () => {
-      toast({ title: "تم إلغاء الربط", description: "تم إلغاء ربط حساب تيليغرام بنجاح." });
+      toast({
+        title: "تم إلغاء الربط",
+        description: "تم إلغاء ربط حساب تيليغرام بنجاح.",
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/telegram/status"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     },
     onError: (error: any) => {
-      toast({ title: "خطأ", description: error.message || "فشل إلغاء الربط", variant: "destructive" });
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل إلغاء الربط",
+        variant: "destructive",
+      });
     },
   });
 
@@ -97,7 +125,11 @@ export function UserProfile() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast({ title: "تعذر النسخ", description: "انسخ الكود يدوياً", variant: "destructive" });
+      toast({
+        title: "تعذر النسخ",
+        description: "انسخ الكود يدوياً",
+        variant: "destructive",
+      });
     }
   };
 
@@ -108,11 +140,13 @@ export function UserProfile() {
 
   return (
     <div className="max-w-2xl mx-auto mobile-padding py-3 sm:py-6 lg:py-8 space-y-6">
-
       {/* Admin Add User Button */}
       {user.role === "admin" && (
         <div className="flex justify-end">
-          <Button onClick={() => setShowAddUser(true)} className="bg-primary hover:bg-primary/90">
+          <Button
+            onClick={() => setShowAddUser(true)}
+            className="bg-primary hover:bg-primary/90"
+          >
             إضافة مستخدم
           </Button>
         </div>
@@ -130,7 +164,9 @@ export function UserProfile() {
           <div className="flex items-center gap-4 mb-6">
             <Avatar className="h-16 w-16">
               <AvatarImage src={(user as any).profileImageUrl || ""} />
-              <AvatarFallback className="text-lg">{user.username?.[0]}</AvatarFallback>
+              <AvatarFallback className="text-lg">
+                {user.username?.[0]}
+              </AvatarFallback>
             </Avatar>
             <div>
               <h3 className="text-lg font-semibold">{user.username}</h3>
@@ -154,7 +190,9 @@ export function UserProfile() {
                   disabled
                   className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                 />
-                <p className="text-xs text-gray-500 mt-1">لا يمكن تغيير اسم المستخدم</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  لا يمكن تغيير اسم المستخدم
+                </p>
               </div>
               <div>
                 <Label htmlFor="section">القسم</Label>
@@ -165,7 +203,9 @@ export function UserProfile() {
                   disabled
                   className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                 />
-                <p className="text-xs text-gray-500 mt-1">لا يمكن تغيير القسم</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  لا يمكن تغيير القسم
+                </p>
               </div>
             </div>
 
@@ -179,7 +219,12 @@ export function UserProfile() {
                 data-testid="input-phone-number"
                 type="tel"
                 value={formData.phoneNumber}
-                onChange={(e) => setFormData((prev) => ({ ...prev, phoneNumber: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    phoneNumber: e.target.value,
+                  }))
+                }
                 placeholder="+966-5X-XXXXXXX"
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -198,7 +243,9 @@ export function UserProfile() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              {updateProfileMutation.isPending ? "جاري الحفظ..." : "حفظ الملف الشخصي"}
+              {updateProfileMutation.isPending
+                ? "جاري الحفظ..."
+                : "حفظ الملف الشخصي"}
             </Button>
           </form>
         </CardContent>
@@ -260,14 +307,30 @@ export function UserProfile() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <div className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
-                <span className="text-sm text-blue-700 dark:text-blue-400">في انتظار التأكيد</span>
+                <span className="text-sm text-blue-700 dark:text-blue-400">
+                  في انتظار التأكيد
+                </span>
               </div>
 
               <div className="space-y-2">
                 <p className="text-sm font-medium">الخطوات:</p>
                 <ol className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-decimal list-inside">
                   <li>افتح تيليغرام وابحث عن البوت</li>
-                  <li>اضغط <strong>Start</strong> أو أرسل <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">/start</code></li>
+                  <Button variant="outline" asChild>
+                    <a
+                      href="https://t.me/Carsevally_bot"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      فتح البوت
+                    </a>
+                  </Button>
+                  <li>
+                    اضغط <strong>Start</strong> أو أرسل{" "}
+                    <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">
+                      /start
+                    </code>
+                  </li>
                   <li>أرسل الكود التالي في محادثة البوت:</li>
                 </ol>
               </div>
@@ -286,12 +349,17 @@ export function UserProfile() {
                   onClick={() => handleCopyCode(pendingCode)}
                   className="shrink-0"
                 >
-                  {copied ? <CheckCheck className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                  {copied ? (
+                    <CheckCheck className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
 
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                ينتهي الكود خلال 10 دقائق. إذا انتهت الصلاحية، اضغط «ربط تيليغرام» مجدداً.
+                ينتهي الكود خلال 10 دقائق. إذا انتهت الصلاحية، اضغط «ربط
+                تيليغرام» مجدداً.
               </p>
 
               <div className="flex gap-2">
@@ -301,7 +369,9 @@ export function UserProfile() {
                   className="flex-1"
                   onClick={() => {
                     connectMutation.reset();
-                    queryClient.invalidateQueries({ queryKey: ["/api/telegram/status"] });
+                    queryClient.invalidateQueries({
+                      queryKey: ["/api/telegram/status"],
+                    });
                   }}
                 >
                   إلغاء
@@ -310,7 +380,11 @@ export function UserProfile() {
                   data-testid="button-refresh-status"
                   size="sm"
                   className="flex-1"
-                  onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/telegram/status"] })}
+                  onClick={() =>
+                    queryClient.invalidateQueries({
+                      queryKey: ["/api/telegram/status"],
+                    })
+                  }
                 >
                   تحقق من الاتصال
                 </Button>
@@ -322,7 +396,9 @@ export function UserProfile() {
               <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-gray-400" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">غير متصل</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    غير متصل
+                  </span>
                 </div>
                 <Badge variant="outline" className="text-xs text-gray-500">
                   غير مرتبط
@@ -350,7 +426,10 @@ export function UserProfile() {
       </Card>
 
       {user.role === "admin" && (
-        <AddUserDialog open={showAddUser} onClose={() => setShowAddUser(false)} />
+        <AddUserDialog
+          open={showAddUser}
+          onClose={() => setShowAddUser(false)}
+        />
       )}
     </div>
   );
