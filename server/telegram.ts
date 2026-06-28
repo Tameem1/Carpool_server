@@ -582,6 +582,130 @@ class TelegramNotificationService {
     }
   }
 
+  // ─── Helper: build full passenger list block ─────────────────────────────
+
+  private async buildPassengersBlock(riderIds: string[], totalSeats: number): Promise<string> {
+    const remaining = totalSeats - riderIds.length;
+    if (riderIds.length === 0) {
+      return `🚗 *لا يوجد ركاب حالياً في السيارة*\n💺 *المقاعد المتبقية:* ${remaining}`;
+    }
+    const userMap = await storage.getUsersByIds(riderIds);
+    const lines = riderIds.map((id, i) => {
+      const u = userMap.get(id);
+      return u ? `${i + 1}. ${u.username} - ${u.section}` : `${i + 1}. غير معروف`;
+    }).join("\n");
+    return `🚗 *الركاب الحاليون داخل السيارة:*\n${lines}\n💺 *المقاعد المتبقية:* ${remaining}`;
+  }
+
+  // ─── Rider added by admin ─────────────────────────────────────────────────
+
+  async notifyDriverRiderAddedByAdmin(
+    driverId: string,
+    tripId: number,
+    riderId: string,
+    updatedRiders: string[],
+    totalSeats: number,
+  ) {
+    try {
+      const trip = await storage.getTrip(tripId);
+      const rider = await storage.getUser(riderId);
+      if (!trip || !rider) return;
+
+      const tripType = trip.isReturnTrip ? "رحلة العودة" : "رحلة الذهاب";
+      const passengersBlock = await this.buildPassengersBlock(updatedRiders, totalSeats);
+
+      const msg =
+        `👤 *راكب جديد انضم إلى سيارتك*\n\n` +
+        `اسم المستخدم: *${esc(rider.username)}*\n` +
+        `المجموعة: *${esc(rider.section)}*\n` +
+        `نوع الانضمام: تمت إضافته بواسطة المشرف\n` +
+        `نوع الرحلة: ${esc(tripType)}\n` +
+        `📍 *من:* ${esc(trip.fromLocation)}\n` +
+        `📍 *إلى:* ${esc(trip.toLocation)}\n` +
+        `🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n` +
+        `📝 *ملاحظات:* لا يوجد\n\n` +
+        `━━━━━━━━━━━━━━\n` +
+        passengersBlock;
+
+      await this.sendNotification(driverId, "راكب جديد أضافه المشرف", msg, "rider_added_by_admin");
+    } catch (err) {
+      console.error("[TELEGRAM] notifyDriverRiderAddedByAdmin error:", err);
+    }
+  }
+
+  // ─── Rider joined by themselves (detailed, with full passenger list) ───────
+
+  async notifyDriverRiderJoinedSelf(
+    driverId: string,
+    tripId: number,
+    riderId: string,
+    updatedRiders: string[],
+    totalSeats: number,
+    notes?: string,
+  ) {
+    try {
+      const trip = await storage.getTrip(tripId);
+      const rider = await storage.getUser(riderId);
+      if (!trip || !rider) return;
+
+      const tripType = trip.isReturnTrip ? "✅ رحلة العودة" : "✅ رحلة الذهاب";
+      const passengersBlock = await this.buildPassengersBlock(updatedRiders, totalSeats);
+
+      const msg =
+        `👤 *راكب جديد انضم إلى رحلتك*\n\n` +
+        `اسم المستخدم: *${esc(rider.username)}*\n` +
+        `المجموعة: *${esc(rider.section)}*\n` +
+        `نوع الانضمام: انضم بنفسه\n` +
+        `نوع الرحلة: ${esc(tripType)}\n` +
+        `📍 *من:* ${esc(trip.fromLocation)}\n` +
+        `📍 *إلى:* ${esc(trip.toLocation)}\n` +
+        `🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n` +
+        `📝 *ملاحظات:* ${notes ? esc(notes) : "لا يوجد"}\n\n` +
+        `━━━━━━━━━━━━━━\n` +
+        passengersBlock;
+
+      await this.sendNotification(driverId, "راكب جديد انضم للرحلة", msg, "rider_joined_self");
+    } catch (err) {
+      console.error("[TELEGRAM] notifyDriverRiderJoinedSelf error:", err);
+    }
+  }
+
+  // ─── Rider removed (self or admin) ───────────────────────────────────────
+
+  async notifyDriverRiderRemoved(
+    driverId: string,
+    tripId: number,
+    riderId: string,
+    removedBySelf: boolean,
+    updatedRiders: string[],
+    totalSeats: number,
+  ) {
+    try {
+      const trip = await storage.getTrip(tripId);
+      const rider = await storage.getUser(riderId);
+      if (!trip || !rider) return;
+
+      const tripType = trip.isReturnTrip ? "رحلة العودة" : "رحلة الذهاب";
+      const reason = removedBySelf ? "ألغى بنفسه" : "ألغاه المشرف";
+      const passengersBlock = await this.buildPassengersBlock(updatedRiders, totalSeats);
+
+      const msg =
+        `❌ *تم إلغاء انضمام راكب*\n\n` +
+        `اسم المستخدم: *${esc(rider.username)}*\n` +
+        `المجموعة: *${esc(rider.section)}*\n` +
+        `سبب الإلغاء: ${esc(reason)}\n` +
+        `كان ضمن: ${esc(tripType)}\n` +
+        `📍 *من:* ${esc(trip.fromLocation)}\n` +
+        `📍 *إلى:* ${esc(trip.toLocation)}\n\n` +
+        `━━━━━━━━━━━━━━\n` +
+        passengersBlock;
+
+      await this.sendNotification(driverId, "إلغاء انضمام راكب", msg, "rider_removed");
+    } catch (err) {
+      console.error("[TELEGRAM] notifyDriverRiderRemoved error:", err);
+    }
+  }
+
   async notifyReturnTripCreated(tripId: number, riderIds: string[]) {
     try {
       const trip = await storage.getTrip(tripId);

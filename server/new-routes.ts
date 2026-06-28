@@ -717,6 +717,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         trip: updatedTrip,
       });
 
+      // Notify driver via Telegram — only when someone other than the driver added the rider
+      if (trip.driverId !== currentUserId) {
+        telegramService.notifyDriverRiderAddedByAdmin(
+          trip.driverId,
+          tripId,
+          userId,
+          updatedRiders,
+          updatedTrip.totalSeats,
+        ).catch((err) => console.error("[TELEGRAM] notifyDriverRiderAddedByAdmin failed:", err));
+      }
+
       res.json({ message: "Rider added successfully", trip: updatedTrip });
     } catch (error) {
       console.error("Error adding rider to trip:", error);
@@ -784,6 +795,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: "trip_updated",
         trip: updatedTrip,
       });
+
+      // Notify driver via Telegram — skip when the driver removed the rider themselves
+      if (trip.driverId !== currentUserId) {
+        telegramService.notifyDriverRiderRemoved(
+          trip.driverId,
+          tripId,
+          userId,
+          isSelfRemoval,
+          updatedRiders,
+          updatedTrip.totalSeats,
+        ).catch((err) => console.error("[TELEGRAM] notifyDriverRiderRemoved failed:", err));
+      }
 
       res.json({ message: "Rider removed successfully", trip: updatedTrip });
     } catch (error) {
@@ -1063,8 +1086,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Send Telegram notifications if available
           try {
             await telegramService.notifyRequestAccepted(riderId, tripId);
-            // Notify driver about the new rider joining
-            await telegramService.notifyDriverRiderJoined(trip.driverId, tripId, riderId, message);
+            // Notify driver with full passenger list (detailed join notification)
+            await telegramService.notifyDriverRiderJoinedSelf(
+              trip.driverId,
+              tripId,
+              riderId,
+              updatedRiders,
+              updatedTrip.totalSeats,
+              message,
+            );
           } catch (notificationError) {
             console.error("Error sending Telegram notification:", notificationError);
           }
