@@ -598,6 +598,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         trip: trip,
       });
 
+      // Live monitor broadcast (fire-and-forget)
+      telegramService.broadcastLiveTripCreated(trip.id, trip.driverId).catch(() => {});
+
       res.status(201).json(trip);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -728,6 +731,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ).catch((err) => console.error("[TELEGRAM] notifyDriverRiderAddedByAdmin failed:", err));
       }
 
+      // Live monitor broadcast
+      telegramService.broadcastLiveRiderJoined(tripId, userId, true, updatedRiders, updatedTrip.totalSeats, trip.driverId).catch(() => {});
+
       res.json({ message: "Rider added successfully", trip: updatedTrip });
     } catch (error) {
       console.error("Error adding rider to trip:", error);
@@ -807,6 +813,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updatedTrip.totalSeats,
         ).catch((err) => console.error("[TELEGRAM] notifyDriverRiderRemoved failed:", err));
       }
+
+      // Live monitor broadcast
+      const prevAvailable = trip.availableSeats ?? 0;
+      telegramService.broadcastLiveRiderRemoved(
+        tripId, userId, isSelfRemoval, updatedRiders, updatedTrip.totalSeats, trip.driverId, prevAvailable
+      ).catch(() => {});
 
       res.json({ message: "Rider removed successfully", trip: updatedTrip });
     } catch (error) {
@@ -976,6 +988,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "You can only delete your own trips" });
       }
 
+      // Capture trip data for live broadcast before deletion
+      const deletedTripData = { ...trip };
+
       await storage.deleteTrip(tripId);
 
       // Broadcast trip deletion to all connected clients
@@ -983,6 +998,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: "trip_deleted",
         tripId: tripId,
       });
+
+      // Live monitor broadcast
+      telegramService.broadcastLiveTripDeleted(deletedTripData).catch(() => {});
 
       res.status(200).json({ message: "Trip deleted successfully" });
     } catch (error) {
@@ -1104,6 +1122,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             type: "rider_joined",
             data: { joinRequest, trip: updatedTrip, rider: requester },
           });
+
+          // Live monitor broadcast for self-join
+          telegramService.broadcastLiveRiderJoined(
+            tripId, riderId, false, updatedRiders, updatedTrip.totalSeats, trip.driverId
+          ).catch(() => {});
 
           // Remove rider's pending ride requests once they are assigned to a trip
           try {
@@ -1263,6 +1286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate incoming updates
       const updates = insertTripSchema.partial().parse(req.body);
 
+      const oldTripData = { ...trip };
       const updatedTrip = await storage.updateTrip(tripId, updates);
 
       // Notify all riders that the trip has been updated
@@ -1271,6 +1295,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (notificationError) {
         console.error("Error sending Telegram notifications for trip update:", notificationError);
       }
+
+      // Live monitor broadcast (changed fields only)
+      telegramService.broadcastLiveTripUpdated(oldTripData, updatedTrip).catch(() => {});
 
       // Broadcast trip update to connected WebSocket clients
       broadcastToAll({

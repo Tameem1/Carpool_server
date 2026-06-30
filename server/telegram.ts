@@ -63,6 +63,9 @@ class TelegramNotificationService {
   private initialized = false;
   private botUsername: string | null = null;
 
+  // chatId → userId: everyone who ran /live on
+  private liveSubscribers = new Map<number, string>();
+
   constructor() {
     this.init();
   }
@@ -214,6 +217,97 @@ class TelegramNotificationService {
       }
     });
 
+    // /live on | /live off
+    this.bot.onText(/^\/live (.+)$/, async (msg, match) => {
+      const chatId = msg.chat.id;
+      const arg = (match?.[1] ?? "").trim().toLowerCase();
+      console.log(`[TELEGRAM] /live ${arg} from chatId=${chatId}`);
+
+      const linked = await this.findUserByChatId(chatId);
+      if (!linked) {
+        await this.bot!.sendMessage(chatId, "❌ يجب ربط حسابك أولاً قبل استخدام المراقبة المباشرة. استخدم /start للبدء.");
+        return;
+      }
+
+      if (arg === "on") {
+        this.liveSubscribers.set(chatId, linked.id);
+        console.log(`[TELEGRAM] Live ON: chatId=${chatId}, userId=${linked.id}`);
+        await this.bot!.sendMessage(
+          chatId,
+          `🟢 *تم تفعيل المراقبة المباشرة\\.*\n\nمن الآن ستصلك جميع تحديثات الرحلات بشكل مباشر\\.`,
+          { parse_mode: "MarkdownV2" },
+        );
+      } else if (arg === "off") {
+        this.liveSubscribers.delete(chatId);
+        console.log(`[TELEGRAM] Live OFF: chatId=${chatId}`);
+        await this.bot!.sendMessage(
+          chatId,
+          `🔴 *تم إيقاف المراقبة المباشرة\\.*`,
+          { parse_mode: "MarkdownV2" },
+        );
+      } else {
+        await this.bot!.sendMessage(chatId, "استخدم /live on لتفعيل المراقبة أو /live off لإيقافها.");
+      }
+    });
+
+    // /info — inline keyboard trip browser
+    this.bot.onText(/^\/info$/, async (msg) => {
+      const chatId = msg.chat.id;
+      console.log(`[TELEGRAM] /info from chatId=${chatId}`);
+      const linked = await this.findUserByChatId(chatId);
+      if (!linked) {
+        await this.bot!.sendMessage(chatId, "❌ يجب ربط حسابك أولاً. استخدم /start للبدء.");
+        return;
+      }
+      await this.sendTripTypeMenu(chatId);
+    });
+
+    // Inline keyboard callback queries
+    this.bot.on("callback_query", async (query) => {
+      if (!query.message || !query.data) return;
+      const chatId = query.message.chat.id;
+      const msgId = query.message.message_id;
+      const data = query.data;
+
+      try {
+        await this.bot!.answerCallbackQuery(query.id);
+      } catch (_) {}
+
+      try {
+        if (data === "trips_back") {
+          await this.bot!.editMessageText("📋 *اختر نوع الرحلات*", {
+            chat_id: chatId,
+            message_id: msgId,
+            parse_mode: "Markdown",
+            reply_markup: this.tripTypeKeyboard(),
+          });
+          return;
+        }
+
+        const isReturn = data === "trips_return" || data === "trips_refresh_return";
+        const label = isReturn ? "🔵 رحلات العودة" : "🟢 رحلات الذهاب";
+        const refreshData = isReturn ? "trips_refresh_return" : "trips_refresh_outgoing";
+
+        const tripsText = await this.buildTripListText(isReturn);
+
+        await this.bot!.editMessageText(`${label}\n\n${tripsText}`, {
+          chat_id: chatId,
+          message_id: msgId,
+          parse_mode: "Markdown",
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: "🔄 تحديث", callback_data: refreshData },
+                { text: "🔙 رجوع", callback_data: "trips_back" },
+              ],
+            ],
+          },
+        });
+      } catch (err: any) {
+        console.error(`[TELEGRAM] callback_query error (${data}):`, err?.message);
+      }
+    });
+
     // Plain text → treat as verification code
     this.bot.on("message", async (msg) => {
       if (!msg.text) return;
@@ -229,6 +323,61 @@ class TelegramNotificationService {
     });
 
     console.log("[TELEGRAM] All command handlers registered");
+  }
+
+  // ─── /info helpers ────────────────────────────────────────────────────────
+
+  private tripTypeKeyboard() {
+    return {
+      inline_keyboard: [
+        [
+          { text: "🟢 رحلات الذهاب", callback_data: "trips_outgoing" },
+          { text: "🔵 رحلات العودة", callback_data: "trips_return" },
+        ],
+      ],
+    };
+  }
+
+  private async sendTripTypeMenu(chatId: number) {
+    await this.bot!.sendMessage(chatId, "📋 *اختر نوع الرحلات*", {
+      parse_mode: "Markdown",
+      reply_markup: this.tripTypeKeyboard(),
+    });
+  }
+
+  private async buildTripListText(returnOnly: boolean): Promise<string> {
+    const allTrips = await storage.getAllTrips();
+    const filtered = allTrips.filter((t) => t.isReturnTrip === returnOnly);
+
+    if (filtered.length === 0) return "لا توجد رحلات حالياً.";
+
+    const driverIds = filtered.map((t) => t.driverId);
+    const driverMap = await storage.getUsersByIds(driverIds);
+
+    return filtered
+      .map((t) => {
+        const driver = driverMap.get(t.driverId);
+        const driverName = driver?.username ?? "غير معروف";
+        const riders = t.riders?.length ?? 0;
+        const total = t.totalSeats ?? 0;
+        const remaining = t.availableSeats ?? 0;
+        const timeStr = formatGMTPlus3TimeOnly(new Date(t.departureTime));
+        const seatsLine =
+          remaining === 0
+            ? "🚫 السيارة ممتلئة"
+            : remaining === 1
+              ? "💺 بقي مقعد واحد"
+              : `💺 المقاعد المتبقية: ${remaining}`;
+
+        return (
+          `🚗 *${driverName}*\n` +
+          `📍 ${t.fromLocation} → ${t.toLocation}\n` +
+          `🕓 ${timeStr}\n` +
+          `👥 ${riders} / ${total}\n` +
+          seatsLine
+        );
+      })
+      .join("\n\n─────────────\n\n");
   }
 
   // ─── Code submission ──────────────────────────────────────────────────────
@@ -579,6 +728,171 @@ class TelegramNotificationService {
       await this.sendNotification(driverId, "طلب انضمام جديد", msg, "join_request_received");
     } catch (err) {
       console.error("[TELEGRAM] notifyDriverJoinRequest error:", err);
+    }
+  }
+
+  // ─── Live Monitor Broadcasting ───────────────────────────────────────────
+
+  /** Send a message to all live subscribers (fire-and-forget per subscriber). */
+  private async broadcastLiveMsg(text: string) {
+    if (this.liveSubscribers.size === 0) return;
+    if (!this.bot) return;
+    const sends = Array.from(this.liveSubscribers.keys()).map(async (chatId) => {
+      try {
+        await this.bot!.sendMessage(chatId, text, { parse_mode: "Markdown" });
+      } catch (err: any) {
+        const status = err?.response?.statusCode;
+        console.error(`[TELEGRAM/LIVE] Failed to send to chatId=${chatId}: HTTP ${status}`, err?.message);
+        if (status === 403) this.liveSubscribers.delete(chatId); // bot blocked
+      }
+    });
+    await Promise.allSettled(sends);
+  }
+
+  /** Live: new trip created */
+  async broadcastLiveTripCreated(tripId: number, driverId: string) {
+    try {
+      const trip = await storage.getTrip(tripId);
+      const driver = await storage.getUser(driverId);
+      if (!trip || !driver) return;
+      const tripType = trip.isReturnTrip ? "رحلة العودة" : "رحلة الذهاب";
+      const riders = trip.riders?.length ?? 0;
+      const total = trip.totalSeats ?? trip.availableSeats;
+      const msg =
+        `🆕 *رحلة جديدة*\n\n` +
+        `🚗 *السائق:* ${driver.username}\n` +
+        `نوع الرحلة: ${tripType}\n` +
+        `📍 *من:* ${trip.fromLocation}\n` +
+        `📍 *إلى:* ${trip.toLocation}\n` +
+        `🕐 *وقت الانطلاق:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n` +
+        `👥 *الركاب:* ${riders} / ${total}\n` +
+        `💺 *المقاعد المتبقية:* ${trip.availableSeats}`;
+      await this.broadcastLiveMsg(msg);
+    } catch (err) {
+      console.error("[TELEGRAM/LIVE] broadcastLiveTripCreated error:", err);
+    }
+  }
+
+  /** Live: rider joined (by self or admin) */
+  async broadcastLiveRiderJoined(
+    tripId: number,
+    riderId: string,
+    addedByAdmin: boolean,
+    updatedRiders: string[],
+    totalSeats: number,
+    driverId: string,
+  ) {
+    try {
+      const trip = await storage.getTrip(tripId);
+      const rider = await storage.getUser(riderId);
+      const driver = await storage.getUser(driverId);
+      if (!trip || !rider || !driver) return;
+
+      const tripType = trip.isReturnTrip ? "رحلة العودة" : "رحلة الذهاب";
+      const howJoined = addedByAdmin ? "تمت إضافته بواسطة المشرف" : "انضم بنفسه";
+      const remaining = totalSeats - updatedRiders.length;
+
+      const msg =
+        `👤 *راكب جديد انضم*\n\n` +
+        `اسم الراكب: *${rider.username}*\n` +
+        `المجموعة: *${rider.section}*\n` +
+        `طريقة الانضمام: ${howJoined}\n` +
+        `🚗 *السائق:* ${driver.username}\n` +
+        `نوع الرحلة: ${tripType}\n` +
+        `👥 *الركاب الحاليون:* ${updatedRiders.length} / ${totalSeats}\n` +
+        `💺 *المقاعد المتبقية:* ${remaining}` +
+        (remaining === 0 ? "\n\n🚫 *السيارة ممتلئة الآن*" : "");
+      await this.broadcastLiveMsg(msg);
+    } catch (err) {
+      console.error("[TELEGRAM/LIVE] broadcastLiveRiderJoined error:", err);
+    }
+  }
+
+  /** Live: rider removed (self or admin) */
+  async broadcastLiveRiderRemoved(
+    tripId: number,
+    riderId: string,
+    removedBySelf: boolean,
+    updatedRiders: string[],
+    totalSeats: number,
+    driverId: string,
+    prevAvailableSeats: number,
+  ) {
+    try {
+      const trip = await storage.getTrip(tripId);
+      const rider = await storage.getUser(riderId);
+      const driver = await storage.getUser(driverId);
+      if (!trip || !rider || !driver) return;
+
+      const tripType = trip.isReturnTrip ? "رحلة العودة" : "رحلة الذهاب";
+      const reason = removedBySelf ? "غادر بنفسه" : "أزاله المشرف";
+      const remaining = totalSeats - updatedRiders.length;
+      const seatBecameAvailable = prevAvailableSeats === 0 && remaining > 0;
+
+      const msg =
+        `❌ *راكب غادر الرحلة*\n\n` +
+        `اسم الراكب: *${rider.username}*\n` +
+        `المجموعة: *${rider.section}*\n` +
+        `سبب المغادرة: ${reason}\n` +
+        `🚗 *السائق:* ${driver.username}\n` +
+        `نوع الرحلة: ${tripType}\n` +
+        `👥 *الركاب الحاليون:* ${updatedRiders.length} / ${totalSeats}\n` +
+        `💺 *المقاعد المتبقية:* ${remaining}` +
+        (seatBecameAvailable ? "\n\n🟢 *مقعد متاح الآن!*" : "");
+      await this.broadcastLiveMsg(msg);
+    } catch (err) {
+      console.error("[TELEGRAM/LIVE] broadcastLiveRiderRemoved error:", err);
+    }
+  }
+
+  /** Live: trip fields changed — shows only what actually changed */
+  async broadcastLiveTripUpdated(oldTrip: any, updatedTrip: any) {
+    try {
+      const driver = await storage.getUser(updatedTrip.driverId);
+      if (!driver) return;
+
+      const tripType = updatedTrip.isReturnTrip ? "رحلة العودة" : "رحلة الذهاب";
+      const changes: string[] = [];
+
+      if (oldTrip.fromLocation !== updatedTrip.fromLocation)
+        changes.push(`📍 *نقطة الانطلاق*\n${oldTrip.fromLocation}\n⬇\n${updatedTrip.fromLocation}`);
+      if (oldTrip.toLocation !== updatedTrip.toLocation)
+        changes.push(`📍 *الوجهة*\n${oldTrip.toLocation}\n⬇\n${updatedTrip.toLocation}`);
+      if (String(oldTrip.departureTime) !== String(updatedTrip.departureTime))
+        changes.push(
+          `🕐 *وقت الانطلاق*\n${formatGMTPlus3TimeOnly(new Date(oldTrip.departureTime))}\n⬇\n${formatGMTPlus3TimeOnly(new Date(updatedTrip.departureTime))}`,
+        );
+      if (oldTrip.totalSeats !== updatedTrip.totalSeats)
+        changes.push(`💺 *عدد المقاعد*\n${oldTrip.totalSeats}\n⬇\n${updatedTrip.totalSeats}`);
+
+      if (changes.length === 0) return; // nothing meaningful changed
+
+      const msg =
+        `✏️ *تم تعديل رحلة*\n\n` +
+        `🚗 *السائق:* ${driver.username}\n` +
+        `نوع الرحلة: ${tripType}\n\n` +
+        changes.join("\n\n");
+      await this.broadcastLiveMsg(msg);
+    } catch (err) {
+      console.error("[TELEGRAM/LIVE] broadcastLiveTripUpdated error:", err);
+    }
+  }
+
+  /** Live: trip deleted/cancelled */
+  async broadcastLiveTripDeleted(trip: any) {
+    try {
+      const driver = await storage.getUser(trip.driverId);
+      if (!driver) return;
+      const tripType = trip.isReturnTrip ? "رحلة العودة" : "رحلة الذهاب";
+      const msg =
+        `🚫 *تم حذف رحلة*\n\n` +
+        `🚗 *السائق:* ${driver.username}\n` +
+        `نوع الرحلة: ${tripType}\n` +
+        `📍 *من:* ${trip.fromLocation}\n` +
+        `📍 *إلى:* ${trip.toLocation}`;
+      await this.broadcastLiveMsg(msg);
+    } catch (err) {
+      console.error("[TELEGRAM/LIVE] broadcastLiveTripDeleted error:", err);
     }
   }
 
