@@ -14,15 +14,18 @@ import {
   insertTripJoinRequestSchema,
   createSlotRequestSchema,
   setShortageRecipientsSchema,
+  trips as tripsTable,
   type CreateSlotRequest,
   type User,
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import {
   runDriverShortageCheck,
   startDriverShortageJobs,
 } from "./driver-shortage-job";
 import { z } from "zod";
-import TelegramBot from "node-telegram-bot-api";
+import { telegramService } from "./telegram";
 import {
   formatGMTPlus3,
   formatGMTPlus3TimeOnly,
@@ -135,276 +138,6 @@ function setupWebSocket(server: Server) {
   return wss;
 }
 
-// Telegram notification service
-class TelegramNotificationService {
-  private bot: any;
-  
-  // Helper function to escape Markdown special characters
-  private escapeMarkdown(text: string): string {
-    return text.replace(/[[\]()~`>#+=|{}.!-]/g, '\\$&');
-  }
-
-  constructor() {
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    if (token) {
-      try {
-        this.bot = new TelegramBot(token, { polling: false });
-        console.log("[TELEGRAM] Bot initialized successfully");
-      } catch (error) {
-        console.error("[TELEGRAM] Error initializing bot:", error);
-        this.bot = null;
-      }
-    } else {
-      console.log("[TELEGRAM] No bot token provided");
-      this.bot = null;
-    }
-  }
-
-  async sendNotification(
-    userId: string,
-    title: string,
-    message: string,
-    type: string,
-  ) {
-    try {
-      const user = await storage.getUser(userId);
-      if (!user || !user.telegramUsername) {
-        console.log(`[TELEGRAM] No Telegram Username found for user ${userId}. User data:`, {
-          id: user?.id,
-          username: user?.username,
-          telegramUsername: user?.telegramUsername
-        });
-        return;
-      }
-
-      if (!this.bot) {
-        console.log("[TELEGRAM] Bot not available");
-        return;
-      }
-
-      const telegramMessage = `*${title}*\n\n${message}`;
-      
-      console.log(`[TELEGRAM] Attempting to send message to user ${userId} (${user.telegramUsername})`);
-      await this.bot.sendMessage(user.telegramUsername, telegramMessage, {
-        parse_mode: "Markdown",
-        disable_web_page_preview: true,
-      });
-
-      console.log(`[TELEGRAM] Notification sent successfully to user ${userId} (${user.telegramUsername})`);
-    } catch (error) {
-      console.error(
-        `[TELEGRAM] Error sending notification to user ${userId}:`,
-        error,
-      );
-    }
-  }
-
-  async notifyAdminsRideRequestCreated(requestId: number, riderId: string) {
-    try {
-      const request = await storage.getRideRequest(requestId);
-      const rider = await storage.getUser(riderId);
-      const admins = await storage.getAdminUsers();
-
-      if (!request || !rider) return;
-
-      const title = "طلب رحلة جديد";
-      const message = `
-🚗 *طلب رحلة جديد من ${this.escapeMarkdown(rider.username)}*
-
-📍 *من:* ${this.escapeMarkdown(request.fromLocation)}
-📍 *إلى:* ${this.escapeMarkdown(request.toLocation)}
-🕐 *الوقت المفضل:* ${formatGMTPlus3TimeOnly(new Date(request.preferredTime))}
-👥 *عدد الركاب:* ${request.passengerCount}
-${request.notes ? `📝 *ملاحظات:* ${this.escapeMarkdown(request.notes)}` : ""}
-
-*رقم الطلب:* ${requestId}
-      `;
-
-      // Filter out the rider from admin notifications to avoid duplicates if rider is also admin
-      const adminsToNotify = admins.filter(admin => admin.id !== riderId);
-      
-      for (const admin of adminsToNotify) {
-        await this.sendNotification(
-          admin.id,
-          title,
-          message,
-          "admin_ride_request_created",
-        );
-      }
-
-      console.log(`[TELEGRAM] Notified ${adminsToNotify.length} admin(s) about new ride request ${requestId} (excluded rider from admin notifications)`);
-    } catch (error) {
-      console.error("Error notifying admins about ride request:", error);
-    }
-  }
-
-  async notifyTripCreated(tripId: number, driverId: string) {
-    try {
-      const trip = await storage.getTrip(tripId);
-      if (!trip) return;
-
-      await this.sendNotification(
-        driverId,
-        "تم إنشاء الرحلة",
-        `🚗 *تم إنشاء رحلتك بنجاح*\n\n📍 *من:* ${this.escapeMarkdown(trip.fromLocation)}\n📍 *إلى:* ${this.escapeMarkdown(trip.toLocation)}\n🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n👥 *المقاعد المتاحة:* ${trip.availableSeats}`,
-        "trip_created",
-      );
-    } catch (error) {
-      console.error("Error notifying trip creation:", error);
-    }
-  }
-
-  async notifyAdminsTripCreated(tripId: number, driverId: string) {
-    try {
-      const trip = await storage.getTrip(tripId);
-      const driver = await storage.getUser(driverId);
-      const admins = await storage.getAdminUsers();
-
-      if (!trip || !driver) return;
-
-      console.log(`[TELEGRAM] Debug - Driver ID: ${driverId}, Admin IDs: ${admins.map(a => a.id).join(', ')}`);
-
-      const title = "رحلة جديدة تم إنشاؤها";
-      const message = `
-🚗 *رحلة جديدة من ${this.escapeMarkdown(driver.username)}*
-
-📍 *من:* ${this.escapeMarkdown(trip.fromLocation)}
-📍 *إلى:* ${this.escapeMarkdown(trip.toLocation)}
-🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}
-👥 *المقاعد المتاحة:* ${trip.availableSeats}
-${trip.notes ? `📝 *ملاحظات:* ${this.escapeMarkdown(trip.notes)}` : ""}
-
-*رقم الرحلة:* ${tripId}
-      `;
-
-      // Filter out the driver from admin notifications to avoid duplicates
-      const adminsToNotify = admins.filter(admin => admin.id !== driverId);
-      
-      console.log(`[TELEGRAM] Admins to notify after filtering: ${adminsToNotify.map(a => `${a.id}(${a.username})`).join(', ')}`);
-      
-      for (const admin of adminsToNotify) {
-        await this.sendNotification(
-          admin.id,
-          title,
-          message,
-          "admin_trip_created",
-        );
-      }
-
-      console.log(`[TELEGRAM] Notified ${adminsToNotify.length} admin(s) about new trip ${tripId} (excluded driver from admin notifications)`);
-    } catch (error) {
-      console.error("Error notifying admins about trip creation:", error);
-    }
-  }
-
-  async notifyRideRequestReceived(driverId: string, requestId: number) {
-    const request = await storage.getRideRequest(requestId);
-    if (!request) return;
-
-    await this.sendNotification(
-      driverId,
-      "New Ride Request",
-      `You have a new ride request from ${request.fromLocation} to ${request.toLocation}.`,
-      "request_received",
-    );
-  }
-
-  async notifyRequestAccepted(riderId: string, tripId: number) {
-    const trip = await storage.getTrip(tripId);
-    if (!trip) return;
-
-    await this.sendNotification(
-      riderId,
-      "Ride Request Accepted",
-      "الرجاء الإتصال مع السائق لتأكيد الوقت والمكان.",
-      "request_accepted",
-    );
-  }
-
-  async notifyDriverRiderJoined(driverId: string, tripId: number, riderId: string, notes?: string) {
-    try {
-      const trip = await storage.getTrip(tripId);
-      const rider = await storage.getUser(riderId);
-      
-      if (!trip || !rider) return;
-
-      const title = "راكب جديد انضم للرحلة";
-      const message = `
-🚗 *راكب جديد انضم لرحلتك*
-
-👤 *الراكب:* ${this.escapeMarkdown(rider.username)}
-📍 *من:* ${this.escapeMarkdown(trip.fromLocation)}
-📍 *إلى:* ${this.escapeMarkdown(trip.toLocation)}
-🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}
-👥 *المقاعد المتبقية:* ${trip.availableSeats - 1}
-${notes ? `📝 *ملاحظات الراكب:* ${this.escapeMarkdown(notes)}` : ""}
-
-*رقم الرحلة:* ${tripId}
-      `;
-
-      await this.sendNotification(
-        driverId,
-        title,
-        message,
-        "rider_joined",
-      );
-
-      console.log(`[TELEGRAM] Notified driver ${driverId} about new rider ${riderId} joining trip ${tripId}`);
-    } catch (error) {
-      console.error("Error notifying driver about rider joining:", error);
-    }
-  }
-
-  async notifyRequestDeclined(riderId: string) {
-    await this.sendNotification(
-      riderId,
-      "Ride Request Declined",
-      "Your ride request has been declined. Please try another trip.",
-      "request_declined",
-    );
-  }
-
-  async notifyTripMatchesRequest(userId: string, tripId: number) {
-    const trip = await storage.getTrip(tripId);
-    if (!trip) return;
-
-    const dashboardUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "http://localhost:5000"}/dashboard`;
-
-    await this.sendNotification(
-      userId,
-      "New Trip Available",
-      `A new trip matching your request is available from ${this.escapeMarkdown(trip.fromLocation)} to ${this.escapeMarkdown(trip.toLocation)} departing at ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}. Click here to join: ${dashboardUrl}`,
-      "trip_match_found",
-    );
-  }
-
-  // Notify all riders when their driver's trip details are updated
-  async notifyRidersTripUpdated(tripId: number) {
-    try {
-      const trip = await storage.getTrip(tripId);
-      if (!trip) return;
-
-      const riderIds = trip.riders || [];
-      if (riderIds.length === 0) {
-        console.log(`[TELEGRAM] No riders to notify for updated trip ${tripId}`);
-        return;
-      }
-
-      const title = "تم تحديث تفاصيل الرحلة";
-      const message = `\n🚗 *تم تعديل تفاصيل الرحلة*\n\n📍 *من:* ${this.escapeMarkdown(trip.fromLocation)}\n📍 *إلى:* ${this.escapeMarkdown(trip.toLocation)}\n🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n👥 *المقاعد المتاحة:* ${trip.availableSeats}\n\n*رقم الرحلة:* ${tripId}`;
-
-      for (const riderId of riderIds) {
-        await this.sendNotification(riderId, title, message, "trip_updated");
-      }
-
-      console.log(`[TELEGRAM] Notified ${riderIds.length} rider(s) about updated trip ${tripId}`);
-    } catch (error) {
-      console.error("Error notifying riders about trip update:", error);
-    }
-  }
-}
-
-const telegramService = new TelegramNotificationService();
 
 async function notifyMatchingRideRequesters(trip: any) {
   try {
@@ -523,11 +256,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
-    res.json({
-      success: true,
-      user: req.user,
-    });
+  app.post("/api/auth/login", (req, res, next) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) return next(err);
+      if (!user) {
+        return res.status(401).json({ message: info?.message || "Invalid credentials" });
+      }
+      req.logIn(user, (loginErr) => {
+        if (loginErr) return next(loginErr);
+        return res.json({ success: true, user });
+      });
+    })(req, res, next);
   });
 
   app.post("/api/auth/logout", (req, res) => {
@@ -594,6 +333,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update profile" });
     }
   });
+
+  // ─── Telegram account linking ─────────────────────────────────────────────
+
+  app.get("/api/telegram/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (!user) return res.status(404).json({ message: "User not found" });
+      res.json({
+        linked: !!user.telegramId,
+        telegramUsername: user.telegramUsername ?? null,
+        linkedAt: null,
+      });
+    } catch (error) {
+      console.error("Error fetching Telegram status:", error);
+      res.status(500).json({ message: "Failed to fetch Telegram status" });
+    }
+  });
+
+  app.post("/api/telegram/connect", isAuthenticated, async (req: any, res) => {
+    try {
+      const code = telegramService.generateVerificationCode(req.user.id);
+      console.log(`[TELEGRAM] Verification code generated for user ${req.user.id}`);
+      res.json({ code });
+    } catch (error) {
+      console.error("Error generating Telegram verification code:", error);
+      res.status(500).json({ message: "Failed to generate verification code" });
+    }
+  });
+
+  app.post("/api/telegram/unlink", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (!user) return res.status(404).json({ message: "User not found" });
+      if (!user.telegramId) {
+        return res.status(400).json({ message: "No Telegram account linked" });
+      }
+      await storage.updateUser(req.user.id, { telegramId: null, telegramUsername: null });
+      console.log(`[TELEGRAM] User ${req.user.id} unlinked their Telegram account`);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error unlinking Telegram:", error);
+      res.status(500).json({ message: "Failed to unlink Telegram" });
+    }
+  });
+  // ─────────────────────────────────────────────────────────────────────────
 
   // Trips routes
   app.get("/api/trips", async (req, res) => {
@@ -691,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         availableSeats: tripData.availableSeats,
         totalSeats: tripData.totalSeats || tripData.availableSeats,
         isRecurring: tripData.isRecurring || false,
-        recurringDays: JSON.stringify(tripData.recurringDays || []),
+        recurringDays: (tripData.recurringDays as unknown as string) ?? "[]",
         participantIds: tripData.participantIds || [],
       };
 
@@ -720,6 +504,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Create a linked return trip if requested (new trips only).
+      // Wrapped in a transaction so both trips and their mutual links are
+      // all-or-nothing; the outbound trip (already committed) is unaffected
+      // if this optional block fails.
+      if (req.body.returnTrip) {
+        try {
+          // Resolve the departure time for the return trip.
+          // "first_last" and "second_last" use fixed internal times anchored to the outbound trip's
+          // calendar date; "custom" uses the driver-provided ISO string.
+          const validReturnTimeTypes = ["first_last", "second_last", "custom"];
+          const returnTimeType: string = req.body.returnTrip.returnTimeType ?? "custom";
+          if (!validReturnTimeTypes.includes(returnTimeType)) {
+            console.error("[RETURN TRIP] Invalid returnTimeType:", returnTimeType);
+            throw new Error(`Invalid returnTimeType: ${returnTimeType}`);
+          }
+
+          let returnDepartureTime: Date;
+          if (returnTimeType === "first_last") {
+            // آخر شيء أول → 23:00 GMT+3 = 20:00 UTC, anchored to the outbound trip's calendar day
+            const base = new Date(parsedTripData.departureTime);
+            base.setUTCHours(20, 0, 0, 0);
+            returnDepartureTime = base;
+          } else if (returnTimeType === "second_last") {
+            // آخر شيء ثاني → 02:00 GMT+3 next day = 23:00 UTC same day as outbound
+            const base = new Date(parsedTripData.departureTime);
+            base.setUTCHours(23, 0, 0, 0);
+            returnDepartureTime = base;
+          } else {
+            // custom — driver provided an explicit ISO string
+            if (!req.body.returnTrip.departureTime) {
+              throw new Error("returnTrip.departureTime is required for custom returnTimeType");
+            }
+            const parsed = new Date(req.body.returnTrip.departureTime);
+            if (isNaN(parsed.getTime())) {
+              throw new Error("returnTrip.departureTime is not a valid date");
+            }
+            returnDepartureTime = parsed;
+          }
+
+          const returnTrip = await db.transaction(async (tx) => {
+            const now = new Date();
+            const [created] = await tx
+              .insert(tripsTable)
+              .values({
+                driverId,
+                riders: [],
+                // Use editable from/to if the driver customised them; fall back to swapped outbound values
+                fromLocation: req.body.returnTrip.fromLocation ?? req.body.toLocation,
+                toLocation: req.body.returnTrip.toLocation ?? req.body.fromLocation,
+                departureTime: returnDepartureTime,
+                availableSeats: parsedTripData.availableSeats,
+                totalSeats: parsedTripData.availableSeats,
+                isRecurring: false,
+                isReturnTrip: true,
+                returnTimeType,
+                recurringDays: "[]",
+                createdAt: now,
+                updatedAt: now,
+              })
+              .returning();
+            // Link both trips to each other
+            await tx
+              .update(tripsTable)
+              .set({ returnTripId: created.id, updatedAt: now })
+              .where(eq(tripsTable.id, trip.id));
+            await tx
+              .update(tripsTable)
+              .set({ returnTripId: trip.id, updatedAt: now })
+              .where(eq(tripsTable.id, created.id));
+            return created;
+          });
+          // Notify and broadcast for the return trip (outside transaction)
+          await telegramService.notifyTripCreated(returnTrip.id, returnTrip.driverId);
+          broadcastToAll({ type: "trip_created", trip: returnTrip });
+        } catch (returnErr) {
+          console.error("[RETURN TRIP] Failed to create return trip:", returnErr);
+          // Outbound trip succeeds regardless
+        }
+      }
+
       console.log(`[TELEGRAM] Sending trip creation notifications for trip ${trip.id}, driver ${trip.driverId}`);
       
       // Send driver notification
@@ -733,6 +597,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: "trip_created",
         trip: trip,
       });
+
+      // Live monitor broadcast (fire-and-forget)
+      telegramService.broadcastLiveTripCreated(trip.id, trip.driverId).catch(() => {});
 
       res.status(201).json(trip);
     } catch (error) {
@@ -853,6 +720,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         trip: updatedTrip,
       });
 
+      // Notify driver via Telegram — only when someone other than the driver added the rider
+      if (trip.driverId !== currentUserId) {
+        telegramService.notifyDriverRiderAddedByAdmin(
+          trip.driverId,
+          tripId,
+          userId,
+          updatedRiders,
+          updatedTrip.totalSeats,
+        ).catch((err) => console.error("[TELEGRAM] notifyDriverRiderAddedByAdmin failed:", err));
+      }
+
+      // Live monitor broadcast
+      telegramService.broadcastLiveRiderJoined(tripId, userId, true, updatedRiders, updatedTrip.totalSeats, trip.driverId).catch(() => {});
+
       res.json({ message: "Rider added successfully", trip: updatedTrip });
     } catch (error) {
       console.error("Error adding rider to trip:", error);
@@ -920,6 +801,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: "trip_updated",
         trip: updatedTrip,
       });
+
+      // Notify driver via Telegram — skip when the driver removed the rider themselves
+      if (trip.driverId !== currentUserId) {
+        telegramService.notifyDriverRiderRemoved(
+          trip.driverId,
+          tripId,
+          userId,
+          isSelfRemoval,
+          updatedRiders,
+          updatedTrip.totalSeats,
+        ).catch((err) => console.error("[TELEGRAM] notifyDriverRiderRemoved failed:", err));
+      }
+
+      // Live monitor broadcast
+      const prevAvailable = trip.availableSeats ?? 0;
+      telegramService.broadcastLiveRiderRemoved(
+        tripId, userId, isSelfRemoval, updatedRiders, updatedTrip.totalSeats, trip.driverId, prevAvailable
+      ).catch(() => {});
 
       res.json({ message: "Rider removed successfully", trip: updatedTrip });
     } catch (error) {
@@ -1089,6 +988,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "You can only delete your own trips" });
       }
 
+      // Capture trip data for live broadcast before deletion
+      const deletedTripData = { ...trip };
+
       await storage.deleteTrip(tripId);
 
       // Broadcast trip deletion to all connected clients
@@ -1096,6 +998,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: "trip_deleted",
         tripId: tripId,
       });
+
+      // Live monitor broadcast
+      telegramService.broadcastLiveTripDeleted(deletedTripData).catch(() => {});
 
       res.status(200).json({ message: "Trip deleted successfully" });
     } catch (error) {
@@ -1199,8 +1104,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Send Telegram notifications if available
           try {
             await telegramService.notifyRequestAccepted(riderId, tripId);
-            // Notify driver about the new rider joining
-            await telegramService.notifyDriverRiderJoined(trip.driverId, tripId, riderId, message);
+            // Notify driver with full passenger list (detailed join notification)
+            await telegramService.notifyDriverRiderJoinedSelf(
+              trip.driverId,
+              tripId,
+              riderId,
+              updatedRiders,
+              updatedTrip.totalSeats,
+              message,
+            );
           } catch (notificationError) {
             console.error("Error sending Telegram notification:", notificationError);
           }
@@ -1210,6 +1122,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             type: "rider_joined",
             data: { joinRequest, trip: updatedTrip, rider: requester },
           });
+
+          // Live monitor broadcast for self-join
+          telegramService.broadcastLiveRiderJoined(
+            tripId, riderId, false, updatedRiders, updatedTrip.totalSeats, trip.driverId
+          ).catch(() => {});
 
           // Remove rider's pending ride requests once they are assigned to a trip
           try {
@@ -1369,6 +1286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate incoming updates
       const updates = insertTripSchema.partial().parse(req.body);
 
+      const oldTripData = { ...trip };
       const updatedTrip = await storage.updateTrip(tripId, updates);
 
       // Notify all riders that the trip has been updated
@@ -1377,6 +1295,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (notificationError) {
         console.error("Error sending Telegram notifications for trip update:", notificationError);
       }
+
+      // Live monitor broadcast (changed fields only)
+      telegramService.broadcastLiveTripUpdated(oldTripData, updatedTrip).catch(() => {});
 
       // Broadcast trip update to connected WebSocket clients
       broadcastToAll({

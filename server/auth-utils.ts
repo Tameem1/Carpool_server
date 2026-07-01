@@ -1,11 +1,6 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
-// For passwords that are already hashed (contain a dot separator)
-function isAlreadyHashed(password: string): boolean {
-  return password.includes('.') && password.length > 50;
-}
-
 // Hash a plain text password
 export async function hashPassword(password: string): Promise<string> {
   const salt = await bcrypt.genSalt(10);
@@ -18,12 +13,7 @@ export async function verifyPassword(plainPassword: string, hashedPassword: stri
   if (hashedPassword.startsWith('$2b$') || hashedPassword.startsWith('$2a$') || hashedPassword.startsWith('$2y$')) {
     return await bcrypt.compare(plainPassword, hashedPassword);
   }
-  
-  // For plain text passwords (numeric), compare directly during migration period
-  if (/^\d+$/.test(hashedPassword) && hashedPassword.length < 20) {
-    return plainPassword === hashedPassword;
-  }
-  
+
   // For custom hash format (legacy format with dot separator)
   if (hashedPassword.includes('.') && hashedPassword.length > 100) {
     const [hash, salt] = hashedPassword.split('.');
@@ -36,18 +26,16 @@ export async function verifyPassword(plainPassword: string, hashedPassword: stri
       }
     }
   }
-  
-  // Fallback: try bcrypt in case format detection fails
-  try {
-    return await bcrypt.compare(plainPassword, hashedPassword);
-  } catch {
-    return false;
-  }
+
+  // For plain text passwords (any format not matching a known hash), compare directly
+  return plainPassword === hashedPassword;
 }
 
 // Check if a password needs to be migrated from plain text to hashed
 export function needsPasswordMigration(password: string): boolean {
-  return /^\d+$/.test(password) && password.length < 50;
+  const isBcrypt = password.startsWith('$2b$') || password.startsWith('$2a$') || password.startsWith('$2y$');
+  const isLegacyHash = password.includes('.') && password.length > 100;
+  return !isBcrypt && !isLegacyHash;
 }
 
 // Get unique sections from user data

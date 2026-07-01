@@ -1,0 +1,162 @@
+The current project is working correctly.
+
+DO NOT redesign the UI.
+DO NOT modify existing working features.
+DO NOT change the Dashboard layout.
+DO NOT change TripCard design.
+Implement ONLY the following improvements.
+
+==================================================
+1. HANDLE "LAST FIRST" AND "LAST SECOND" RETURN TIMES
+==================================================
+
+Currently, when the driver selects:
+
+- آخر شيء أول
+- آخر شيء ثاني
+
+the return trip is not created correctly because these are labels instead of actual times.
+
+Implement the following behavior:
+
+When the user selects:
+
+آخر شيء أول
+
+Store an internal return departure time of:
+
+23:00
+
+When the user selects:
+
+آخر شيء ثاني
+
+Store an internal return departure time of:
+
+02:00
+
+These internal times exist ONLY for:
+
+- database storage
+- trip creation
+- sorting
+- filtering
+- dashboard logic
+
+The user must NEVER see these internal values.
+
+==================================================
+2. STORE RETURN TIME TYPE
+==================================================
+
+Add a field such as:
+
+returnTimeType
+
+Possible values:
+
+custom
+first_last
+second_last
+
+Examples:
+
+If user selected:
+
+آخر شيء أول
+
+Store:
+
+returnTimeType = "first_last"
+
+If user selected:
+
+آخر شيء ثاني
+
+Store:
+
+returnTimeType = "second_last"
+
+If user selected a specific hour:
+
+returnTimeType = "custom"
+
+==================================================
+3. DISPLAY CORRECT LABEL ON TRIP CARD
+==================================================
+
+On TripCard, do NOT always display the stored internal time.
+
+Instead:
+
+If
+
+returnTimeType == "first_last"
+
+Display:
+
+🕒 آخر شيء أول
+
+If
+
+returnTimeType == "second_last"
+
+Display:
+
+🕒 آخر شيء ثاني
+
+If
+
+returnTimeType == "custom"
+
+Display the actual selected time
+(example: 07:00 PM)
+
+This applies ONLY to Return Trips.
+
+Outbound trips continue displaying their real departure time.
+
+==================================================
+4. KEEP SORTING WORKING
+==================================================
+
+Sorting by time must continue to work exactly as before.
+
+The hidden internal times (23:00 and 02:00) should be used for:
+
+- earliest first
+- latest first
+
+The displayed labels must NOT affect sorting.
+
+==================================================
+5. RETURN TRIP CREATION
+==================================================
+
+When "Add Return Trip" is enabled:
+
+Always create a separate Return Trip.
+
+This must work for all three cases:
+
+- آخر شيء أول
+- آخر شيء ثاني
+- وقت محدد
+
+No option should fail to create the return trip.
+
+==================================================
+6. DO NOT BREAK EXISTING FEATURES
+==================================================
+
+Keep everything else exactly as it is.
+
+Do not modify:
+
+- Dashboard layout
+- Tabs
+- TripCard design
+- TripForm layout
+- Existing API routes
+
+Only implement the logic above while preserving all existing functionality.

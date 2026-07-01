@@ -304,6 +304,9 @@ export class DatabaseStorage implements IStorage {
         isRecurring: trips.isRecurring,
         recurringDays: trips.recurringDays,
         notes: trips.notes,
+        returnTripId: trips.returnTripId,
+        isReturnTrip: trips.isReturnTrip,
+        returnTimeType: trips.returnTimeType,
         createdAt: trips.createdAt,
         updatedAt: trips.updatedAt,
       })
@@ -348,6 +351,9 @@ export class DatabaseStorage implements IStorage {
         isRecurring: trips.isRecurring,
         recurringDays: trips.recurringDays,
         notes: trips.notes,
+        returnTripId: trips.returnTripId,
+        isReturnTrip: trips.isReturnTrip,
+        returnTimeType: trips.returnTimeType,
         createdAt: trips.createdAt,
         updatedAt: trips.updatedAt,
       })

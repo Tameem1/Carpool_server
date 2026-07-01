@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
 interface LoginFormProps {
@@ -21,6 +22,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
   const [loadingSections, setLoadingSections] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const { toast } = useToast();
+  const { login } = useAuth();
 
   useEffect(() => {
     fetchSections();
@@ -38,7 +40,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
   const fetchSections = async () => {
     try {
       setLoadingSections(true);
-      const response = await fetch('/api/auth/sections');
+      const response = await fetch('/api/auth/sections', { credentials: 'include' });
       if (response.ok) {
         const sectionsData = await response.json();
         setSections(sectionsData);
@@ -63,7 +65,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
   const fetchUsers = async (section: string) => {
     try {
       setLoadingUsers(true);
-      const response = await fetch(`/api/auth/users/${encodeURIComponent(section)}`);
+      const response = await fetch(`/api/auth/users/${encodeURIComponent(section)}`, { credentials: 'include' });
       if (response.ok) {
         const usersData = await response.json();
         setUsers(usersData);
@@ -87,7 +89,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedSection || !selectedUsername || !password) {
       toast({
         variant: "destructive",
@@ -100,38 +102,24 @@ export function LoginForm({ onLogin }: LoginFormProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          section: selectedSection,
-          username: selectedUsername,
-          password: password
-        })
+      // Use the useAuth login() which correctly includes credentials so the
+      // session cookie is stored by the browser.
+      const data = await login({
+        section: selectedSection,
+        username: selectedUsername,
+        password,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        toast({
-          title: "Success",
-          description: "Logged in successfully"
-        });
-        onLogin(data.user);
-      } else {
-        const errorData = await response.json();
-        toast({
-          variant: "destructive",
-          title: "فشل تسجيل الدخول",
-          description: "يرجى التحقق من اسم المستخدم وكلمة المرور"
-        });
-      }
-    } catch (error) {
+      toast({
+        title: "Success",
+        description: "Logged in successfully"
+      });
+      onLogin(data?.user ?? data);
+    } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to connect to server"
+        title: "فشل تسجيل الدخول",
+        description: error?.message || "يرجى التحقق من اسم المستخدم وكلمة المرور"
       });
     } finally {
       setIsLoading(false);
@@ -165,17 +153,17 @@ export function LoginForm({ onLogin }: LoginFormProps) {
 
             <div className="space-y-2">
               <Label htmlFor="username">اسم المستخدم</Label>
-              <Select 
-                value={selectedUsername} 
-                onValueChange={setSelectedUsername} 
+              <Select
+                value={selectedUsername}
+                onValueChange={setSelectedUsername}
                 disabled={!selectedSection || loadingUsers}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={
-                    !selectedSection 
-                      ? "اختر القسم أولاً" 
-                      : loadingUsers 
-                        ? "تحميل المستخدمين..." 
+                    !selectedSection
+                      ? "اختر القسم أولاً"
+                      : loadingUsers
+                        ? "تحميل المستخدمين..."
                         : "اختر اسم المستخدم"
                   } />
                 </SelectTrigger>
@@ -194,6 +182,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
               <Input
                 id="password"
                 type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="أدخل كلمة المرور"
@@ -201,9 +190,9 @@ export function LoginForm({ onLogin }: LoginFormProps) {
               />
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full" 
+            <Button
+              type="submit"
+              className="w-full"
               disabled={isLoading || !selectedSection || !selectedUsername || !password}
             >
               {isLoading ? (
