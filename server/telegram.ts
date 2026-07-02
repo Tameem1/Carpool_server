@@ -377,10 +377,10 @@ class TelegramNotificationService {
   }
 
   private async buildTripListText(returnOnly: boolean): Promise<string> {
-    const allTrips = await storage.getAllTrips();
-    const filtered = allTrips.filter((t) => t.isReturnTrip === returnOnly);
+    const todayTrips = await storage.getTodayTrips();
+    const filtered = todayTrips.filter((t) => t.isReturnTrip === returnOnly);
 
-    if (filtered.length === 0) return "لا توجد رحلات حالياً.";
+    if (filtered.length === 0) return "لا توجد رحلات اليوم.";
 
     const driverIds = filtered.map((t) => t.driverId);
     const driverMap = await storage.getUsersByIds(driverIds);
