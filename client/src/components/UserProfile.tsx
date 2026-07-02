@@ -318,7 +318,7 @@ export function UserProfile() {
                   <li>افتح تيليغرام وابحث عن البوت</li>
                   <Button variant="outline" asChild>
                     <a
-                      href="https://t.me/Carsevally_bot"
+                      href="https://t.me/Nadi_car_bot"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
