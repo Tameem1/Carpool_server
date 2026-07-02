@@ -1,0 +1,225 @@
+You must completely debug the Telegram integration.
+
+The “Connect Telegram” button is currently not working.
+
+The user never receives any Telegram message.
+
+Do NOT assume the problem.
+
+Find the exact root cause.
+
+Verify all of the following:
+
+1. Environment Variables
+
+Verify TELEGRAM_BOT_TOKEN exists.
+
+Verify it is loaded correctly.
+
+Log whether it is found.
+
+Fail gracefully if missing.
+
+⸻
+
+2. Bot Initialization
+
+Verify the bot actually starts.
+
+Log:
+
+* Bot initialized
+* Polling started
+* Polling failed
+* Duplicate polling
+* Duplicate instance
+
+Ensure there is only ONE bot instance.
+
+⸻
+
+3. Telegram API
+
+Test:
+
+getMe
+
+getUpdates
+
+sendMessage
+
+Log every response.
+
+⸻
+
+4. /start command
+
+Verify
+
+/start
+
+actually reaches the bot.
+
+Log
+
+Incoming update
+
+Chat ID
+
+Username
+
+User ID
+
+⸻
+
+5. Link Button
+
+Trace the complete flow.
+
+When clicking
+
+Connect Telegram
+
+verify:
+
+Frontend sends request.
+
+Backend receives request.
+
+Verification code generated.
+
+Code saved in database.
+
+Telegram notification attempted.
+
+Telegram API response logged.
+
+⸻
+
+6. Verification Code
+
+Verify
+
+generated
+
+stored
+
+not expired
+
+returned correctly
+
+⸻
+
+7. Database
+
+Verify telegram_users table.
+
+Verify user can be linked.
+
+Verify Chat ID exists.
+
+⸻
+
+8. Message Sending
+
+If sendMessage fails,
+
+log FULL Telegram error.
+
+Examples:
+
+403
+
+400
+
+401
+
+404
+
+blocked bot
+
+chat not found
+
+invalid chat id
+
+⸻
+
+9. Frontend
+
+Verify button actually calls API.
+
+Open Browser Network tab.
+
+Verify request.
+
+Verify response.
+
+Show response body.
+
+⸻
+
+10. Backend Routes
+
+Verify routes:
+
+POST /api/telegram/connect
+
+POST /api/telegram/verify
+
+POST /api/telegram/unlink
+
+GET /api/telegram/status
+
+actually execute.
+
+⸻
+
+11. Authentication
+
+Verify logged-in user is authenticated.
+
+Verify correct userId.
+
+⸻
+
+12. Polling
+
+Verify polling is active.
+
+No polling conflicts.
+
+No webhook conflicts.
+
+⸻
+
+13. Logging
+
+Add detailed logs everywhere.
+
+Every important step must log success or failure.
+
+⸻
+
+14. Final Report
+
+Do NOT stop after fixing.
+
+Produce a report containing:
+
+Root cause.
+
+Files modified.
+
+Why it failed.
+
+How it was fixed.
+
+How it was tested.
+
+Confirmation that:
+
+* /start works
+* Connect button works
+* Verification works
+* Telegram message is received
+* Notifications work

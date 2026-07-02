@@ -1,0 +1,378 @@
+Telegram Integration Master Prompt
+
+You are working on an existing production-ready carpool application.
+
+CRITICAL RULES
+
+* Do NOT rewrite the project.
+* Do NOT refactor unrelated files.
+* Do NOT change the authentication system.
+* Do NOT modify existing API endpoints unless absolutely required.
+* Do NOT remove or break any current feature.
+* Preserve the current UI exactly as it is.
+* Preserve all existing database tables.
+* Only implement the Telegram notification system and integrate it cleanly.
+
+⸻
+
+Goal
+
+Implement a complete Telegram notification service for the existing Carpool application.
+
+The implementation must be clean, modular and production ready.
+
+⸻
+
+Current project
+
+The project already contains:
+
+* Authentication
+* Driver trips
+* Passenger bookings
+* Return trips
+* Dashboard
+* Existing Express backend
+* Existing database
+* Existing API routes
+* Existing WebSocket support
+
+Do NOT break any of these.
+
+⸻
+
+Telegram Bot
+
+The project already has
+
+TELEGRAM_BOT_TOKEN
+
+inside Environment Variables.
+
+Use it.
+
+Never hardcode the token.
+
+⸻
+
+Architecture
+
+Create a dedicated TelegramNotificationService.
+
+It should initialize only once.
+
+No duplicate polling.
+
+No duplicate bot instances.
+
+No memory leaks.
+
+No polling conflicts.
+
+If the bot cannot start, the application must continue working normally.
+
+⸻
+
+Database
+
+Store Telegram Chat IDs.
+
+Each user should be able to connect his Telegram account.
+
+Suggested table:
+
+telegram_users
+
+id
+
+userId
+
+telegramChatId
+
+username
+
+createdAt
+
+updatedAt
+
+One application user can only have one Telegram account.
+
+⸻
+
+Linking account
+
+User opens Telegram.
+
+Starts the bot.
+
+Bot replies with welcome message.
+
+The user receives a unique verification code.
+
+Inside the website there is a page:
+
+Settings
+
+Telegram
+
+Connect Telegram
+
+The user enters the verification code.
+
+The backend links
+
+Website Account
+
+↔ Telegram Chat ID
+
+⸻
+
+Commands
+
+Implement
+
+/start
+
+/help
+
+/status
+
+/unlink
+
+Notifications should only work for linked users.
+
+⸻
+
+Notifications
+
+Notify users for:
+
+New booking
+
+Booking accepted
+
+Booking rejected
+
+Booking cancelled
+
+Trip cancelled
+
+Trip edited
+
+Return trip created
+
+Return trip updated
+
+Driver changed
+
+Passenger removed
+
+Passenger added
+
+Seat availability changes
+
+Trip becomes full
+
+Trip reopened
+
+⸻
+
+Message Quality
+
+Messages must be beautiful.
+
+Use Markdown.
+
+Escape Markdown correctly.
+
+Never allow formatting errors.
+
+Include
+
+Trip
+
+Driver
+
+Pickup
+
+Destination
+
+Date
+
+Time
+
+Return time
+
+Seats
+
+Passenger count
+
+Status
+
+⸻
+
+Notification Logic
+
+Only send notifications to affected users.
+
+Never broadcast.
+
+Never duplicate notifications.
+
+Never send multiple notifications for one action.
+
+⸻
+
+Reliability
+
+If Telegram API fails:
+
+Retry.
+
+Log errors.
+
+Do not crash the application.
+
+⸻
+
+Logging
+
+Add structured logs.
+
+Examples
+
+Telegram initialized
+
+Notification queued
+
+Notification sent
+
+Notification failed
+
+User linked
+
+User unlinked
+
+⸻
+
+Security
+
+Never expose Bot Token.
+
+Never expose Chat IDs.
+
+Validate every request.
+
+Require authentication before linking Telegram.
+
+Prevent linking another user’s Telegram.
+
+Verification codes must expire.
+
+⸻
+
+API
+
+Create only if necessary.
+
+Suggested endpoints
+
+POST /api/telegram/connect
+
+POST /api/telegram/verify
+
+POST /api/telegram/unlink
+
+GET /api/telegram/status
+
+⸻
+
+Frontend
+
+Add a Telegram section inside User Settings.
+
+Show
+
+Connected
+
+Disconnected
+
+Connect button
+
+Disconnect button
+
+Current Telegram username
+
+Last connection
+
+Connection status
+
+Keep the existing design.
+
+⸻
+
+Error Handling
+
+Handle
+
+Invalid verification code
+
+Expired code
+
+Already linked
+
+Bot unavailable
+
+Telegram API unavailable
+
+Timeout
+
+User blocked bot
+
+⸻
+
+Performance
+
+No unnecessary polling.
+
+No duplicate listeners.
+
+No duplicate bot instances.
+
+No repeated API calls.
+
+⸻
+
+Testing
+
+Verify
+
+Bot starts correctly
+
+/start works
+
+User links account
+
+User unlinks account
+
+Every notification type works
+
+No duplicate messages
+
+Server restart keeps functionality
+
+⸻
+
+Existing Project Rule
+
+This is an existing production project.
+
+Do NOT rewrite any working feature.
+
+Do NOT remove existing logic.
+
+Only extend the project safely.
+
+Always preserve backwards compatibility.
+
+If a change could affect existing functionality, implement it in the least invasive way possible.

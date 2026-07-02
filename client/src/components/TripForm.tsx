@@ -5,11 +5,30 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SearchableUserSelect } from "@/components/ui/searchable-user-select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -18,13 +37,21 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { X, UserMinus, UserPlus } from "lucide-react";
-import { formatDateForInput, nowGMTPlus3, parseTimeToTodayUTC, extractTimeFromUTC } from "@shared/timezone";
+import {
+  formatDateForInput,
+  nowGMTPlus3,
+  parseTimeToTodayUTC,
+  extractTimeFromUTC,
+} from "@shared/timezone";
 
 const tripFormSchema = z.object({
   fromLocation: z.string().min(1, "موقع الانطلاق مطلوب"),
   toLocation: z.string().min(1, "الوجهة مطلوبة"),
   departureTime: z.string().min(1, "الوقت مطلوب"),
-  availableSeats: z.number().min(1, "مقعد واحد على الأقل مطلوب").max(6, "6 مقاعد كحد أقصى"),
+  availableSeats: z
+    .number()
+    .min(1, "مقعد واحد على الأقل مطلوب")
+    .max(6, "6 مقاعد كحد أقصى"),
   isRecurring: z.boolean().default(false),
   recurringDays: z.array(z.string()).optional(),
   driverId: z.string().optional(),
@@ -39,20 +66,25 @@ interface TripFormProps {
   trip?: any;
 }
 
-
-
 export function TripForm({ open, onClose, trip }: TripFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+  const [selectedParticipants, setSelectedParticipants] = useState<string[]>(
+    [],
+  );
   const [currentRiders, setCurrentRiders] = useState<string[]>([]);
-
-  const isAdmin = user?.role === 'admin';
+  const [addReturnTrip, setAddReturnTrip] = useState(false);
+  const [returnDepartureTime, setReturnDepartureTime] = useState("");
+  const [returnTimeMode, setReturnTimeMode] = useState("custom");
+  const [returnFromLocation, setReturnFromLocation] = useState("");
+  const [returnToLocation, setReturnToLocation] = useState("");
+  const [returnTimeOption, setReturnTimeOption] = useState("custom");
+  const isAdmin = user?.role === "admin";
 
   // Fetch users for admin
   const { data: users = [] } = useQuery<any[]>({
-    queryKey: ['/api/users'],
+    queryKey: ["/api/users"],
     enabled: isAdmin,
   });
 
@@ -65,6 +97,9 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       setCurrentRiders([]);
       setSelectedParticipants([]);
     }
+    // Reset return trip state whenever the dialog target changes
+    setAddReturnTrip(false);
+    setReturnDepartureTime("");
   }, [trip]);
 
   const form = useForm<TripFormData>({
@@ -72,7 +107,9 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
     defaultValues: {
       fromLocation: trip?.fromLocation || "",
       toLocation: trip?.toLocation || "النادي",
-      departureTime: trip?.departureTime ? extractTimeFromUTC(new Date(trip.departureTime)) : "",
+      departureTime: trip?.departureTime
+        ? extractTimeFromUTC(new Date(trip.departureTime))
+        : "",
       availableSeats: trip?.availableSeats || 1,
       isRecurring: trip?.isRecurring || false,
       recurringDays: trip?.recurringDays || [],
@@ -87,7 +124,9 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       form.reset({
         fromLocation: trip.fromLocation || "",
         toLocation: trip.toLocation || "النادي",
-        departureTime: trip.departureTime ? extractTimeFromUTC(new Date(trip.departureTime)) : "",
+        departureTime: trip.departureTime
+          ? extractTimeFromUTC(new Date(trip.departureTime))
+          : "",
         availableSeats: trip.availableSeats || 4,
         isRecurring: trip.isRecurring || false,
         recurringDays: trip.recurringDays || [],
@@ -109,8 +148,16 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
   }, [trip, form]);
 
   const addRiderMutation = useMutation({
-    mutationFn: async ({ tripId, userId }: { tripId: number; userId: string }) => {
-      return await apiRequest("POST", `/api/trips/${tripId}/riders`, { userId });
+    mutationFn: async ({
+      tripId,
+      userId,
+    }: {
+      tripId: number;
+      userId: string;
+    }) => {
+      return await apiRequest("POST", `/api/trips/${tripId}/riders`, {
+        userId,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
@@ -129,8 +176,17 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
   });
 
   const removeRiderMutation = useMutation({
-    mutationFn: async ({ tripId, userId }: { tripId: number; userId: string }) => {
-      return await apiRequest("DELETE", `/api/trips/${tripId}/riders/${userId}`);
+    mutationFn: async ({
+      tripId,
+      userId,
+    }: {
+      tripId: number;
+      userId: string;
+    }) => {
+      return await apiRequest(
+        "DELETE",
+        `/api/trips/${tripId}/riders/${userId}`,
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
@@ -150,14 +206,41 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
 
   const mutation = useMutation({
     mutationFn: async (data: TripFormData) => {
-      const payload = {
+      const payload: any = {
         ...data,
         totalSeats: data.availableSeats, // Automatically set totalSeats to match availableSeats
         participantIds: selectedParticipants,
         departureTime: parseTimeToTodayUTC(data.departureTime).toISOString(),
         riders: trip?.id ? undefined : selectedParticipants, // Only set riders for new trips
       };
-      
+
+      // Attach return trip data when the toggle is on (new trips only)
+      if (!trip?.id && addReturnTrip) {
+        // Map the selected time mode to the returnTimeType value sent to the server.
+        // For first_last / second_last the server resolves the actual time itself;
+        // for custom we must provide the ISO departure time.
+        if (returnTimeMode === "first") {
+          payload.returnTrip = {
+            returnTimeType: "first_last",
+            fromLocation: returnFromLocation || data.toLocation,
+            toLocation: returnToLocation || data.fromLocation,
+          };
+        } else if (returnTimeMode === "second") {
+          payload.returnTrip = {
+            returnTimeType: "second_last",
+            fromLocation: returnFromLocation || data.toLocation,
+            toLocation: returnToLocation || data.fromLocation,
+          };
+        } else if (returnTimeMode === "custom" && returnDepartureTime) {
+          payload.returnTrip = {
+            returnTimeType: "custom",
+            departureTime: parseTimeToTodayUTC(returnDepartureTime).toISOString(),
+            fromLocation: returnFromLocation || data.toLocation,
+            toLocation: returnToLocation || data.fromLocation,
+          };
+        }
+      }
+
       if (trip?.id) {
         return await apiRequest("PATCH", `/api/trips/${trip.id}`, payload);
       } else {
@@ -169,7 +252,9 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/my-trips"] });
       toast({
         title: "نجحت العملية",
-        description: trip?.id ? "تم تحديث الرحلة بنجاح!" : "تم إنشاء الرحلة بنجاح!",
+        description: trip?.id
+          ? "تم تحديث الرحلة بنجاح!"
+          : "تم إنشاء الرحلة بنجاح!",
       });
       onClose();
     },
@@ -183,10 +268,17 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
   });
 
   const onSubmit = (data: TripFormData) => {
+    // Guard: if return trip is enabled in custom mode, a time must be entered
+    if (!trip?.id && addReturnTrip && returnTimeMode === "custom" && !returnDepartureTime) {
+      toast({
+        title: "يرجى إدخال وقت العودة",
+        description: "الرجاء تحديد وقت انطلاق رحلة العودة أو اختيار خيار آخر",
+        variant: "destructive",
+      });
+      return;
+    }
     mutation.mutate(data);
   };
-
-  
 
   const handleParticipantAdd = (userId: string) => {
     if (!selectedParticipants.includes(userId)) {
@@ -195,7 +287,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
   };
 
   const handleParticipantRemove = (userId: string) => {
-    setSelectedParticipants(selectedParticipants.filter(id => id !== userId));
+    setSelectedParticipants(selectedParticipants.filter((id) => id !== userId));
   };
 
   const handleRiderAdd = async (userId: string) => {
@@ -208,7 +300,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
   const handleRiderRemove = async (userId: string) => {
     if (trip?.id) {
       await removeRiderMutation.mutateAsync({ tripId: trip.id, userId });
-      setCurrentRiders(currentRiders.filter(id => id !== userId));
+      setCurrentRiders(currentRiders.filter((id) => id !== userId));
     }
   };
 
@@ -217,11 +309,16 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
   };
 
   const getCurrentRiders = () => {
-    return currentRiders.map(riderId => users.find((u: any) => u.id === riderId)).filter(Boolean);
+    return currentRiders
+      .map((riderId) => users.find((u: any) => u.id === riderId))
+      .filter(Boolean);
   };
 
   const getAvailableUsers = () => {
-    const excludedIds = [...currentRiders, ...(trip?.driverId ? [trip.driverId] : [])];
+    const excludedIds = [
+      ...currentRiders,
+      ...(trip?.driverId ? [trip.driverId] : []),
+    ];
     return users.filter((user: any) => !excludedIds.includes(user.id));
   };
 
@@ -229,11 +326,16 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-3 sm:mx-auto">
         <DialogHeader>
-          <DialogTitle className="responsive-text-lg">{trip?.id ? "تحرير الرحلة" : "إنشاء رحلة جديدة"}</DialogTitle>
+          <DialogTitle className="responsive-text-lg">
+            {trip?.id ? "تحرير الرحلة" : "إنشاء رحلة جديدة"}
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 sm:space-y-6"
+          >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <FormField
                 control={form.control}
@@ -242,7 +344,11 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                   <FormItem>
                     <FormLabel className="text-sm">من</FormLabel>
                     <FormControl>
-                      <Input placeholder="موقع الانطلاق" className="touch-friendly" {...field} />
+                      <Input
+                        placeholder="موقع الانطلاق"
+                        className="touch-friendly"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -256,7 +362,11 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                   <FormItem>
                     <FormLabel className="text-sm">إلى</FormLabel>
                     <FormControl>
-                      <Input placeholder="الوجهة" className="touch-friendly" {...field} />
+                      <Input
+                        placeholder="الوجهة"
+                        className="touch-friendly"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -291,15 +401,15 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                       max="6"
                       className="touch-friendly"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 1)
+                      }
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            
 
             {isAdmin && (
               <FormField
@@ -324,10 +434,12 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               />
             )}
 
-            {(isAdmin || (trip?.driverId === user?.id)) && trip?.id && (
+            {(isAdmin || trip?.driverId === user?.id) && trip?.id && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">إدارة الركاب الحاليين</CardTitle>
+                  <CardTitle className="text-lg">
+                    إدارة الركاب الحاليين
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -336,17 +448,26 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                         <h4 className="font-medium mb-3">الركاب الحاليون:</h4>
                         <div className="space-y-2">
                           {getCurrentRiders().map((rider: any) => (
-                            <div key={rider.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div
+                              key={rider.id}
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                            >
                               <div className="flex items-center space-x-3">
                                 <Avatar className="h-8 w-8">
-                                  <AvatarImage src={rider.profileImageUrl || ""} />
+                                  <AvatarImage
+                                    src={rider.profileImageUrl || ""}
+                                  />
                                   <AvatarFallback>
                                     {rider.username?.[0]}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <div className="font-medium">{rider.username}</div>
-                                  <div className="text-sm text-gray-500">{rider.section}</div>
+                                  <div className="font-medium">
+                                    {rider.username}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {rider.section}
+                                  </div>
                                 </div>
                               </div>
                               <Button
@@ -363,7 +484,9 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-center py-4">لا يوجد ركاب حالياً</p>
+                      <p className="text-gray-500 text-center py-4">
+                        لا يوجد ركاب حالياً
+                      </p>
                     )}
 
                     <div>
@@ -371,7 +494,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                       <SearchableUserSelect
                         users={getAvailableUsers()}
                         value=""
-                        onValueChange={(value) => { 
+                        onValueChange={(value) => {
                           if (value) {
                             handleRiderAdd(value);
                           }
@@ -392,7 +515,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                   <SearchableUserSelect
                     users={users}
                     value=""
-                    onValueChange={(value) => { 
+                    onValueChange={(value) => {
                       if (value) {
                         handleParticipantAdd(value);
                       }
@@ -401,13 +524,17 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                     excludeUserIds={selectedParticipants}
                     showRole={false}
                   />
-                  
+
                   {selectedParticipants.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {selectedParticipants.map((userId) => {
                         const user = getSelectedUser(userId);
                         return (
-                          <Badge key={userId} variant="secondary" className="flex items-center gap-1">
+                          <Badge
+                            key={userId}
+                            variant="secondary"
+                            className="flex items-center gap-1"
+                          >
                             {user?.username}
                             <X
                               className="h-3 w-3 cursor-pointer"
@@ -422,16 +549,120 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
               </div>
             )}
 
-            
+            {/* Return trip toggle — only visible when creating a new trip */}
+            {!trip?.id && (
+              <div className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">إضافة رحلة عودة</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      إنشاء رحلة عودة مرتبطة بنفس المقاعد
+                    </p>
+                  </div>
+                  <Switch
+                    checked={addReturnTrip}
+                    onCheckedChange={(checked) => {
+                      setAddReturnTrip(checked);
 
-            
+                      if (checked) {
+                        setReturnFromLocation(form.getValues("toLocation"));
+                        setReturnToLocation(form.getValues("fromLocation"));
+                      }
+                    }}
+                  />
+                </div>
+
+                {addReturnTrip && (
+                  <div className="space-y-3 pt-1">
+                    {/* Read-only swapped route preview */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-sm font-medium">من</label>
+                        <Input
+                          className="touch-friendly"
+                          value={returnFromLocation}
+                          onChange={(e) => setReturnFromLocation(e.target.value)}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">إلى</label>
+                        <Input
+                          className="touch-friendly"
+                          value={returnToLocation}
+                          onChange={(e) => setReturnToLocation(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+
+                      <label className="text-sm font-medium">
+                        طريقة انطلاق العودة
+                      </label>
+
+                      <div className="space-y-2">
+
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            checked={returnTimeMode === "first"}
+                            onChange={() => setReturnTimeMode("first")}
+                          />
+                          <span>آخر شيء أول</span>
+                        </label>
+
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            checked={returnTimeMode === "second"}
+                            onChange={() => setReturnTimeMode("second")}
+                          />
+                          <span>آخر شيء ثاني</span>
+                        </label>
+
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            checked={returnTimeMode === "custom"}
+                            onChange={() => setReturnTimeMode("custom")}
+                          />
+                          <span>وقت معين</span>
+                        </label>
+
+                      </div>
+
+                      {returnTimeMode === "custom" && (
+                        <div className="space-y-1">
+                          <label className="text-sm font-medium">
+                            وقت انطلاق العودة
+                          </label>
+
+                          <Input
+                            type="time"
+                            className="touch-friendly"
+                            value={returnDepartureTime}
+                            onChange={(e) => setReturnDepartureTime(e.target.value)}
+                          />
+                        </div>
+                      )}
+
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={onClose}>
                 إلغاء
               </Button>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "جاري الحفظ..." : trip?.id ? "تحديث الرحلة" : "إنشاء رحلة"}
+                {mutation.isPending
+                  ? "جاري الحفظ..."
+                  : trip?.id
+                    ? "تحديث الرحلة"
+                    : "إنشاء رحلة"}
               </Button>
             </div>
           </form>

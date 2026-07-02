@@ -8,15 +8,7 @@ channel = "stable-24_05"
 [deployment]
 deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
-
-[[ports]]
-localPort = 3000
-externalPort = 80
-
-[[ports]]
-localPort = 3000
-externalPort = 80
+run = ["node", "./dist/index.cjs"]
 
 [[ports]]
 localPort = 3000
@@ -41,4 +33,8 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
-waitForPort = 5000
+waitForPort = 3000
+
+[agent]
+expertMode = true
+stack = "FULLSTACK_JS"

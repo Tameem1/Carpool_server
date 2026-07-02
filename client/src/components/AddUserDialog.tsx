@@ -93,7 +93,7 @@ export default function AddUserDialog({ open, onClose }: AddUserDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>القسم</FormLabel>
-                  <FormControl>
+            <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="اختر القسم" />

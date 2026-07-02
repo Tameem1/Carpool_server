@@ -32,6 +32,9 @@ export const trips = pgTable("trips", {
   isRecurring: boolean("is_recurring").default(false),
   recurringDays: text("recurring_days"), // JSON array of days
   notes: text("notes"),
+  returnTripId: integer("return_trip_id"), // Links to the paired return trip, if any
+  isReturnTrip: boolean("is_return_trip").default(false), // true = return leg, false = outbound
+  returnTimeType: varchar("return_time_type", { length: 20 }), // "custom" | "first_last" | "second_last" — only set on return trips
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

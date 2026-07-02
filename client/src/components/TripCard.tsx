@@ -39,6 +39,8 @@ interface TripCardProps {
     departureTime: string;
     availableSeats: number;
     totalSeats: number;
+    isReturnTrip?: boolean;
+    returnTimeType?: string; // "custom" | "first_last" | "second_last"
     riders?: string[];
     riderDetails?: {
       id: string;
@@ -223,6 +225,19 @@ export function TripCard({
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-3 sm:p-4 lg:p-6">
 
+        {/* Trip type badge */}
+        <div className="mb-2">
+          {trip.isReturnTrip ? (
+            <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 border-0 text-xs">
+              🔵 رحلة عودة
+            </Badge>
+          ) : (
+            <Badge className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 border-0 text-xs">
+              🟢 رحلة ذهاب
+            </Badge>
+          )}
+        </div>
+
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 space-y-2 sm:space-y-0">
           <div className="flex-1">
             <h3 className={`responsive-text-lg font-semibold text-gray-900 dark:text-white ${(isArabicText(trip.fromLocation) || isArabicText(trip.toLocation)) ? 'text-right' : 'text-left'}`}>
@@ -230,7 +245,13 @@ export function TripCard({
             </h3>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex items-center mt-1">
               <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span className="truncate">{departureTimeOnly}</span>
+              <span className="truncate">
+                {trip.isReturnTrip && trip.returnTimeType === "first_last"
+                  ? "آخر شيء أول"
+                  : trip.isReturnTrip && trip.returnTimeType === "second_last"
+                  ? "آخر شيء ثاني"
+                  : departureTimeOnly}
+              </span>
             </p>
           </div>
 
