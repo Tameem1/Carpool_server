@@ -455,18 +455,18 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                               <div className="flex items-center space-x-3">
                                 <Avatar className="h-8 w-8">
                                   <AvatarImage
-                                    src={rider.profileImageUrl || ""}
+                                    src={rider.image || ""}
                                   />
                                   <AvatarFallback>
-                                    {rider.username?.[0]}
+                                    {rider.name?.[0]}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
                                   <div className="font-medium">
-                                    {rider.username}
+                                    {rider.name}
                                   </div>
                                   <div className="text-sm text-gray-500">
-                                    {rider.section}
+                                    {rider.group}
                                   </div>
                                 </div>
                               </div>
@@ -535,7 +535,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                             variant="secondary"
                             className="flex items-center gap-1"
                           >
-                            {user?.username}
+                            {user?.name}
                             <X
                               className="h-3 w-3 cursor-pointer"
                               onClick={() => handleParticipantRemove(userId)}

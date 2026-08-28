@@ -10,8 +10,8 @@ import { Bell, Send } from "lucide-react";
 
 interface AppUser {
   id: string;
-  username: string;
-  section: string;
+  name: string;
+  group: string;
   telegramUsername?: string | null;
 }
 
@@ -115,8 +115,8 @@ export function ShortageRecipients() {
                       onCheckedChange={() => toggle(u.id)}
                     />
                     <span className="flex-1 text-sm">
-                      {u.username}
-                      <span className="text-gray-400"> · {u.section}</span>
+                      {u.name}
+                      <span className="text-gray-400"> · {u.group}</span>
                     </span>
                     {noTelegram && (
                       <span className="text-xs text-amber-600">لا يوجد تيليجرام</span>

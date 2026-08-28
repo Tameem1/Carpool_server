@@ -17,7 +17,7 @@ const pendingCodes = new Map<string, PendingCode>();
 
 function pruneExpiredCodes() {
   const now = Date.now();
-  for (const [code, data] of pendingCodes) {
+  for (const [code, data] of Array.from(pendingCodes.entries())) {
     if (data.expires.getTime() < now) pendingCodes.delete(code);
   }
 }
@@ -25,7 +25,7 @@ function pruneExpiredCodes() {
 function generateCode(userId: string): string {
   pruneExpiredCodes();
   // Invalidate any existing code for this user
-  for (const [code, data] of pendingCodes) {
+  for (const [code, data] of Array.from(pendingCodes.entries())) {
     if (data.userId === userId) {
       pendingCodes.delete(code);
       console.log(`[TELEGRAM] Invalidated old code for user ${userId}`);
@@ -177,7 +177,7 @@ class TelegramNotificationService {
         if (linked) {
           await this.bot!.sendMessage(
             chatId,
-            `✅ *حسابك مرتبط*\n\nاسم المستخدم: *${esc(linked.username)}*\nالقسم: *${esc(linked.section)}*\n\nستصلك إشعارات الرحلات تلقائياً\\.`,
+            `✅ *حسابك مرتبط*\n\nالاسم: *${esc(linked.name)}*\nالمجموعة: *${esc(linked.group)}*\n\nستصلك إشعارات الرحلات تلقائياً\\.`,
             { parse_mode: "MarkdownV2" },
           );
         } else {
@@ -203,10 +203,10 @@ class TelegramNotificationService {
           return;
         }
         await storage.updateUser(linked.id, { telegramId: null, telegramUsername: null });
-        console.log(`[TELEGRAM] User unlinked via /unlink: userId=${linked.id} (${linked.username}), chatId=${chatId}`);
+        console.log(`[TELEGRAM] User unlinked via /unlink: userId=${linked.id} (${linked.name}), chatId=${chatId}`);
         await this.bot!.sendMessage(
           chatId,
-          `✅ تم إلغاء ربط حسابك *${esc(linked.username)}* بنجاح\\.`,
+          `✅ تم إلغاء ربط حسابك *${esc(linked.name)}* بنجاح\\.`,
           { parse_mode: "MarkdownV2" },
         );
       } catch (err: any) {
@@ -321,7 +321,7 @@ class TelegramNotificationService {
 
   // ─── /info helpers ────────────────────────────────────────────────────────
 
-  private tripTypeLabel(isReturn: boolean): string {
+  private tripTypeLabel(isReturn: boolean | null | undefined): string {
     return isReturn ? "🔵 رحلة عودة" : "🟢 رحلة ذهاب";
   }
 
@@ -387,8 +387,8 @@ class TelegramNotificationService {
 
     return filtered
       .map((t) => {
-        const driver = driverMap.get(t.driverId);
-        const driverName = driver?.username ?? "غير معروف";
+        const driver = t.driverId ? driverMap.get(t.driverId) : undefined;
+        const driverName = driver?.name ?? "سائق سابق";
         const riders = t.riders?.length ?? 0;
         const total = t.totalSeats ?? 0;
         const remaining = t.availableSeats ?? 0;
@@ -445,12 +445,12 @@ class TelegramNotificationService {
     });
 
     const user = await storage.getUser(userId);
-    console.log(`[TELEGRAM] ✅ Account linked: userId=${userId} (${user?.username}) ↔ chatId=${chatId} (@${telegramUsername})`);
+    console.log(`[TELEGRAM] ✅ Account linked: userId=${userId} (${user?.name}) ↔ chatId=${chatId} (@${telegramUsername})`);
 
     try {
       await this.bot!.sendMessage(
         chatId,
-        `✅ *تم ربط حسابك بنجاح\\!*\n\nاسم المستخدم: *${esc(user?.username ?? "")}*\nستصلك الآن إشعارات الرحلات على تيليغرام\\.`,
+        `✅ *تم ربط حسابك بنجاح\\!*\n\nالاسم: *${esc(user?.name ?? "")}*\nستصلك الآن إشعارات الرحلات على تيليغرام\\.`,
         { parse_mode: "MarkdownV2" },
       );
       console.log(`[TELEGRAM] Confirmation message sent to chatId=${chatId}`);
@@ -465,10 +465,10 @@ class TelegramNotificationService {
     return generateCode(userId);
   }
 
-  async findUserByChatId(chatId: number): Promise<{ id: string; username: string; section: string } | null> {
+  async findUserByChatId(chatId: number): Promise<{ id: string; name: string; group: string } | null> {
     const allUsers = await storage.getAllUsers();
     const user = allUsers.find((u) => u.telegramId === String(chatId));
-    return user ? { id: user.id, username: user.username, section: user.section } : null;
+    return user ? { id: user.id, name: user.name, group: user.group } : null;
   }
 
   // ─── Notification delivery ────────────────────────────────────────────────
@@ -532,7 +532,7 @@ class TelegramNotificationService {
       if (!request || !rider) return;
 
       const msg =
-        `🚗 *طلب رحلة جديد من ${esc(rider.username)}*\n\n` +
+        `🚗 *طلب رحلة جديد من ${esc(rider.name)}*\n\n` +
         `📍 *من:* ${esc(request.fromLocation)}\n` +
         `📍 *إلى:* ${esc(request.toLocation)}\n` +
         `🕐 *الوقت المفضل:* ${formatGMTPlus3TimeOnly(new Date(request.preferredTime))}\n` +
@@ -550,7 +550,8 @@ class TelegramNotificationService {
     }
   }
 
-  async notifyTripCreated(tripId: number, driverId: string) {
+  async notifyTripCreated(tripId: number, driverId: string | null | undefined) {
+    if (!driverId) return;
     try {
       const trip = await storage.getTrip(tripId);
       if (!trip) return;
@@ -568,7 +569,8 @@ class TelegramNotificationService {
     }
   }
 
-  async notifyAdminsTripCreated(tripId: number, driverId: string) {
+  async notifyAdminsTripCreated(tripId: number, driverId: string | null | undefined) {
+    if (!driverId) return;
     try {
       const trip = await storage.getTrip(tripId);
       const driver = await storage.getUser(driverId);
@@ -578,7 +580,7 @@ class TelegramNotificationService {
       const typeLabel = this.tripTypeLabel(trip.isReturnTrip);
       const msg =
         `${typeLabel}\n` +
-        `🚗 *رحلة جديدة من ${esc(driver.username)}*\n\n` +
+        `🚗 *رحلة جديدة من ${esc(driver.name)}*\n\n` +
         `📍 *من:* ${esc(trip.fromLocation)}\n` +
         `📍 *إلى:* ${esc(trip.toLocation)}\n` +
         `🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n` +
@@ -596,7 +598,8 @@ class TelegramNotificationService {
     }
   }
 
-  async notifyRideRequestReceived(driverId: string, requestId: number) {
+  async notifyRideRequestReceived(driverId: string | null | undefined, requestId: number) {
+    if (!driverId) return;
     try {
       const request = await storage.getRideRequest(requestId);
       if (!request) return;
@@ -635,14 +638,15 @@ class TelegramNotificationService {
     }
   }
 
-  async notifyDriverRiderJoined(driverId: string, tripId: number, riderId: string, notes?: string) {
+  async notifyDriverRiderJoined(driverId: string | null | undefined, tripId: number, riderId: string, notes?: string) {
+    if (!driverId) return;
     try {
       const trip = await storage.getTrip(tripId);
       const rider = await storage.getUser(riderId);
       if (!trip || !rider) return;
       const msg =
         `👤 *راكب جديد انضم لرحلتك*\n\n` +
-        `👤 *الراكب:* ${esc(rider.username)}\n` +
+        `👤 *الراكب:* ${esc(rider.name)}\n` +
         `📍 *من:* ${esc(trip.fromLocation)}\n` +
         `📍 *إلى:* ${esc(trip.toLocation)}\n` +
         `🕐 *وقت المغادرة:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n` +
@@ -757,7 +761,7 @@ class TelegramNotificationService {
       if (!trip || !rider) return;
       const msg =
         `📨 *طلب انضمام جديد لرحلتك*\n\n` +
-        `👤 *الراكب:* ${esc(rider.username)}\n` +
+        `👤 *الراكب:* ${esc(rider.name)}\n` +
         `🪑 *المقاعد المطلوبة:* ${seatsRequested}\n` +
         `📍 *من:* ${esc(trip.fromLocation)}\n` +
         `📍 *إلى:* ${esc(trip.toLocation)}\n` +
@@ -788,7 +792,8 @@ class TelegramNotificationService {
   }
 
   /** Live: new trip created */
-  async broadcastLiveTripCreated(tripId: number, driverId: string) {
+  async broadcastLiveTripCreated(tripId: number, driverId: string | null | undefined) {
+    if (!driverId) return;
     try {
       const trip = await storage.getTrip(tripId);
       const driver = await storage.getUser(driverId);
@@ -799,7 +804,7 @@ class TelegramNotificationService {
       const msg =
         `${typeLabel}\n` +
         `🆕 *رحلة جديدة*\n\n` +
-        `🚗 *السائق:* ${driver.username}\n` +
+        `🚗 *السائق:* ${driver.name}\n` +
         `📍 *من:* ${trip.fromLocation}\n` +
         `📍 *إلى:* ${trip.toLocation}\n` +
         `🕐 *وقت الانطلاق:* ${formatGMTPlus3TimeOnly(new Date(trip.departureTime))}\n` +
@@ -818,8 +823,9 @@ class TelegramNotificationService {
     addedByAdmin: boolean,
     updatedRiders: string[],
     totalSeats: number,
-    driverId: string,
+    driverId: string | null | undefined,
   ) {
+    if (!driverId) return;
     try {
       const trip = await storage.getTrip(tripId);
       const rider = await storage.getUser(riderId);
@@ -833,10 +839,10 @@ class TelegramNotificationService {
       const msg =
         `${typeLabel}\n` +
         `👤 *راكب جديد انضم*\n\n` +
-        `👤 *اسم الراكب:* ${rider.username}\n` +
-        `🏢 *المجموعة:* ${rider.section}\n` +
+        `👤 *اسم الراكب:* ${rider.name}\n` +
+        `🏢 *المجموعة:* ${rider.group}\n` +
         `طريقة الانضمام: ${howJoined}\n` +
-        `🚗 *السائق:* ${driver.username}\n` +
+        `🚗 *السائق:* ${driver.name}\n` +
         `👥 *الركاب الحاليون:* ${updatedRiders.length} / ${totalSeats}\n` +
         `💺 *المقاعد المتبقية:* ${remaining}` +
         (remaining === 0 ? "\n\n🚫 *السيارة ممتلئة الآن*" : "");
@@ -853,9 +859,10 @@ class TelegramNotificationService {
     removedBySelf: boolean,
     updatedRiders: string[],
     totalSeats: number,
-    driverId: string,
+    driverId: string | null | undefined,
     prevAvailableSeats: number,
   ) {
+    if (!driverId) return;
     try {
       const trip = await storage.getTrip(tripId);
       const rider = await storage.getUser(riderId);
@@ -870,10 +877,10 @@ class TelegramNotificationService {
       const msg =
         `${typeLabel}\n` +
         `🚪 *راكب غادر الرحلة*\n\n` +
-        `👤 *اسم الراكب:* ${rider.username}\n` +
-        `🏢 *المجموعة:* ${rider.section}\n` +
+        `👤 *اسم الراكب:* ${rider.name}\n` +
+        `🏢 *المجموعة:* ${rider.group}\n` +
         `سبب المغادرة: ${reason}\n` +
-        `🚗 *السائق:* ${driver.username}\n` +
+        `🚗 *السائق:* ${driver.name}\n` +
         `👥 *الركاب الحاليون:* ${updatedRiders.length} / ${totalSeats}\n` +
         `💺 *المقاعد المتبقية:* ${remaining}` +
         (seatBecameAvailable ? "\n\n🟢 *مقعد متاح الآن!*" : "");
@@ -908,7 +915,7 @@ class TelegramNotificationService {
       const msg =
         `${typeLabel}\n` +
         `✏️ *تم تعديل رحلة*\n\n` +
-        `🚗 *السائق:* ${driver.username}\n\n` +
+        `🚗 *السائق:* ${driver.name}\n\n` +
         changes.join("\n\n");
       await this.broadcastLiveMsg(msg);
     } catch (err) {
@@ -925,7 +932,7 @@ class TelegramNotificationService {
       const msg =
         `${typeLabel}\n` +
         `🚫 *تم حذف رحلة*\n\n` +
-        `🚗 *السائق:* ${driver.username}\n` +
+        `🚗 *السائق:* ${driver.name}\n` +
         `📍 *من:* ${trip.fromLocation}\n` +
         `📍 *إلى:* ${trip.toLocation}`;
       await this.broadcastLiveMsg(msg);
@@ -942,7 +949,7 @@ class TelegramNotificationService {
     const userMap = await storage.getUsersByIds(riderIds);
     const lines = riderIds.map((id, i) => {
       const u = userMap.get(id);
-      return u ? `${numEmoji(i + 1)} ${u.username} - ${u.section}` : `${numEmoji(i + 1)} غير معروف`;
+      return u ? `${numEmoji(i + 1)} ${u.name} - ${u.group}` : `${numEmoji(i + 1)} غير معروف`;
     });
     const passengersSection = lines.length > 0
       ? `👥 *الركاب الحاليون*\n${lines.join("\n")}`
@@ -953,12 +960,13 @@ class TelegramNotificationService {
   // ─── Rider added by admin ─────────────────────────────────────────────────
 
   async notifyDriverRiderAddedByAdmin(
-    driverId: string,
+    driverId: string | null | undefined,
     tripId: number,
     riderId: string,
     updatedRiders: string[],
     totalSeats: number,
   ) {
+    if (!driverId) return;
     try {
       const trip = await storage.getTrip(tripId);
       const rider = await storage.getUser(riderId);
@@ -969,8 +977,8 @@ class TelegramNotificationService {
 
       const msg =
         `🎉 *تمت إضافة راكب جديد*\n\n` +
-        `👤 *اسم الراكب:*\n${esc(rider.username)}\n` +
-        `🏢 *المجموعة:*\n${esc(rider.section)}\n` +
+        `👤 *اسم الراكب:*\n${esc(rider.name)}\n` +
+        `🏢 *المجموعة:*\n${esc(rider.group)}\n` +
         `📝 *الملاحظات:*\nlا يوجد\n` +
         `${typeLabel}\n` +
         `📍 *من:*\n${esc(trip.fromLocation)}\n` +
@@ -986,13 +994,14 @@ class TelegramNotificationService {
   // ─── Rider joined by themselves (detailed, with full passenger list) ───────
 
   async notifyDriverRiderJoinedSelf(
-    driverId: string,
+    driverId: string | null | undefined,
     tripId: number,
     riderId: string,
     updatedRiders: string[],
     totalSeats: number,
     notes?: string,
   ) {
+    if (!driverId) return;
     try {
       const trip = await storage.getTrip(tripId);
       const rider = await storage.getUser(riderId);
@@ -1003,8 +1012,8 @@ class TelegramNotificationService {
 
       const msg =
         `🎉 *راكب جديد انضم إلى رحلتك*\n\n` +
-        `👤 *اسم الراكب:*\n${esc(rider.username)}\n` +
-        `🏢 *المجموعة:*\n${esc(rider.section)}\n` +
+        `👤 *اسم الراكب:*\n${esc(rider.name)}\n` +
+        `🏢 *المجموعة:*\n${esc(rider.group)}\n` +
         `📝 *الملاحظات:*\n${notes ? esc(notes) : "لا يوجد"}\n` +
         `${typeLabel}\n` +
         `📍 *من:*\n${esc(trip.fromLocation)}\n` +
@@ -1020,13 +1029,14 @@ class TelegramNotificationService {
   // ─── Rider removed (self or admin) ───────────────────────────────────────
 
   async notifyDriverRiderRemoved(
-    driverId: string,
+    driverId: string | null | undefined,
     tripId: number,
     riderId: string,
     removedBySelf: boolean,
     updatedRiders: string[],
     totalSeats: number,
   ) {
+    if (!driverId) return;
     try {
       const trip = await storage.getTrip(tripId);
       const rider = await storage.getUser(riderId);
@@ -1037,8 +1047,8 @@ class TelegramNotificationService {
 
       const msg =
         `⚠️ *تم إلغاء انضمام أحد الركاب*\n\n` +
-        `👤 *اسم الراكب:*\n${esc(rider.username)}\n` +
-        `🏢 *المجموعة:*\n${esc(rider.section)}\n` +
+        `👤 *اسم الراكب:*\n${esc(rider.name)}\n` +
+        `🏢 *المجموعة:*\n${esc(rider.group)}\n` +
         `${typeLabel}\n` +
         passengersBlock;
 

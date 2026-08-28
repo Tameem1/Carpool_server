@@ -199,7 +199,7 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 gap-4">
         <div className="flex-1">
           <h1 className="responsive-text-2xl font-bold text-gray-900 dark:text-white">
-            مرحباً بعودتك، {user?.username}!
+            مرحباً بعودتك، {user?.name}!
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1 sm:mt-2 text-sm sm:text-base">
             {user?.role === "admin"

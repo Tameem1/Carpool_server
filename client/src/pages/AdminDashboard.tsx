@@ -284,17 +284,17 @@ export default function AdminDashboard() {
                           {trip.driver ? (
                             <div className="flex items-center">
                               <Avatar className="h-8 w-8 mr-3">
-                                <AvatarImage src={trip.driver.profileImageUrl || ""} />
+                                <AvatarImage src={trip.driver.image || ""} />
                                 <AvatarFallback>
-                                  {trip.driver.username?.[0]}
+                                  {trip.driver.name?.[0]}
                                 </AvatarFallback>
                               </Avatar>
                               <span className="text-sm font-medium">
-                                {trip.driver.username}
+                                {trip.driver.name}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-500">لا يوجد سائق معين</span>
+                            <span className="text-sm text-gray-500">سائق سابق</span>
                           )}
                         </td>
                         <td className="py-4 px-4">
@@ -305,6 +305,10 @@ export default function AdminDashboard() {
 
                         <td className="py-4 px-4">
                           <div className="flex space-x-2">
+                            {trip.isLegacy ? (
+                              <span className="text-xs text-gray-500">رحلة سابقة</span>
+                            ) : (
+                              <>
                             <Button
                               variant="outline"
                               size="sm"
@@ -319,6 +323,8 @@ export default function AdminDashboard() {
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>

@@ -41,9 +41,9 @@ interface TripJoinRequestFormProps {
     departureTime: string;
     availableSeats: number;
     driver?: {
-      username: string;
-      section: string;
-    };
+      name: string;
+      group: string;
+    } | null;
   };
 }
 
@@ -140,7 +140,7 @@ export function TripJoinRequestForm({ open, onClose, tripId, trip }: TripJoinReq
               <p><span className="font-medium">التوقيت:</span> {formatDate(trip.departureTime)}</p>
               <p><span className="font-medium">المقاعد المتاحة:</span> {trip.availableSeats}</p>
               {trip.driver && (
-                <p><span className="font-medium">السائق:</span> {trip.driver.username}</p>
+                <p><span className="font-medium">السائق:</span> {trip.driver.name}</p>
               )}
             </div>
           </div>

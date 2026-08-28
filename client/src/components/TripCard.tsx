@@ -44,21 +44,22 @@ interface TripCardProps {
     riders?: string[];
     riderDetails?: {
       id: string;
-      username: string;
-      section: string;
+      name: string;
+      group: string;
       role?: string;
-      profileImageUrl?: string;
+      image?: string | null;
       phoneNumber?: string;
     }[];
 
     driver?: {
       id: string;
-      username: string;
-      section: string;
+      name: string;
+      group: string;
       role?: string;
-      profileImageUrl?: string;
+      image?: string | null;
       phoneNumber?: string;
-    };
+    } | null;
+    isLegacy?: boolean;
     participantCount?: number;
   };
   onRequestSeat?: (tripId: number) => void;
@@ -257,23 +258,27 @@ export function TripCard({
 
         </div>
 
-        {trip.driver && (
+        {trip.isLegacy && (
+          <Badge variant="secondary" className="mb-3">رحلة سابقة</Badge>
+        )}
+
+        {(trip.driver || trip.isLegacy) && (
           <div className="flex items-center mb-3 sm:mb-4">
             <Avatar className="h-8 w-8 sm:h-10 sm:w-10 mr-2 sm:mr-3">
               <AvatarImage
-                src={trip.driver.profileImageUrl || ""}
+                src={trip.driver?.image || ""}
                 alt="Driver"
               />
               <AvatarFallback className="text-xs sm:text-sm">
-                {trip.driver.username[0]}
+                {(trip.driver?.name || "سائق سابق")[0]}
               </AvatarFallback>
             </Avatar>
             <div>
               <p className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
-                {trip.driver.username}
+                {trip.driver?.name || "سائق سابق"}
               </p>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Driver</p>
-              {trip.driver.phoneNumber ? (
+              {trip.driver?.phoneNumber ? (
                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                   <div className="flex items-center gap-1">
                     <Phone className="h-3 w-3" />
@@ -284,7 +289,7 @@ export function TripCard({
                     variant="ghost"
                     className="h-6 w-6 p-0 rounded-full bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800"
                     onClick={() => trip.driver?.phoneNumber && window.open(`tel:${trip.driver.phoneNumber}`, '_self')}
-                    title={`Call ${trip.driver?.username || 'Driver'}`}
+                    title={`Call ${trip.driver?.name || 'Driver'}`}
                   >
                     <Phone className="h-3 w-3 text-green-600" />
                   </Button>
@@ -324,14 +329,14 @@ export function TripCard({
                 <div key={rider.id} className="relative group flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div className="flex items-center space-x-2">
                     <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
-                      <AvatarImage src={rider.profileImageUrl || ""} />
+                      <AvatarImage src={rider.image || ""} />
                       <AvatarFallback className="text-xs">
-                        {rider.username?.[0]}
+                        {rider.name?.[0]}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
                       <span className="text-xs sm:text-sm font-medium">
-                        {rider.username}
+                        {rider.name}
                       </span>
                       {rider.phoneNumber ? (
                         <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
@@ -344,7 +349,7 @@ export function TripCard({
                             variant="ghost"
                             className="h-6 w-6 p-0 rounded-full bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800"
                             onClick={() => window.open(`tel:${rider.phoneNumber}`, '_self')}
-                            title={`Call ${rider.username}`}
+                            title={`Call ${rider.name}`}
                           >
                             <Phone className="h-3 w-3 text-green-600" />
                           </Button>
@@ -368,7 +373,7 @@ export function TripCard({
                         className="h-6 w-6 sm:h-8 sm:w-8 p-0 rounded-full bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 touch-friendly"
                         onClick={() => removeRiderMutation.mutate(rider.id)}
                         disabled={removeRiderMutation.isPending}
-                        title={`Remove ${rider.username}`}
+                        title={`Remove ${rider.name}`}
                       >
                         <UserMinus className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                       </Button>
@@ -421,7 +426,7 @@ export function TripCard({
             </div>
           </div>
 
-          {showActions && (
+          {showActions && !trip.isLegacy && (
             <div className="flex flex-wrap gap-2">
               {/* Join Trip button - for any user to directly join */}
               {!hideJoinRequest &&

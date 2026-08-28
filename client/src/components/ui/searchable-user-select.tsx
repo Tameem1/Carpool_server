@@ -18,8 +18,8 @@ import {
 
 interface User {
   id: string
-  username: string
-  section: string
+  name: string
+  group: string
   role?: string
 }
 
@@ -66,9 +66,9 @@ export function SearchableUserSelect({
       // Search filter
       if (searchValue) {
         const searchLower = searchValue.toLowerCase()
-        const username = user.username.toLowerCase()
-        const section = user.section.toLowerCase()
-        return username.includes(searchLower) || section.includes(searchLower)
+        const name = user.name.toLowerCase()
+        const group = user.group.toLowerCase()
+        return name.includes(searchLower) || group.includes(searchLower)
       }
       
       return true
@@ -84,7 +84,7 @@ export function SearchableUserSelect({
   const displayValue = React.useMemo(() => {
     if (value === selfValue && allowSelf) return selfLabel
     if (selectedUser) {
-      const name = selectedUser.username
+      const name = selectedUser.name
       if (showRole && selectedUser.role) {
         const roleLabel = selectedUser.role === 'admin' ? 'مدير' : 'مستخدم'
         return `${name} (${roleLabel})`
@@ -143,14 +143,14 @@ export function SearchableUserSelect({
                 </CommandItem>
               )}
               {filteredUsers.map((user) => {
-                const displayName = user.username
+                const displayName = user.name
                 const roleLabel = showRole && user.role ? 
                   ` (${user.role === 'admin' ? 'مدير' : 'مستخدم'})` : ''
                 
                 return (
                   <CommandItem
                     key={user.id}
-                    value={`${user.id}-${displayName}-${user.section}`}
+                    value={`${user.id}-${displayName}-${user.group}`}
                     onSelect={() => handleSelect(user.id)}
                   >
                     <Check
@@ -161,7 +161,7 @@ export function SearchableUserSelect({
                     />
                     <div className="flex flex-col items-start">
                       <span>{displayName}{roleLabel}</span>
-                      <span className="text-xs text-muted-foreground">{user.section}</span>
+                      <span className="text-xs text-muted-foreground">{user.group}</span>
                     </div>
                   </CommandItem>
                 )

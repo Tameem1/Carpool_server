@@ -258,14 +258,14 @@ export default function DriverDashboard() {
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center">
                         <Avatar className="h-10 w-10 mr-3">
-                          <AvatarImage src={request.rider?.profileImageUrl || ""} />
+                          <AvatarImage src={request.rider?.image || ""} />
                           <AvatarFallback>
-                            {request.rider?.username?.[0]}
+                            {request.rider?.name?.[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <h4 className="font-semibold text-gray-900">
-                            {request.rider?.username}
+                            {request.rider?.name}
                           </h4>
                           <p className="text-sm text-gray-600">
                             Requested ride for {format(new Date(request.preferredTime), "h:mm a")}

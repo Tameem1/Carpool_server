@@ -3,26 +3,31 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User roles enum - expanded to include teacher, student, manager
-export const userRoles = ["user", "admin", "student"] as const;
+export const userRoles = ["user", "admin"] as const;
 
 export const users = pgTable("users", {
+  // Evally student id. Cars never invents user rows.
   id: varchar("id").primaryKey().notNull(),
-  username: varchar("username").notNull(),
-  section: varchar("section").notNull(),
+  name: varchar("name").notNull(),
+  group: varchar("group").notNull(),
+  image: varchar("image"),
+  isActive: boolean("is_active").notNull().default(true),
+  syncedAt: timestamp("synced_at").defaultNow().notNull(),
+
+  role: varchar("role", { enum: userRoles }).notNull().default("user"),
   phoneNumber: varchar("phone_number"),
   telegramUsername: varchar("telegram_username"),
-  password: varchar("password").notNull(),
   telegramId: varchar("telegram_id"),
-  role: varchar("role", { enum: userRoles }).notNull().default("user"),
   preferredDepartureStart: varchar("preferred_departure_start"),
   preferredDepartureEnd: varchar("preferred_departure_end"),
+  lastLoginAt: timestamp("last_login_at"),
 });
 
 export const trips = pgTable("trips", {
   id: serial("id").primaryKey(),
-  driverId: varchar("driver_id").notNull(),
-  riders: text("riders").array(), // Array of rider user IDs
+  driverId: varchar("driver_id"), // nullable for imported legacy rows
+  riders: text("riders").array().default([]),
+  isLegacy: boolean("is_legacy").notNull().default(false),
   fromLocation: text("from_location").notNull(),
   toLocation: text("to_location").notNull(),
   departureTime: timestamp("departure_time").notNull(),
@@ -202,13 +207,25 @@ export const insertTripSchema = createInsertSchema(trips).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  isLegacy: true,
 }).extend({
   departureTime: z.string().transform((str) => new Date(str)),
-  driverId: z.string().optional(), // Allow admin to specify driver
-  riders: z.array(z.string()).optional(), // Array of rider user IDs
-  participantIds: z.array(z.string()).optional(), // Admin can pre-assign participants
-  totalSeats: z.number().optional(), // Make optional since it's derived from availableSeats
-  recurringDays: z.array(z.string()).optional().transform((arr) => arr ? JSON.stringify(arr) : null), // Convert array to JSON string
+  driverId: z.string().min(1).optional(),
+  riders: z.array(z.string()).optional(),
+  participantIds: z.array(z.string()).optional(),
+  totalSeats: z.number().optional(),
+  recurringDays: z.array(z.string()).optional().transform((arr) => arr ? JSON.stringify(arr) : null),
+});
+
+export const updateProfileSchema = z.object({
+  phoneNumber: z.string().nullable().optional(),
+  telegramUsername: z.string().nullable().optional(),
+  preferredDepartureStart: z.string().nullable().optional(),
+  preferredDepartureEnd: z.string().nullable().optional(),
+});
+
+export const updateRoleSchema = z.object({
+  role: z.enum(userRoles),
 });
 
 export const insertRideRequestSchema = createInsertSchema(rideRequests).omit({

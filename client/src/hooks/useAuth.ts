@@ -9,7 +9,7 @@ export function useAuth() {
     queryKey: ["/api/auth/user"],
     queryFn: async () => {
       const response = await fetch("/api/auth/user", {
-        credentials: 'include'
+        credentials: "include",
       });
       if (response.ok) {
         const userData = await response.json();
@@ -33,31 +33,14 @@ export function useAuth() {
     }
   }, [user, error]);
 
-  const login = async (credentials: { section: string; username: string; password: string }) => {
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: 'include',
-      body: JSON.stringify(credentials),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      setIsAuthenticated(true);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      return data;
-    } else {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Login failed");
-    }
+  const login = () => {
+    window.location.href = "/api/auth/login";
   };
 
   const logout = async () => {
     await fetch("/api/auth/logout", {
       method: "POST",
-      credentials: 'include'
+      credentials: "include",
     });
     setIsAuthenticated(false);
     queryClient.clear();

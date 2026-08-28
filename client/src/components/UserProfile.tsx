@@ -147,7 +147,7 @@ export function UserProfile() {
             onClick={() => setShowAddUser(true)}
             className="bg-primary hover:bg-primary/90"
           >
-            إضافة مستخدم
+            إضافة دور
           </Button>
         </div>
       )}
@@ -163,18 +163,18 @@ export function UserProfile() {
         <CardContent>
           <div className="flex items-center gap-4 mb-6">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={(user as any).profileImageUrl || ""} />
+              <AvatarImage src={user.image || ""} />
               <AvatarFallback className="text-lg">
-                {user.username?.[0]}
+                {user.name?.[0]}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="text-lg font-semibold">{user.username}</h3>
+              <h3 className="text-lg font-semibold">{user.name}</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
                 الدور: {user.role}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                القسم: {user.section}
+                المجموعة: {user.group}
               </p>
             </div>
           </div>
@@ -182,29 +182,29 @@ export function UserProfile() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="username">اسم المستخدم</Label>
+                <Label htmlFor="name">الاسم</Label>
                 <Input
-                  id="username"
-                  value={user?.username || ""}
+                  id="name"
+                  value={user?.name || ""}
                   readOnly
                   disabled
                   className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  لا يمكن تغيير اسم المستخدم
+                  الاسم يأتي من إفالي ولا يمكن تغييره هنا
                 </p>
               </div>
               <div>
-                <Label htmlFor="section">القسم</Label>
+                <Label htmlFor="group">المجموعة</Label>
                 <Input
-                  id="section"
-                  value={user?.section || ""}
+                  id="group"
+                  value={user?.group || ""}
                   readOnly
                   disabled
                   className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  لا يمكن تغيير القسم
+                  المجموعة تأتي من إفالي ولا يمكن تغييرها هنا
                 </p>
               </div>
             </div>

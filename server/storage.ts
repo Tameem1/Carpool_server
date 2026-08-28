@@ -26,21 +26,37 @@ import {
   type SlotRegistration,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte, lt, inArray, sql } from "drizzle-orm";
+import { eq, and, gte, lt, inArray, notInArray, sql, getTableColumns } from "drizzle-orm";
 import { nowGMTPlus3, getTodayRangeUTC, fromGMTPlus3ToUTC } from "@shared/timezone";
 
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
   getUsersByIds(ids: (string | null | undefined)[]): Promise<Map<string, User>>;
-  getUserByUsernameAndSection(username: string, section: string): Promise<User | undefined>;
   upsertUser(user: InsertUser): Promise<User>;
+  upsertEvallyIdentity(identity: {
+    id: string;
+    name: string;
+    group: string;
+    image?: string | null;
+  }): Promise<User>;
+  touchLastLogin(id: string): Promise<void>;
+  countActiveUsers(): Promise<number>;
+  replaceDirectorySnapshot(
+    snapshot: Array<{
+      id: string;
+      name: string;
+      group: string;
+      image: string | null;
+      isActive: boolean;
+    }>,
+    adminIds: string[],
+  ): Promise<{ upserted: number; deactivated: number }>;
   updateUser(id: string, updates: Partial<InsertUser>): Promise<User>;
   updateUserRole(id: string, role: UserRole): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  getActiveUsers(): Promise<User[]>;
   getAdminUsers(): Promise<User[]>;
-  getUsersBySection(section: string): Promise<User[]>;
-  getUniqueSections(): Promise<string[]>;
   
   // Trip operations
   createTrip(trip: InsertTrip): Promise<Trip>;
@@ -92,7 +108,7 @@ export interface IStorage {
   getFutureSlotsInSeries(seriesId: string, fromTime: Date): Promise<ScheduleSlot[]>;
   getSlotRegistrationCounts(slotIds: number[]): Promise<Map<number, number>>;
   getUserRegisteredSlotIds(slotIds: number[], userId: string): Promise<Set<number>>;
-  getSlotRegistrations(slotId: number): Promise<(SlotRegistration & { username: string; section: string; phoneNumber: string | null })[]>;
+  getSlotRegistrations(slotId: number): Promise<(SlotRegistration & { name: string; group: string; phoneNumber: string | null })[]>;
   registerForSlot(slotId: number, driverId: string): Promise<void>;
   unregisterFromSlot(slotId: number, driverId: string): Promise<void>;
 
@@ -103,76 +119,7 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   constructor() {
-    // Initialize sample users for testing (one-time setup)
-    this.initializeSampleUsers();
     // Note: Periodic cleanup is handled manually via API calls to avoid aggressive filtering
-  }
-
-
-
-  private async initializeSampleUsers() {
-    try {
-      // Check if users already exist to avoid duplicates
-      const existingUsers = await db.select().from(users).limit(1);
-      if (existingUsers.length > 0) return;
-
-      const sampleUsers = [
-        {
-          id: 'admin-1',
-          username: 'admin',
-          section: 'admin',
-          password: 'admin123',
-          phoneNumber: '+1-555-0001',
-          role: 'admin' as UserRole,
-          telegramUsername: null,
-          telegramId: null,
-        },
-        {
-          id: 'driver-1',
-          username: 'alice',
-          section: 'drivers',
-          password: 'driver123',
-          phoneNumber: '+1-555-0101',
-          role: 'user' as UserRole,
-          telegramUsername: null,
-          telegramId: null,
-        },
-        {
-          id: 'driver-2', 
-          username: 'bob',
-          section: 'drivers',
-          password: 'driver123',
-          phoneNumber: '+1-555-0102',
-          role: 'user' as UserRole,
-          telegramUsername: null,
-          telegramId: null,
-        },
-        {
-          id: 'rider-1',
-          username: 'charlie',
-          section: 'riders',
-          password: 'rider123',
-          phoneNumber: '+1-555-0201',
-          role: 'user' as UserRole,
-          telegramUsername: null,
-          telegramId: null,
-        },
-        {
-          id: 'rider-2',
-          username: 'diana',
-          section: 'riders',
-          password: 'rider123',
-          phoneNumber: '+1-555-0202',
-          role: 'user' as UserRole,
-          telegramUsername: null,
-          telegramId: null,
-        }
-      ];
-
-      await db.insert(users).values(sampleUsers);
-    } catch (error) {
-      console.log('Sample users may already exist or database not ready:', error);
-    }
   }
 
   // User operations
@@ -190,31 +137,16 @@ export class DatabaseStorage implements IStorage {
     return new Map(rows.map((u) => [u.id, u]));
   }
 
-  async getUserByUsernameAndSection(username: string, section: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(
-      and(eq(users.username, username), eq(users.section, section))
-    );
-    return user || undefined;
-  }
-
-  async getUsersBySection(section: string): Promise<User[]> {
-    return await db.select().from(users).where(eq(users.section, section));
-  }
-
-  async getUniqueSections(): Promise<string[]> {
-    const result = await db.select({ section: users.section }).from(users);
-    const uniqueSections = Array.from(new Set(result.map(r => r.section))).sort();
-    return uniqueSections;
-  }
-
   async upsertUser(userData: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
       .values({
         id: userData.id!,
-        username: userData.username,
-        section: userData.section,
-        password: userData.password,
+        name: userData.name,
+        group: userData.group,
+        image: userData.image ?? null,
+        isActive: userData.isActive ?? true,
+        syncedAt: userData.syncedAt ?? new Date(),
         phoneNumber: userData.phoneNumber || null,
         telegramUsername: userData.telegramUsername || null,
         telegramId: userData.telegramId || null,
@@ -223,9 +155,11 @@ export class DatabaseStorage implements IStorage {
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          username: userData.username,
-          section: userData.section,
-          password: userData.password,
+          name: userData.name,
+          group: userData.group,
+          image: userData.image ?? null,
+          isActive: userData.isActive ?? true,
+          syncedAt: userData.syncedAt ?? new Date(),
           phoneNumber: userData.phoneNumber || null,
           telegramUsername: userData.telegramUsername || null,
           telegramId: userData.telegramId || null,
@@ -234,6 +168,112 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  async upsertEvallyIdentity(identity: {
+    id: string;
+    name: string;
+    group: string;
+    image?: string | null;
+  }): Promise<User> {
+    const now = new Date();
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: identity.id,
+        name: identity.name,
+        group: identity.group,
+        image: identity.image ?? null,
+        isActive: true,
+        syncedAt: now,
+        lastLoginAt: now,
+      })
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          name: identity.name,
+          group: identity.group,
+          image: identity.image ?? null,
+          isActive: true,
+          syncedAt: now,
+          lastLoginAt: now,
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  async touchLastLogin(id: string): Promise<void> {
+    await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, id));
+  }
+
+  async countActiveUsers(): Promise<number> {
+    const [row] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(eq(users.isActive, true));
+    return Number(row?.count ?? 0);
+  }
+
+  async replaceDirectorySnapshot(
+    snapshot: Array<{
+      id: string;
+      name: string;
+      group: string;
+      image: string | null;
+      isActive: boolean;
+    }>,
+    adminIds: string[],
+  ): Promise<{ upserted: number; deactivated: number }> {
+    return await db.transaction(async (tx) => {
+      const now = new Date();
+      const snapshotIds = snapshot.map((student) => student.id);
+
+      for (const student of snapshot) {
+        await tx
+          .insert(users)
+          .values({
+            id: student.id,
+            name: student.name,
+            group: student.group,
+            image: student.image,
+            isActive: student.isActive,
+            syncedAt: now,
+          })
+          .onConflictDoUpdate({
+            target: users.id,
+            set: {
+              name: student.name,
+              group: student.group,
+              image: student.image,
+              isActive: student.isActive,
+              syncedAt: now,
+            },
+          });
+      }
+
+      let deactivated = 0;
+      if (snapshotIds.length > 0) {
+        const toDeactivate = await tx
+          .select({ id: users.id })
+          .from(users)
+          .where(and(eq(users.isActive, true), notInArray(users.id, snapshotIds)));
+        deactivated = toDeactivate.length;
+        await tx
+          .update(users)
+          .set({ isActive: false })
+          .where(notInArray(users.id, snapshotIds));
+      }
+
+      if (adminIds.length > 0) {
+        await tx
+          .update(users)
+          .set({ role: "admin" })
+          .where(inArray(users.id, adminIds));
+      }
+
+      return { upserted: snapshot.length, deactivated };
+    });
   }
 
   async updateUser(id: string, updates: Partial<InsertUser>): Promise<User> {
@@ -254,18 +294,26 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(users);
   }
 
+  async getActiveUsers(): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.isActive, true));
+  }
+
   async getAdminUsers(): Promise<User[]> {
     return await db.select().from(users).where(eq(users.role, "admin"));
   }
 
   // Trip operations
   async createTrip(tripData: InsertTrip): Promise<Trip> {
+    if (!tripData.driverId) {
+      throw new Error("driverId is required");
+    }
     const now = fromGMTPlus3ToUTC(nowGMTPlus3());
     const [trip] = await db
       .insert(trips)
       .values({
-        driverId: tripData.driverId || '',
+        driverId: tripData.driverId,
         riders: tripData.riders || [],
+        isLegacy: false,
         fromLocation: tripData.fromLocation,
         toLocation: tripData.toLocation,
         departureTime: tripData.departureTime,
@@ -292,24 +340,7 @@ export class DatabaseStorage implements IStorage {
     
     // Get trips where user is a participant
     const participantTrips = await db
-      .select({
-        id: trips.id,
-        driverId: trips.driverId,
-        riders: trips.riders,
-        fromLocation: trips.fromLocation,
-        toLocation: trips.toLocation,
-        departureTime: trips.departureTime,
-        availableSeats: trips.availableSeats,
-        totalSeats: trips.totalSeats,
-        isRecurring: trips.isRecurring,
-        recurringDays: trips.recurringDays,
-        notes: trips.notes,
-        returnTripId: trips.returnTripId,
-        isReturnTrip: trips.isReturnTrip,
-        returnTimeType: trips.returnTimeType,
-        createdAt: trips.createdAt,
-        updatedAt: trips.updatedAt,
-      })
+      .select(getTableColumns(trips))
       .from(trips)
       .innerJoin(tripParticipants, eq(trips.id, tripParticipants.tripId))
       .where(eq(tripParticipants.userId, userId));
@@ -339,24 +370,7 @@ export class DatabaseStorage implements IStorage {
     
     // Get trips where user is a participant
     const participantTrips = await db
-      .select({
-        id: trips.id,
-        driverId: trips.driverId,
-        riders: trips.riders,
-        fromLocation: trips.fromLocation,
-        toLocation: trips.toLocation,
-        departureTime: trips.departureTime,
-        availableSeats: trips.availableSeats,
-        totalSeats: trips.totalSeats,
-        isRecurring: trips.isRecurring,
-        recurringDays: trips.recurringDays,
-        notes: trips.notes,
-        returnTripId: trips.returnTripId,
-        isReturnTrip: trips.isReturnTrip,
-        returnTimeType: trips.returnTimeType,
-        createdAt: trips.createdAt,
-        updatedAt: trips.updatedAt,
-      })
+      .select(getTableColumns(trips))
       .from(trips)
       .innerJoin(tripParticipants, eq(trips.id, tripParticipants.tripId))
       .where(
@@ -383,6 +397,7 @@ export class DatabaseStorage implements IStorage {
       .from(trips)
       .where(
         and(
+          eq(trips.isLegacy, false),
           gte(trips.departureTime, start),
           lt(trips.departureTime, end)
         )
@@ -396,9 +411,10 @@ export class DatabaseStorage implements IStorage {
 
   async updateTrip(id: number, updates: Partial<InsertTrip>): Promise<Trip> {
     const now = fromGMTPlus3ToUTC(nowGMTPlus3());
+    const { isLegacy: _ignored, ...safeUpdates } = updates as Partial<InsertTrip> & { isLegacy?: boolean };
     const [trip] = await db
       .update(trips)
-      .set({ ...updates, updatedAt: now })
+      .set({ ...safeUpdates, updatedAt: now })
       .where(eq(trips.id, id))
       .returning();
     if (!trip) throw new Error("Trip not found");
@@ -416,6 +432,9 @@ export class DatabaseStorage implements IStorage {
     const allTrips = await db.select().from(trips);
     
     return allTrips.filter(trip => {
+      if (trip.isLegacy) {
+        return false;
+      }
       if (fromLocation && !trip.fromLocation.toLowerCase().includes(fromLocation.toLowerCase())) {
         return false;
       }
@@ -737,15 +756,15 @@ export class DatabaseStorage implements IStorage {
 
   async getSlotRegistrations(
     slotId: number,
-  ): Promise<(SlotRegistration & { username: string; section: string; phoneNumber: string | null })[]> {
+  ): Promise<(SlotRegistration & { name: string; group: string; phoneNumber: string | null })[]> {
     return await db
       .select({
         id: slotRegistrations.id,
         slotId: slotRegistrations.slotId,
         driverId: slotRegistrations.driverId,
         createdAt: slotRegistrations.createdAt,
-        username: users.username,
-        section: users.section,
+        name: users.name,
+        group: users.group,
         phoneNumber: users.phoneNumber,
       })
       .from(slotRegistrations)

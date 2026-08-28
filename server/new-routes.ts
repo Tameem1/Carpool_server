@@ -2,20 +2,20 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer } from "ws";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./new-auth";
-import passport from "passport";
-import session from "express-session";
-import ConnectPgSimple from "connect-pg-simple";
-const PgSession = ConnectPgSimple(session);
+import { isAuthenticated, logout, setupSession } from "./session";
+import { registerEvallyLoginRoutes } from "./evally/login";
+import { evallyAdminIds } from "./evally/config";
 import {
   insertTripSchema,
   insertRideRequestSchema,
-  insertTripParticipantSchema,
   insertTripJoinRequestSchema,
   createSlotRequestSchema,
   setShortageRecipientsSchema,
+  updateProfileSchema,
+  updateRoleSchema,
   trips as tripsTable,
   type CreateSlotRequest,
+  type Trip,
   type User,
 } from "@shared/schema";
 import { db } from "./db";
@@ -27,20 +27,11 @@ import {
 import { z } from "zod";
 import { telegramService } from "./telegram";
 import {
-  formatGMTPlus3,
-  formatGMTPlus3TimeOnly,
-  formatDateForInput,
   GMT_PLUS_3_OFFSET,
 } from "@shared/timezone";
-import { nanoid } from "nanoid";
-import { hashPassword } from "./auth-utils";
-import { userRoles } from "@shared/schema";
 
 // WebSocket connection management
 const connectedClients = new Set();
-
-const ONE_YEAR_MS = 1000 * 60 * 60 * 24 * 365;
-const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
 function broadcastToAll(data: any) {
   const message = JSON.stringify(data);
@@ -141,6 +132,7 @@ function setupWebSocket(server: Server) {
 
 async function notifyMatchingRideRequesters(trip: any) {
   try {
+    if (trip.isLegacy) return;
     const requests = await storage.getPendingRideRequests();
 
     const matchingRequests = requests.filter((request) => {
@@ -183,130 +175,65 @@ async function notifyMatchingRideRequesters(trip: any) {
 
 // Middleware to restrict access to admin users only
 const isAdmin = (req: any, res: any, next: any) => {
-  if (req.isAuthenticated?.() && req.user?.role === "admin") {
+  if (req.user?.role === "admin") {
     return next();
   }
   return res.status(403).json({ message: "Forbidden: Admins only" });
 };
 
-// Strip a User down to the public fields exposed in API responses.
 function toPublicUser(user: User) {
   return {
     id: user.id,
-    username: user.username,
-    section: user.section,
+    name: user.name,
+    group: user.group,
+    image: user.image ?? null,
     role: user.role,
-    phoneNumber: user.phoneNumber,
+    phoneNumber: user.phoneNumber ?? null,
   };
+}
+
+function toCurrentUser(user: User) {
+  return {
+    ...toPublicUser(user),
+    telegramUsername: user.telegramUsername ?? null,
+    telegramId: user.telegramId ?? null,
+    preferredDepartureStart: user.preferredDepartureStart ?? null,
+    preferredDepartureEnd: user.preferredDepartureEnd ?? null,
+    isActive: user.isActive,
+  };
+}
+
+function rejectLegacyTrip(trip: Pick<Trip, "isLegacy">, res: any): boolean {
+  if (trip.isLegacy) {
+    res.status(403).json({ message: "Legacy trips are read-only" });
+    return true;
+  }
+  return false;
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
 
-  // Setup session middleware
-  app.use(
-    session({
-      store: new PgSession({
-        conString: process.env.DATABASE_URL,
-        createTableIfMissing: true,
-        ttl: ONE_YEAR_SECONDS,
-      }),
-      secret: process.env.SESSION_SECRET || "fallback-secret-key",
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        secure: false, // Set to true in production with HTTPS
-        maxAge: ONE_YEAR_MS, // 1 year
-      },
-    }),
-  );
-
-  // Setup authentication
-  await setupAuth(app);
+  setupSession(app);
+  registerEvallyLoginRoutes(app);
 
   // Setup WebSocket
   setupWebSocket(server);
 
-  
-   // Authentication routes
-  app.get("/api/auth/sections", async (req, res) => {
+  app.post("/api/auth/logout", isAuthenticated, (req, res) => {
+    logout(req, res);
+  });
+
+  app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
     try {
-      const sections = await storage.getUniqueSections();
-      res.json(sections);
+      const user = await storage.getUser(req.user.id);
+      if (!user || !user.isActive) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      res.json(toCurrentUser(user));
     } catch (error) {
-      console.error("Error fetching sections:", error);
-      res.status(500).json({ message: "Failed to fetch sections" });
-    }
-  });
-
-  app.get("/api/auth/users/:section", async (req, res) => {
-    try {
-      const { section } = req.params;
-      const users = await storage.getUsersBySection(section);
-      const usernames = users
-        .map((user) => ({
-          id: user.id,
-          username: user.username,
-        }))
-        .sort((a, b) => a.username.localeCompare(b.username));
-      res.json(usernames);
-    } catch (error) {
-      console.error("Error fetching users by section:", error);
-      res.status(500).json({ message: "Failed to fetch users" });
-    }
-  });
-
-  app.post("/api/auth/login", (req, res, next) => {
-    passport.authenticate("local", (err: any, user: any, info: any) => {
-      if (err) return next(err);
-      if (!user) {
-        return res.status(401).json({ message: info?.message || "Invalid credentials" });
-      }
-      req.logIn(user, (loginErr) => {
-        if (loginErr) return next(loginErr);
-        return res.json({ success: true, user });
-      });
-    })(req, res, next);
-  });
-
-  app.post("/api/auth/logout", (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        console.error("Logout error:", err);
-        return res.status(500).json({ message: "Logout failed" });
-      }
-      // Also destroy the session to ensure complete logout
-      req.session.destroy((sessionErr) => {
-        if (sessionErr) {
-          console.error("Session destroy error:", sessionErr);
-        }
-        res.json({ success: true });
-      });
-    });
-  });
-
-  // Fallback logout endpoint for compatibility
-  app.get("/api/logout", (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        console.error("Logout error:", err);
-        return res.status(500).json({ message: "Logout failed" });
-      }
-      // Also destroy the session to ensure complete logout
-      req.session.destroy((sessionErr) => {
-        if (sessionErr) {
-          console.error("Session destroy error:", sessionErr);
-        }
-        res.json({ success: true });
-      });
-    });
-  });
-
-  app.get("/api/auth/user", (req, res) => {
-    if (req.isAuthenticated()) {
-      res.json(req.user);
-    } else {
-      res.status(401).json({ message: "Not authenticated" });
+      console.error("Error fetching current user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
@@ -314,8 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/users/profile", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      // Allow updating phone number and Telegram username
-      const { phoneNumber, telegramUsername } = req.body;
+      const parsed = updateProfileSchema.parse(req.body);
 
       const existingUser = await storage.getUser(userId);
       if (!existingUser) {
@@ -323,12 +249,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedUser = await storage.updateUser(userId, {
-        phoneNumber: phoneNumber ?? existingUser.phoneNumber,
-        telegramUsername: telegramUsername ?? existingUser.telegramUsername,
+        phoneNumber: parsed.phoneNumber !== undefined ? parsed.phoneNumber : existingUser.phoneNumber,
+        telegramUsername: parsed.telegramUsername !== undefined ? parsed.telegramUsername : existingUser.telegramUsername,
+        preferredDepartureStart:
+          parsed.preferredDepartureStart !== undefined
+            ? parsed.preferredDepartureStart
+            : existingUser.preferredDepartureStart,
+        preferredDepartureEnd:
+          parsed.preferredDepartureEnd !== undefined
+            ? parsed.preferredDepartureEnd
+            : existingUser.preferredDepartureEnd,
       });
 
-      res.json(updatedUser);
+      res.json(toCurrentUser(updatedUser));
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid profile data", errors: error.errors });
+      }
       console.error("Error updating user profile:", error);
       res.status(500).json({ message: "Failed to update profile" });
     }
@@ -397,7 +334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .filter(Boolean)
           .map((user) => toPublicUser(user!));
 
-        const driver = userMap.get(trip.driverId);
+        const driver = trip.driverId ? userMap.get(trip.driverId) : undefined;
 
         return {
           ...trip,
@@ -432,7 +369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .filter(Boolean)
           .map((user) => toPublicUser(user!));
 
-        const driver = userMap.get(trip.driverId);
+        const driver = trip.driverId ? userMap.get(trip.driverId) : undefined;
 
         return {
           ...trip,
@@ -465,6 +402,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const driverId = currentUser.role === "admin" && tripData.driverId 
         ? tripData.driverId 
         : req.user.id;
+
+      const driverUser = await storage.getUser(driverId);
+      if (!driverUser || !driverUser.isActive) {
+        return res.status(400).json({ message: "Driver must be an active Evally user" });
+      }
 
       const parsedTripData = {
         driverId,
@@ -576,7 +518,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return created;
           });
           // Notify and broadcast for the return trip (outside transaction)
-          await telegramService.notifyTripCreated(returnTrip.id, returnTrip.driverId);
+          if (returnTrip.driverId) {
+            await telegramService.notifyTripCreated(returnTrip.id, returnTrip.driverId);
+          }
           broadcastToAll({ type: "trip_created", trip: returnTrip });
         } catch (returnErr) {
           console.error("[RETURN TRIP] Failed to create return trip:", returnErr);
@@ -587,19 +531,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[TELEGRAM] Sending trip creation notifications for trip ${trip.id}, driver ${trip.driverId}`);
       
       // Send driver notification
-      await telegramService.notifyTripCreated(trip.id, trip.driverId);
-      
-      // Send admin notifications to other admins (excluding the driver)
-      await telegramService.notifyAdminsTripCreated(trip.id, trip.driverId);
+      if (trip.driverId) {
+        await telegramService.notifyTripCreated(trip.id, trip.driverId);
+        await telegramService.notifyAdminsTripCreated(trip.id, trip.driverId);
+        telegramService.broadcastLiveTripCreated(trip.id, trip.driverId).catch(() => {});
+      }
       await notifyMatchingRideRequesters(trip);
 
       broadcastToAll({
         type: "trip_created",
         trip: trip,
       });
-
-      // Live monitor broadcast (fire-and-forget)
-      telegramService.broadcastLiveTripCreated(trip.id, trip.driverId).catch(() => {});
 
       res.status(201).json(trip);
     } catch (error) {
@@ -617,54 +559,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Continue with remaining routes...
   app.get("/api/users", isAuthenticated, async (req, res) => {
     try {
-      const users = await storage.getAllUsers();
-      res.json(users);
+      const users = await storage.getActiveUsers();
+      res.json(users.map(toPublicUser));
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
     }
   });
 
-  // ===================== NEW: Create User (Admin Only) =====================
-  app.post("/api/users", isAuthenticated, isAdmin, async (req: any, res) => {
+  app.patch("/api/users/:id/role", isAuthenticated, isAdmin, async (req: any, res) => {
     try {
-      // Validate request body
-      const userSchema = z.object({
-        username: z.string().min(1),
-        section: z.string().min(1),
-        password: z.string().min(1),
-        phoneNumber: z.string().optional(),
-        role: z.enum(userRoles).optional(),
-      });
-
-      const parsed = userSchema.parse(req.body);
-
-      // Hash the provided password
-      const hashedPassword = await hashPassword(parsed.password);
-
-      // Create the user in the database
-      const newUser = await storage.upsertUser({
-        id: nanoid(),
-        username: parsed.username,
-        section: parsed.section,
-        password: hashedPassword,
-        phoneNumber: parsed.phoneNumber || null,
-        role: parsed.role || "user",
-      });
-
-      // Exclude password from response
-      const { password: _pw, ...userWithoutPassword } = newUser;
-
-      res.status(201).json({ message: "User created successfully", user: userWithoutPassword });
+      const { id } = req.params;
+      const { role } = updateRoleSchema.parse(req.body);
+      const protectedIds = evallyAdminIds();
+      if (protectedIds.includes(id) && role !== "admin") {
+        return res.status(403).json({ message: "Cannot demote an environment admin" });
+      }
+      const updated = await storage.updateUserRole(id, role);
+      res.json(toPublicUser(updated));
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
+        return res.status(400).json({ message: "Invalid role", errors: error.errors });
       }
-      console.error("Error creating user:", error);
-      res.status(500).json({ message: "Failed to create user" });
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update role" });
     }
   });
-  // ========================================================================
 
   app.get("/api/notifications", isAuthenticated, async (req: any, res) => {
     try {
@@ -689,10 +609,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!trip) {
         return res.status(404).json({ message: "Trip not found" });
       }
+      if (rejectLegacyTrip(trip, res)) return;
 
       const currentUser = await storage.getUser(currentUserId);
-
-      // Check if user is admin or the driver of this trip
       if (currentUser?.role !== "admin" && trip.driverId !== currentUserId) {
         return res
           .status(403)
@@ -752,6 +671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!trip) {
         return res.status(404).json({ message: "Trip not found" });
       }
+      if (rejectLegacyTrip(trip, res)) return;
 
       const currentUser = await storage.getUser(currentUserId);
 
@@ -844,10 +764,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("=== RIDE REQUESTS API ROUTE HIT ===");
     console.log("Session:", req.session);
     console.log("User:", req.user);
-    console.log("IsAuthenticated:", req.isAuthenticated?.());
-    
-    // Check authentication manually
-    if (!req.isAuthenticated?.() && !req.session?.userId) {
+    if (!req.user?.id) {
       console.log("Authentication failed");
       return res.status(401).json({ error: "Unauthorized" });
     }
@@ -981,6 +898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!trip) {
         return res.status(404).json({ message: "Trip not found" });
       }
+      if (rejectLegacyTrip(trip, res)) return;
 
       // Check if user is the trip owner or admin
       const user = await storage.getUser(userId);
@@ -1025,6 +943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!trip) {
           return res.status(404).json({ message: "Trip not found" });
         }
+        if (rejectLegacyTrip(trip, res)) return;
 
         // Check if user is the driver
         if (trip.driverId === riderId) {
@@ -1082,14 +1001,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // Notify driver about the new rider
-        const driver = await storage.getUser(trip.driverId);
+        const driver = trip.driverId ? await storage.getUser(trip.driverId) : undefined;
         const requester = await storage.getUser(riderId);
 
         if (driver && requester) {
           await storage.createNotification({
             userId: driver.id,
             title: "راكب جديد انضم للرحلة",
-            message: `${requester.username} انضم إلى رحلتك من ${trip.fromLocation} إلى ${trip.toLocation}`,
+            message: `${requester.name} انضم إلى رحلتك من ${trip.fromLocation} إلى ${trip.toLocation}`,
             type: "rider_joined",
           });
 
@@ -1190,6 +1109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!trip) {
         return res.status(404).json({ success: false, message: "Trip not found" });
       }
+      if (rejectLegacyTrip(trip, res)) return;
       
       if (request.status !== "pending") {
         return res.status(400).json({ success: false, message: "Request is not pending" });
@@ -1276,6 +1196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!trip) {
         return res.status(404).json({ message: "Trip not found" });
       }
+      if (rejectLegacyTrip(trip, res)) return;
 
       // Only the trip's driver or an admin can edit
       const currentUser = await storage.getUser(currentUserId);
@@ -1353,7 +1274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No occurrences generated for this slot" });
       }
 
-      const seriesId = data.recurrence ? `slot_${nanoid()}` : null;
+      const seriesId = data.recurrence ? `slot_${crypto.randomUUID()}` : null;
       const rows = occurrences.map((occ) => ({
         seriesId,
         destination: data.destination,

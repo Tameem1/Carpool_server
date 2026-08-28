@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -11,15 +10,19 @@ import { apiRequest } from "@/lib/queryClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { userRoles } from "@shared/schema";
 
-const addUserSchema = z.object({
-  username: z.string().min(1, "اسم المستخدم مطلوب"),
-  section: z.string().min(1, "القسم مطلوب"),
-  password: z.string().min(6, "كلمة المرور مطلوبة (6 أحرف على الأقل)"),
-  phoneNumber: z.string().optional(),
-  role: z.enum(userRoles).default("user"),
+const assignRoleSchema = z.object({
+  userId: z.string().min(1, "المستخدم مطلوب"),
+  role: z.enum(userRoles),
 });
 
-type AddUserFormData = z.infer<typeof addUserSchema>;
+type AssignRoleFormData = z.infer<typeof assignRoleSchema>;
+
+interface PublicUser {
+  id: string;
+  name: string;
+  group: string;
+  role: string;
+}
 
 interface AddUserDialogProps {
   open: boolean;
@@ -30,28 +33,25 @@ export default function AddUserDialog({ open, onClose }: AddUserDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: sections = [] } = useQuery<string[]>({
-    queryKey: ["/api/auth/sections"],
+  const { data: users = [] } = useQuery<PublicUser[]>({
+    queryKey: ["/api/users"],
     enabled: open,
   });
 
-  const form = useForm<AddUserFormData>({
-    resolver: zodResolver(addUserSchema),
+  const form = useForm<AssignRoleFormData>({
+    resolver: zodResolver(assignRoleSchema),
     defaultValues: {
-      username: "",
-      section: "",
-      password: "",
-      phoneNumber: "",
+      userId: "",
       role: "user",
     },
   });
 
-  const handleSubmit = async (data: AddUserFormData) => {
+  const handleSubmit = async (data: AssignRoleFormData) => {
     try {
-      await apiRequest("POST", "/api/users", data);
+      await apiRequest("PATCH", `/api/users/${data.userId}/role`, { role: data.role });
       toast({
-        title: "تم إنشاء المستخدم",
-        description: "تم إنشاء المستخدم بنجاح.",
+        title: "تم تحديث الدور",
+        description: "تم تعيين الدور بنجاح.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       form.reset();
@@ -59,7 +59,7 @@ export default function AddUserDialog({ open, onClose }: AddUserDialogProps) {
     } catch (error: any) {
       toast({
         title: "خطأ",
-        description: error.message || "فشل في إنشاء المستخدم",
+        description: error.message || "فشل في تعيين الدور",
         variant: "destructive",
       });
     }
@@ -69,69 +69,29 @@ export default function AddUserDialog({ open, onClose }: AddUserDialogProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-right">إنشاء مستخدم جديد</DialogTitle>
+          <DialogTitle className="text-right">تعيين دور مستخدم</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pt-4">
             <FormField
               control={form.control}
-              name="username"
+              name="userId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>اسم المستخدم</FormLabel>
+                  <FormLabel>المستخدم</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="اسم المستخدم" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="section"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>القسم</FormLabel>
-            <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="اختر القسم" />
+                        <SelectValue placeholder="اختر مستخدماً" />
                       </SelectTrigger>
                       <SelectContent>
-                        {sections.map((section) => (
-                          <SelectItem key={section} value={section}>{section}</SelectItem>
+                        {users.map((user) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.name} · {user.group}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>كلمة المرور</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} placeholder="كلمة المرور" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="phoneNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>رقم الهاتف (اختياري)</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="+1-555-0101" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -151,7 +111,7 @@ export default function AddUserDialog({ open, onClose }: AddUserDialogProps) {
                       </SelectTrigger>
                       <SelectContent>
                         {userRoles.map((role) => (
-                          <SelectItem key={role} value={role}>{role}</SelectItem>
+                          <SelectItem key={role} value={role}>{role === "admin" ? "مدير" : "مستخدم"}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -165,11 +125,11 @@ export default function AddUserDialog({ open, onClose }: AddUserDialogProps) {
               <Button type="button" variant="outline" onClick={onClose}>
                 إلغاء
               </Button>
-              <Button type="submit">إنشاء المستخدم</Button>
+              <Button type="submit">حفظ الدور</Button>
             </div>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
   );
-} 
+}
