@@ -284,7 +284,7 @@ export function TripCard({
             <Avatar className="h-8 w-8 sm:h-10 sm:w-10 me-2 sm:me-3">
               <AvatarImage
                 src={trip.driver?.image || ""}
-                alt="Driver"
+                alt="السائق"
               />
               <AvatarFallback className="text-xs sm:text-sm">
                 {(trip.driver?.name || "سائق سابق")[0]}
@@ -297,7 +297,7 @@ export function TripCard({
                 </p>
                 <GroupTag label={trip.driver?.groupLabel || trip.driver?.group} />
               </div>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Driver</p>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">السائق</p>
               {trip.driver?.phoneNumber ? (
                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                   <div className="flex items-center gap-1">
@@ -309,7 +309,7 @@ export function TripCard({
                     variant="ghost"
                     className="h-6 w-6 p-0 rounded-full bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800"
                     onClick={() => trip.driver?.phoneNumber && window.open(`tel:${trip.driver.phoneNumber}`, '_self')}
-                    title={`Call ${trip.driver?.name || 'Driver'}`}
+                    title={`اتصال بـ ${trip.driver?.name || "السائق"}`}
                   >
                     <Phone className="h-3 w-3 text-green-600" />
                   </Button>
@@ -372,7 +372,7 @@ export function TripCard({
                             variant="ghost"
                             className="h-6 w-6 p-0 rounded-full bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800"
                             onClick={() => window.open(`tel:${rider.phoneNumber}`, '_self')}
-                            title={`Call ${rider.name}`}
+                            title={`اتصال بـ ${rider.name}`}
                           >
                             <Phone className="h-3 w-3 text-green-600" />
                           </Button>
@@ -444,7 +444,7 @@ export function TripCard({
             <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               <Users className="h-3 w-3 sm:h-4 sm:w-4 me-2" />
               <span>
-                {trip.totalSeats - (trip.riders?.length || 0)} seats available
+                {trip.totalSeats - (trip.riders?.length || 0)} مقعد متاح
               </span>
             </div>
           </div>
