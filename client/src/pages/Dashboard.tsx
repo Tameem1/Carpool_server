@@ -214,7 +214,7 @@ export default function Dashboard() {
             className="touch-friendly w-full sm:w-auto"
             size="sm"
           >
-            <Clock className="h-4 w-4 mr-2" />
+            <Clock className="h-4 w-4 me-2" />
             وقت المغادرة المفضل
           </Button>
           <Button
@@ -222,7 +222,7 @@ export default function Dashboard() {
             className="bg-primary hover:bg-primary/90 touch-friendly w-full sm:w-auto"
             size="sm"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 me-2" />
             إنشاء رحلة
           </Button>
         </div>
@@ -305,7 +305,7 @@ export default function Dashboard() {
                     onClick={() => setShowTripForm(true)}
                     className="touch-friendly"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4 me-2" />
                     إنشاء رحلة لليوم
                   </Button>
                 </CardContent>
@@ -379,7 +379,7 @@ export default function Dashboard() {
                     onClick={() => setShowTripForm(true)}
                     className="touch-friendly"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4 me-2" />
                     إنشاء رحلة لليوم
                   </Button>
                 </CardContent>

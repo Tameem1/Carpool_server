@@ -175,7 +175,7 @@ export default function RiderDashboard() {
               </div>
               <div className="flex items-end">
                 <Button onClick={handleSearch} className="w-full bg-primary hover:bg-primary/90">
-                  <Search className="h-4 w-4 mr-2" />
+                  <Search className="h-4 w-4 me-2" />
                   Search
                 </Button>
               </div>

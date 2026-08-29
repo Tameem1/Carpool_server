@@ -452,7 +452,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                               key={rider.id}
                               className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                             >
-                              <div className="flex items-center space-x-3">
+                              <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8">
                                   <AvatarImage
                                     src={rider.image || ""}

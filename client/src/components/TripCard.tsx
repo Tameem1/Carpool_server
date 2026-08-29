@@ -258,11 +258,11 @@ export function TripCard({
 
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 space-y-2 sm:space-y-0">
           <div className="flex-1">
-            <h3 className={`responsive-text-lg font-semibold text-gray-900 dark:text-white ${(isArabicText(trip.fromLocation) || isArabicText(trip.toLocation)) ? 'text-right' : 'text-left'}`}>
+            <h3 className={`responsive-text-lg font-semibold text-gray-900 dark:text-white ${(isArabicText(trip.fromLocation) || isArabicText(trip.toLocation)) ? 'text-end' : 'text-start'}`}>
               {formatRoute(trip.fromLocation, trip.toLocation)}
             </h3>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex items-center mt-1">
-              <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 me-1" />
               <span className="truncate">
                 {trip.isReturnTrip && trip.returnTimeType === "first_last"
                   ? "آخر شيء أول"
@@ -281,7 +281,7 @@ export function TripCard({
 
         {(trip.driver || trip.isLegacy) && (
           <div className="flex items-center mb-3 sm:mb-4">
-            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 mr-2 sm:mr-3">
+            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 me-2 sm:me-3">
               <AvatarImage
                 src={trip.driver?.image || ""}
                 alt="Driver"
@@ -335,7 +335,7 @@ export function TripCard({
           <div>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">الركاب</p>
             <p className="font-medium text-sm sm:text-base flex items-center">
-              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 me-1" />
               {trip.riders?.length || 0} / {trip.totalSeats}
             </p>
           </div>
@@ -347,7 +347,7 @@ export function TripCard({
             <div className="space-y-2">
               {trip.riderDetails.map((rider) => (
                 <div key={rider.id} className="relative group flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
                       <AvatarImage src={rider.image || ""} />
                       <AvatarFallback className="text-xs">
@@ -385,7 +385,7 @@ export function TripCard({
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-1 sm:space-x-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
 
                     
                     {/* Remove rider button for admin, driver, or the rider themselves */}
@@ -432,7 +432,7 @@ export function TripCard({
                   addRiderMutation.isPending
                 }
               >
-                <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 me-1" />
                 {addRiderMutation.isPending ? "..." : "إضافة"}
               </Button>
             </div>
@@ -442,7 +442,7 @@ export function TripCard({
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div className="flex items-center">
             <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 me-2" />
               <span>
                 {trip.totalSeats - (trip.riders?.length || 0)} seats available
               </span>
@@ -526,7 +526,7 @@ export function TripCard({
                   onClick={() => deleteTripMutation.mutate()}
                   disabled={deleteTripMutation.isPending}
                 >
-                  <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 me-1" />
                   {deleteTripMutation.isPending ? "..." : "حذف"}
                 </Button>
               )}

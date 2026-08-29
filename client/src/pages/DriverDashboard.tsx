@@ -169,7 +169,7 @@ export default function DriverDashboard() {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Driver Dashboard</h2>
           <Button onClick={() => { setEditingTrip(null); setShowTripForm(true); }} className="bg-primary hover:bg-primary/90">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 me-2" />
             Create Trip
           </Button>
         </div>
@@ -257,7 +257,7 @@ export default function DriverDashboard() {
                   <div key={request.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center">
-                        <Avatar className="h-10 w-10 mr-3">
+                        <Avatar className="h-10 w-10 me-3">
                           <AvatarImage src={request.rider?.image || ""} />
                           <AvatarFallback>
                             {request.rider?.name?.[0]}
@@ -290,17 +290,17 @@ export default function DriverDashboard() {
 
                     <div className="flex justify-between items-center">
                       <p className="text-sm text-gray-600">
-                        <Clock className="h-4 w-4 inline mr-1" />
+                        <Clock className="h-4 w-4 inline me-1" />
                         {request.passengerCount} passenger{request.passengerCount > 1 ? 's' : ''}
                       </p>
-                      <div className="flex space-x-2">
+                      <div className="flex gap-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleDeclineRequest(request.id)}
                           disabled={declineRequestMutation.isPending}
                         >
-                          <XCircle className="h-4 w-4 mr-1" />
+                          <XCircle className="h-4 w-4 me-1" />
                           Decline
                         </Button>
                         <Button
@@ -309,7 +309,7 @@ export default function DriverDashboard() {
                           disabled={acceptRequestMutation.isPending || activeTrips.length === 0}
                           className="bg-success hover:bg-success/90"
                         >
-                          <CheckCircle className="h-4 w-4 mr-1" />
+                          <CheckCircle className="h-4 w-4 me-1" />
                           Accept
                         </Button>
                       </div>
