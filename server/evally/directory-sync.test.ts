@@ -62,6 +62,21 @@ describe("directory sync", () => {
     expect(replaceDirectorySnapshot).not.toHaveBeenCalled();
   });
 
+  it("refuses a snapshot generated too long ago", async () => {
+    fetchDirectorySnapshot.mockResolvedValue({
+      generated_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+      students: Array.from({ length: 10 }, (_, i) => ({
+        sub: String(i + 1),
+        name: `User ${i + 1}`,
+        group: "g1",
+      })),
+    });
+    const { runDirectorySync } = await import("./directory-sync");
+    const result = await runDirectorySync();
+    expect(result).toEqual({ ok: false, reason: "stale_snapshot" });
+    expect(replaceDirectorySnapshot).not.toHaveBeenCalled();
+  });
+
   it("upserts a valid snapshot and applies env admins", async () => {
     const students = Array.from({ length: 10 }, (_, i) => ({
       sub: String(i + 1),

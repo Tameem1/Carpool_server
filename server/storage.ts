@@ -194,7 +194,13 @@ export class DatabaseStorage implements IStorage {
           name: identity.name,
           group: identity.group,
           image: identity.image ?? null,
-          isActive: true,
+          // isActive is deliberately absent. It belongs to the directory sync,
+          // which is the only thing that knows whether this student is still
+          // in a group Cars is allowed to see. Forcing it true here would
+          // reactivate someone the sweep just deactivated — they would sign in
+          // fine, stay invisible in every picker, and be logged out again on
+          // the next sync. Leaving it alone lets the caller's isActive check
+          // refuse them once, clearly.
           syncedAt: now,
           lastLoginAt: now,
         },

@@ -7,6 +7,13 @@ import { EvallyHttpError, fetchDirectorySnapshot } from "./client";
 const ADVISORY_LOCK_KEY = 81422917;
 const SHRINK_RATIO = 0.5;
 
+// A snapshot decides who exists. Accepting a stale one — a cached response, a
+// replayed body — silently rolls the roster back to whenever it was generated.
+// Generous enough to absorb clock skew and a slow upstream, tight enough that
+// yesterday's roster is never mistaken for today's.
+const MAX_SNAPSHOT_AGE_MS = 60 * 60 * 1000;
+const MAX_SNAPSHOT_SKEW_MS = 5 * 60 * 1000;
+
 export type DirectorySyncResult =
   | { ok: true; upserted: number; deactivated: number }
   | { ok: false; reason: string };
@@ -29,6 +36,15 @@ export async function runDirectorySync(options: { overrideShrinkGuard?: boolean 
     const generatedAt = Date.parse(String(snapshot.generated_at ?? ""));
     if (!Number.isFinite(generatedAt)) {
       return { ok: false, reason: "invalid_generated_at" };
+    }
+
+    const age = Date.now() - generatedAt;
+    if (age > MAX_SNAPSHOT_AGE_MS || age < -MAX_SNAPSHOT_SKEW_MS) {
+      console.error("[SSO] directory snapshot rejected as stale", {
+        generated_at: snapshot.generated_at,
+        age_seconds: Math.round(age / 1000),
+      });
+      return { ok: false, reason: "stale_snapshot" };
     }
 
     const students = Array.isArray(snapshot.students) ? snapshot.students : [];
