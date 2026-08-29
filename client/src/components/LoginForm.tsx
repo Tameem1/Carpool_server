@@ -17,7 +17,7 @@ function EvallyMark({ className }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="#009EF7"
-      strokeWidth={2.2}
+      strokeWidth={1.8}
       aria-hidden="true"
       className={className}
     >
@@ -52,7 +52,7 @@ export function LoginForm(_props: LoginFormProps) {
             asChild
           >
             <a href="/api/auth/login">
-              <EvallyMark className="h-6 w-6 shrink-0" />
+              <EvallyMark className="h-7 w-7 shrink-0" />
               <span>تسجيل الدخول عن طريق evally</span>
             </a>
           </Button>
