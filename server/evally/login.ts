@@ -84,6 +84,7 @@ export function registerEvallyLoginRoutes(app: Express): void {
         id: me.sub,
         name: me.name,
         group: me.group,
+        groupLabel: me.groupLabel,
         image: me.image ?? null,
       });
 

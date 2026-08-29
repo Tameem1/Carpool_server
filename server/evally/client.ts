@@ -103,8 +103,11 @@ export function clearDirectoryToken(): void {
   directoryToken = null;
 }
 
+export type DirectoryGroup = { name: string; label?: string | null; sort?: number | null };
+
 export async function fetchDirectorySnapshot(): Promise<{
   generated_at?: string;
+  groups?: DirectoryGroup[];
   students: Array<{
     sub: string;
     name: string;
@@ -132,6 +135,7 @@ export async function fetchDirectorySnapshot(): Promise<{
 
   return body as {
     generated_at?: string;
+    groups?: DirectoryGroup[];
     students: Array<{
       sub: string;
       name: string;
@@ -177,6 +181,7 @@ export async function fetchSsoMe(accessToken: string): Promise<{
   sub: string;
   name: string;
   group: string;
+  groupLabel: string;
   image?: string | null;
 }> {
   const { status, body } = await evallyFetch("/api/sso/me", {
@@ -187,7 +192,13 @@ export async function fetchSsoMe(accessToken: string): Promise<{
     throw new EvallyHttpError("Identity lookup failed", status);
   }
 
-  const me = body as { sub?: unknown; name?: unknown; group?: unknown; image?: unknown };
+  const me = body as {
+    sub?: unknown;
+    name?: unknown;
+    group?: unknown;
+    group_label?: unknown;
+    image?: unknown;
+  };
   if (
     typeof me.sub !== "string" ||
     me.sub === "" ||
@@ -203,6 +214,11 @@ export async function fetchSsoMe(accessToken: string): Promise<{
     sub: me.sub,
     name: me.name,
     group: me.group,
+    // Older API builds do not send it; the latin key is always printable.
+    groupLabel:
+      typeof me.group_label === "string" && me.group_label !== ""
+        ? me.group_label
+        : me.group,
     image: typeof me.image === "string" ? me.image : null,
   };
 }

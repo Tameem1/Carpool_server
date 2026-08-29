@@ -186,6 +186,7 @@ function toPublicUser(user: User) {
     id: user.id,
     name: user.name,
     group: user.group,
+    groupLabel: user.groupLabel ?? user.group,
     image: user.image ?? null,
     role: user.role,
     phoneNumber: user.phoneNumber ?? null,

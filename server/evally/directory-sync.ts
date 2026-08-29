@@ -75,11 +75,21 @@ export async function runDirectorySync(options: { overrideShrinkGuard?: boolean 
       return { ok: false, reason: "shrink_guard" };
     }
 
+    // Group labels arrive once per group rather than on every student, so
+    // build the lookup here and denormalise it onto each row for display.
+    const labels = new Map<string, string>();
+    for (const group of Array.isArray(snapshot.groups) ? snapshot.groups : []) {
+      if (typeof group?.name === "string" && typeof group.label === "string" && group.label !== "") {
+        labels.set(group.name, group.label);
+      }
+    }
+
     const result = await storage.replaceDirectorySnapshot(
       valid.map((student) => ({
         id: student.sub,
         name: student.name,
         group: student.group,
+        groupLabel: labels.get(student.group) ?? student.group,
         image: student.image ?? null,
         isActive: student.idle !== true,
       })),

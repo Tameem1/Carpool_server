@@ -20,6 +20,7 @@ interface User {
   id: string
   name: string
   group: string
+  groupLabel?: string | null
   role?: string
 }
 
@@ -68,7 +69,13 @@ export function SearchableUserSelect({
         const searchLower = searchValue.toLowerCase()
         const name = user.name.toLowerCase()
         const group = user.group.toLowerCase()
-        return name.includes(searchLower) || group.includes(searchLower)
+        // People type the Arabic group name, so match that as well as the key.
+        const groupLabel = (user.groupLabel ?? "").toLowerCase()
+        return (
+          name.includes(searchLower) ||
+          group.includes(searchLower) ||
+          (groupLabel !== "" && groupLabel.includes(searchLower))
+        )
       }
       
       return true
@@ -150,7 +157,7 @@ export function SearchableUserSelect({
                 return (
                   <CommandItem
                     key={user.id}
-                    value={`${user.id}-${displayName}-${user.group}`}
+                    value={`${user.id}-${displayName}-${user.group}-${user.groupLabel ?? ''}`}
                     onSelect={() => handleSelect(user.id)}
                   >
                     <Check
@@ -161,7 +168,7 @@ export function SearchableUserSelect({
                     />
                     <div className="flex flex-col items-start">
                       <span>{displayName}{roleLabel}</span>
-                      <span className="text-xs text-muted-foreground">{user.group}</span>
+                      <span className="text-xs text-muted-foreground">{user.groupLabel || user.group}</span>
                     </div>
                   </CommandItem>
                 )

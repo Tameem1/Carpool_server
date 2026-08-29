@@ -38,6 +38,7 @@ export interface IStorage {
     id: string;
     name: string;
     group: string;
+    groupLabel?: string | null;
     image?: string | null;
   }): Promise<User>;
   touchLastLogin(id: string): Promise<void>;
@@ -47,6 +48,7 @@ export interface IStorage {
       id: string;
       name: string;
       group: string;
+      groupLabel: string;
       image: string | null;
       isActive: boolean;
     }>,
@@ -174,6 +176,7 @@ export class DatabaseStorage implements IStorage {
     id: string;
     name: string;
     group: string;
+    groupLabel?: string | null;
     image?: string | null;
   }): Promise<User> {
     const now = new Date();
@@ -183,6 +186,7 @@ export class DatabaseStorage implements IStorage {
         id: identity.id,
         name: identity.name,
         group: identity.group,
+        groupLabel: identity.groupLabel ?? identity.group,
         image: identity.image ?? null,
         isActive: true,
         syncedAt: now,
@@ -193,6 +197,7 @@ export class DatabaseStorage implements IStorage {
         set: {
           name: identity.name,
           group: identity.group,
+          groupLabel: identity.groupLabel ?? identity.group,
           image: identity.image ?? null,
           // isActive is deliberately absent. It belongs to the directory sync,
           // which is the only thing that knows whether this student is still
@@ -226,6 +231,7 @@ export class DatabaseStorage implements IStorage {
       id: string;
       name: string;
       group: string;
+      groupLabel: string;
       image: string | null;
       isActive: boolean;
     }>,
@@ -242,6 +248,7 @@ export class DatabaseStorage implements IStorage {
             id: student.id,
             name: student.name,
             group: student.group,
+            groupLabel: student.groupLabel,
             image: student.image,
             isActive: student.isActive,
             syncedAt: now,
@@ -251,6 +258,7 @@ export class DatabaseStorage implements IStorage {
             set: {
               name: student.name,
               group: student.group,
+              groupLabel: student.groupLabel,
               image: student.image,
               isActive: student.isActive,
               syncedAt: now,

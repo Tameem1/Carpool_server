@@ -12,6 +12,7 @@ interface AppUser {
   id: string;
   name: string;
   group: string;
+  groupLabel?: string | null;
   telegramUsername?: string | null;
 }
 
@@ -116,7 +117,7 @@ export function ShortageRecipients() {
                     />
                     <span className="flex-1 text-sm">
                       {u.name}
-                      <span className="text-gray-400"> · {u.group}</span>
+                      <span className="text-gray-400"> · {u.groupLabel || u.group}</span>
                     </span>
                     {noTelegram && (
                       <span className="text-xs text-amber-600">لا يوجد تيليجرام</span>

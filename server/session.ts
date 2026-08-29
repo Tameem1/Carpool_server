@@ -23,6 +23,7 @@ declare global {
       id: string;
       name: string;
       group: string;
+      groupLabel: string;
       role: string;
       image?: string | null;
       phoneNumber?: string | null;
@@ -93,6 +94,7 @@ function toSessionUser(user: User): Express.User {
     id: user.id,
     name: user.name,
     group: user.group,
+    groupLabel: user.groupLabel ?? user.group,
     role: user.role,
     image: user.image,
     phoneNumber: user.phoneNumber,

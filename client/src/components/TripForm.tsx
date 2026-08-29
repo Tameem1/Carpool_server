@@ -466,7 +466,7 @@ export function TripForm({ open, onClose, trip }: TripFormProps) {
                                     {rider.name}
                                   </div>
                                   <div className="text-sm text-gray-500">
-                                    {rider.group}
+                                    {rider.groupLabel || rider.group}
                                   </div>
                                 </div>
                               </div>

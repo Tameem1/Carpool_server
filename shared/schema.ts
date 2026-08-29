@@ -10,6 +10,9 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   name: varchar("name").notNull(),
   group: varchar("group").notNull(),
+  // The group's human name from Evally (groups.slug — Arabic). `group` stays
+  // the latin key everything joins on; this is only ever for display.
+  groupLabel: varchar("group_label"),
   image: varchar("image"),
   isActive: boolean("is_active").notNull().default(true),
   syncedAt: timestamp("synced_at").defaultNow().notNull(),

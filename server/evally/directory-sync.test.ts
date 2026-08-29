@@ -77,6 +77,31 @@ describe("directory sync", () => {
     expect(replaceDirectorySnapshot).not.toHaveBeenCalled();
   });
 
+  it("denormalises group labels onto each user, falling back to the key", async () => {
+    fetchDirectorySnapshot.mockResolvedValue({
+      generated_at: new Date().toISOString(),
+      groups: [
+        { name: "mmdoh", label: "ممدوح", sort: 15 },
+        { name: "other", label: "other", sort: 22 },
+      ],
+      students: Array.from({ length: 10 }, (_, i) => ({
+        sub: String(i + 1),
+        name: `User ${i + 1}`,
+        // The last one sits in a group the snapshot did not describe.
+        group: i === 9 ? "unlisted" : "mmdoh",
+      })),
+    });
+    const { runDirectorySync } = await import("./directory-sync");
+    expect((await runDirectorySync()).ok).toBe(true);
+    expect(replaceDirectorySnapshot).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "1", group: "mmdoh", groupLabel: "ممدوح" }),
+        expect.objectContaining({ id: "10", group: "unlisted", groupLabel: "unlisted" }),
+      ]),
+      ["66"],
+    );
+  });
+
   it("upserts a valid snapshot and applies env admins", async () => {
     const students = Array.from({ length: 10 }, (_, i) => ({
       sub: String(i + 1),

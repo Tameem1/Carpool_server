@@ -163,7 +163,7 @@ export function SlotDetailsDialog({ slot, onClose, isAdmin }: SlotDetailsDialogP
                   {registrations.map((r) => (
                     <li key={r.id} className="flex justify-between rounded bg-muted px-2 py-1">
                       <span>{r.name}</span>
-                      <span className="text-muted-foreground">{r.group}</span>
+                      <span className="text-muted-foreground">{r.groupLabel || r.group}</span>
                     </li>
                   ))}
                 </ul>

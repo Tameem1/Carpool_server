@@ -21,6 +21,7 @@ interface PublicUser {
   id: string;
   name: string;
   group: string;
+  groupLabel?: string | null;
   role: string;
 }
 
@@ -87,7 +88,7 @@ export default function AddUserDialog({ open, onClose }: AddUserDialogProps) {
                       <SelectContent>
                         {users.map((user) => (
                           <SelectItem key={user.id} value={user.id}>
-                            {user.name} · {user.group}
+                            {user.name} · {user.groupLabel || user.group}
                           </SelectItem>
                         ))}
                       </SelectContent>

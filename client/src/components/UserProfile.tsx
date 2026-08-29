@@ -174,7 +174,7 @@ export function UserProfile() {
                 الدور: {user.role}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                المجموعة: {user.group}
+                المجموعة: {user.groupLabel || user.group}
               </p>
             </div>
           </div>
