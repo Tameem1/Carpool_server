@@ -191,7 +191,7 @@ export function UserProfile() {
                   className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  الاسم يأتي من إفالي ولا يمكن تغييره هنا
+                  الاسم يأتي من evally ولا يمكن تغييره هنا
                 </p>
               </div>
               <div>
@@ -204,7 +204,7 @@ export function UserProfile() {
                   className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  المجموعة تأتي من إفالي ولا يمكن تغييرها هنا
+                  المجموعة تأتي من evally ولا يمكن تغييرها هنا
                 </p>
               </div>
             </div>
