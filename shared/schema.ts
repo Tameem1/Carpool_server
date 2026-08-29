@@ -213,7 +213,17 @@ export const insertTripSchema = createInsertSchema(trips).omit({
   isLegacy: true,
 }).extend({
   departureTime: z.string().transform((str) => new Date(str)),
-  driverId: z.string().min(1).optional(),
+  // The form always sends this field, and sends "" to mean "I am the driver" —
+  // only an admin picking someone else fills it in. Normalise blank to absent
+  // so the route's own fallback to the current user runs; a bare .min(1) here
+  // rejected every ordinary trip before it could.
+  driverId: z
+    .string()
+    .optional()
+    .transform((value) => {
+      const trimmed = value?.trim();
+      return trimmed ? trimmed : undefined;
+    }),
   riders: z.array(z.string()).optional(),
   participantIds: z.array(z.string()).optional(),
   totalSeats: z.number().optional(),

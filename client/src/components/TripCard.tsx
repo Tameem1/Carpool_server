@@ -46,6 +46,7 @@ interface TripCardProps {
       id: string;
       name: string;
       group: string;
+      groupLabel?: string | null;
       role?: string;
       image?: string | null;
       phoneNumber?: string;
@@ -55,6 +56,7 @@ interface TripCardProps {
       id: string;
       name: string;
       group: string;
+      groupLabel?: string | null;
       role?: string;
       image?: string | null;
       phoneNumber?: string;
@@ -89,6 +91,21 @@ function formatRoute(fromLocation: string, toLocation: string): string {
   
   // Default LTR formatting for non-Arabic text
   return `${fromLocation} → ${toLocation}`;
+}
+
+/**
+ * The rider's halaqa, in Arabic. Names repeat across groups often enough that
+ * a card without it is genuinely ambiguous — but it is context, not a heading,
+ * so it stays quiet next to the name rather than competing with it.
+ */
+function GroupTag({ label }: { label?: string | null }) {
+  if (!label) return null;
+
+  return (
+    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium leading-4 text-primary">
+      {label}
+    </span>
+  );
 }
 
 export function TripCard({
@@ -274,9 +291,12 @@ export function TripCard({
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
-                {trip.driver?.name || "سائق سابق"}
-              </p>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
+                  {trip.driver?.name || "سائق سابق"}
+                </p>
+                <GroupTag label={trip.driver?.groupLabel || trip.driver?.group} />
+              </div>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Driver</p>
               {trip.driver?.phoneNumber ? (
                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
@@ -335,9 +355,12 @@ export function TripCard({
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                      <span className="text-xs sm:text-sm font-medium">
-                        {rider.name}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs sm:text-sm font-medium">
+                          {rider.name}
+                        </span>
+                        <GroupTag label={rider.groupLabel || rider.group} />
+                      </div>
                       {rider.phoneNumber ? (
                         <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                           <div className="flex items-center gap-1">
